@@ -2,7 +2,7 @@
 <template>
    <!-- 设置语言为中文 -->
    <el-config-provider :locale="locale">
-      <router-view></router-view>
+      <router-view></router-view>111111111
    </el-config-provider>
 </template>
 
