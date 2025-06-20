@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.QuestionMapper">
+    
+    <resultMap type="Question" id="QuestionResult">
+        <result property="questionId"    column="question_id"    />
+        <result property="bankId"    column="bank_id"    />
+        <result property="knowledgeNodeId"    column="knowledge_node_id"    />
+        <result property="questionType"    column="question_type"    />
+        <result property="questionContent"    column="question_content"    />
+        <result property="options"    column="options"    />
+        <result property="answer"    column="answer"    />
+        <result property="difficultyLevel"    column="difficulty_level"    />
+        <result property="score"    column="score"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectQuestionVo">
+        select question_id, bank_id, knowledge_node_id, question_type, question_content, options, answer, difficulty_level, score, create_time, update_time from question
+    </sql>
+
+    <select id="selectQuestionList" parameterType="Question" resultMap="QuestionResult">
+        <include refid="selectQuestionVo"/>
+        <where>  
+            <if test="bankId != null "> and bank_id = #{bankId}</if>
+            <if test="knowledgeNodeId != null "> and knowledge_node_id = #{knowledgeNodeId}</if>
+            <if test="questionType != null  and questionType != ''"> and question_type = #{questionType}</if>
+            <if test="questionContent != null  and questionContent != ''"> and question_content = #{questionContent}</if>
+            <if test="options != null  and options != ''"> and options = #{options}</if>
+            <if test="answer != null  and answer != ''"> and answer = #{answer}</if>
+            <if test="difficultyLevel != null  and difficultyLevel != ''"> and difficulty_level = #{difficultyLevel}</if>
+            <if test="score != null "> and score = #{score}</if>
+        </where>
+    </select>
+    
+    <select id="selectQuestionByQuestionId" parameterType="Long" resultMap="QuestionResult">
+        <include refid="selectQuestionVo"/>
+        where question_id = #{questionId}
+    </select>
+
+    <insert id="insertQuestion" parameterType="Question" useGeneratedKeys="true" keyProperty="questionId">
+        insert into question
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bankId != null">bank_id,</if>
+            <if test="knowledgeNodeId != null">knowledge_node_id,</if>
+            <if test="questionType != null and questionType != ''">question_type,</if>
+            <if test="questionContent != null and questionContent != ''">question_content,</if>
+            <if test="options != null">options,</if>
+            <if test="answer != null and answer != ''">answer,</if>
+            <if test="difficultyLevel != null and difficultyLevel != ''">difficulty_level,</if>
+            <if test="score != null">score,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bankId != null">#{bankId},</if>
+            <if test="knowledgeNodeId != null">#{knowledgeNodeId},</if>
+            <if test="questionType != null and questionType != ''">#{questionType},</if>
+            <if test="questionContent != null and questionContent != ''">#{questionContent},</if>
+            <if test="options != null">#{options},</if>
+            <if test="answer != null and answer != ''">#{answer},</if>
+            <if test="difficultyLevel != null and difficultyLevel != ''">#{difficultyLevel},</if>
+            <if test="score != null">#{score},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateQuestion" parameterType="Question">
+        update question
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="bankId != null">bank_id = #{bankId},</if>
+            <if test="knowledgeNodeId != null">knowledge_node_id = #{knowledgeNodeId},</if>
+            <if test="questionType != null and questionType != ''">question_type = #{questionType},</if>
+            <if test="questionContent != null and questionContent != ''">question_content = #{questionContent},</if>
+            <if test="options != null">options = #{options},</if>
+            <if test="answer != null and answer != ''">answer = #{answer},</if>
+            <if test="difficultyLevel != null and difficultyLevel != ''">difficulty_level = #{difficultyLevel},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where question_id = #{questionId}
+    </update>
+
+    <delete id="deleteQuestionByQuestionId" parameterType="Long">
+        delete from question where question_id = #{questionId}
+    </delete>
+
+    <delete id="deleteQuestionByQuestionIds" parameterType="String">
+        delete from question where question_id in 
+        <foreach item="questionId" collection="array" open="(" separator="," close=")">
+            #{questionId}
+        </foreach>
+    </delete>
+</mapper>

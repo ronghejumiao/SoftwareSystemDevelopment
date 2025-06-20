@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.LearningTaskMapper">
+    
+    <resultMap type="LearningTask" id="LearningTaskResult">
+        <result property="taskId"    column="task_id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="taskName"    column="task_name"    />
+        <result property="taskType"    column="task_type"    />
+        <result property="taskDesc"    column="task_desc"    />
+        <result property="dueDate"    column="due_date"    />
+        <result property="submitMethod"    column="submit_method"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="status"    column="status"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectLearningTaskVo">
+        select task_id, course_id, task_name, task_type, task_desc, due_date, submit_method, create_by, create_time, update_by, update_time, status, remark from learning_task
+    </sql>
+
+    <select id="selectLearningTaskList" parameterType="LearningTask" resultMap="LearningTaskResult">
+        <include refid="selectLearningTaskVo"/>
+        <where>  
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="taskName != null  and taskName != ''"> and task_name like concat('%', #{taskName}, '%')</if>
+            <if test="taskType != null  and taskType != ''"> and task_type = #{taskType}</if>
+            <if test="taskDesc != null  and taskDesc != ''"> and task_desc = #{taskDesc}</if>
+            <if test="dueDate != null "> and due_date = #{dueDate}</if>
+            <if test="submitMethod != null  and submitMethod != ''"> and submit_method = #{submitMethod}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectLearningTaskByTaskId" parameterType="Long" resultMap="LearningTaskResult">
+        <include refid="selectLearningTaskVo"/>
+        where task_id = #{taskId}
+    </select>
+
+    <insert id="insertLearningTask" parameterType="LearningTask" useGeneratedKeys="true" keyProperty="taskId">
+        insert into learning_task
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="taskName != null and taskName != ''">task_name,</if>
+            <if test="taskType != null and taskType != ''">task_type,</if>
+            <if test="taskDesc != null">task_desc,</if>
+            <if test="dueDate != null">due_date,</if>
+            <if test="submitMethod != null">submit_method,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="status != null">status,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="taskName != null and taskName != ''">#{taskName},</if>
+            <if test="taskType != null and taskType != ''">#{taskType},</if>
+            <if test="taskDesc != null">#{taskDesc},</if>
+            <if test="dueDate != null">#{dueDate},</if>
+            <if test="submitMethod != null">#{submitMethod},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateLearningTask" parameterType="LearningTask">
+        update learning_task
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="taskName != null and taskName != ''">task_name = #{taskName},</if>
+            <if test="taskType != null and taskType != ''">task_type = #{taskType},</if>
+            <if test="taskDesc != null">task_desc = #{taskDesc},</if>
+            <if test="dueDate != null">due_date = #{dueDate},</if>
+            <if test="submitMethod != null">submit_method = #{submitMethod},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where task_id = #{taskId}
+    </update>
+
+    <delete id="deleteLearningTaskByTaskId" parameterType="Long">
+        delete from learning_task where task_id = #{taskId}
+    </delete>
+
+    <delete id="deleteLearningTaskByTaskIds" parameterType="String">
+        delete from learning_task where task_id in 
+        <foreach item="taskId" collection="array" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.StudentSkillMapper">
+    
+    <resultMap type="StudentSkill" id="StudentSkillResult">
+        <result property="id"    column="id"    />
+        <result property="studentId"    column="student_id"    />
+        <result property="requirementId"    column="requirement_id"    />
+        <result property="skillScore"    column="skill_score"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="updateReason"    column="update_reason"    />
+    </resultMap>
+
+    <sql id="selectStudentSkillVo">
+        select id, student_id, requirement_id, skill_score, update_time, update_reason from student_skill
+    </sql>
+
+    <select id="selectStudentSkillList" parameterType="StudentSkill" resultMap="StudentSkillResult">
+        <include refid="selectStudentSkillVo"/>
+        <where>  
+            <if test="studentId != null "> and student_id = #{studentId}</if>
+            <if test="requirementId != null "> and requirement_id = #{requirementId}</if>
+            <if test="skillScore != null "> and skill_score = #{skillScore}</if>
+            <if test="updateReason != null  and updateReason != ''"> and update_reason = #{updateReason}</if>
+        </where>
+    </select>
+    
+    <select id="selectStudentSkillById" parameterType="Long" resultMap="StudentSkillResult">
+        <include refid="selectStudentSkillVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertStudentSkill" parameterType="StudentSkill" useGeneratedKeys="true" keyProperty="id">
+        insert into student_skill
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="studentId != null">student_id,</if>
+            <if test="requirementId != null">requirement_id,</if>
+            <if test="skillScore != null">skill_score,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="updateReason != null">update_reason,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="studentId != null">#{studentId},</if>
+            <if test="requirementId != null">#{requirementId},</if>
+            <if test="skillScore != null">#{skillScore},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="updateReason != null">#{updateReason},</if>
+         </trim>
+    </insert>
+
+    <update id="updateStudentSkill" parameterType="StudentSkill">
+        update student_skill
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="studentId != null">student_id = #{studentId},</if>
+            <if test="requirementId != null">requirement_id = #{requirementId},</if>
+            <if test="skillScore != null">skill_score = #{skillScore},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="updateReason != null">update_reason = #{updateReason},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteStudentSkillById" parameterType="Long">
+        delete from student_skill where id = #{id}
+    </delete>
+
+    <delete id="deleteStudentSkillByIds" parameterType="String">
+        delete from student_skill where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

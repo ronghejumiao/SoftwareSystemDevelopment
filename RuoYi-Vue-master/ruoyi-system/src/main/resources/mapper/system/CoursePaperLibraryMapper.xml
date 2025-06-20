@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CoursePaperLibraryMapper">
+    
+    <resultMap type="CoursePaperLibrary" id="CoursePaperLibraryResult">
+        <result property="libraryId"    column="library_id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="libraryName"    column="library_name"    />
+        <result property="libraryDesc"    column="library_desc"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectCoursePaperLibraryVo">
+        select library_id, course_id, library_name, library_desc, create_time, update_time from course_paper_library
+    </sql>
+
+    <select id="selectCoursePaperLibraryList" parameterType="CoursePaperLibrary" resultMap="CoursePaperLibraryResult">
+        <include refid="selectCoursePaperLibraryVo"/>
+        <where>  
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="libraryName != null  and libraryName != ''"> and library_name like concat('%', #{libraryName}, '%')</if>
+            <if test="libraryDesc != null  and libraryDesc != ''"> and library_desc = #{libraryDesc}</if>
+        </where>
+    </select>
+    
+    <select id="selectCoursePaperLibraryByLibraryId" parameterType="Long" resultMap="CoursePaperLibraryResult">
+        <include refid="selectCoursePaperLibraryVo"/>
+        where library_id = #{libraryId}
+    </select>
+
+    <insert id="insertCoursePaperLibrary" parameterType="CoursePaperLibrary" useGeneratedKeys="true" keyProperty="libraryId">
+        insert into course_paper_library
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="libraryName != null and libraryName != ''">library_name,</if>
+            <if test="libraryDesc != null">library_desc,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="libraryName != null and libraryName != ''">#{libraryName},</if>
+            <if test="libraryDesc != null">#{libraryDesc},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateCoursePaperLibrary" parameterType="CoursePaperLibrary">
+        update course_paper_library
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="libraryName != null and libraryName != ''">library_name = #{libraryName},</if>
+            <if test="libraryDesc != null">library_desc = #{libraryDesc},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where library_id = #{libraryId}
+    </update>
+
+    <delete id="deleteCoursePaperLibraryByLibraryId" parameterType="Long">
+        delete from course_paper_library where library_id = #{libraryId}
+    </delete>
+
+    <delete id="deleteCoursePaperLibraryByLibraryIds" parameterType="String">
+        delete from course_paper_library where library_id in 
+        <foreach item="libraryId" collection="array" open="(" separator="," close=")">
+            #{libraryId}
+        </foreach>
+    </delete>
+</mapper>
