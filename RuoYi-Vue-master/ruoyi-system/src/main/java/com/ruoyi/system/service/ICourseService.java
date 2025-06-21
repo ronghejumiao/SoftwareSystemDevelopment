@@ -7,7 +7,7 @@ import com.ruoyi.system.domain.Course;
  * 课程信息，存储课程的基本信息Service接口
  * 
  * @author ruoyi
- * @date 2025-06-21
+ * @date 2025-06-22
  */
 public interface ICourseService 
 {

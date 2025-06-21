@@ -10,29 +10,29 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * 课程信息，存储课程的基本信息对象 course
  * 
  * @author ruoyi
- * @date 2025-06-21
+ * @date 2025-06-22
  */
 public class Course extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
-    /** 课程ID，主键，自增 */
+    /** 课程ID */
     private Long courseId;
 
     /** 课程名称 */
     @Excel(name = "课程名称")
     private String courseName;
 
-    /** 课程编号，唯一标识 */
-    @Excel(name = "课程编号，唯一标识")
+    /** 课程编号 */
+    @Excel(name = "课程编号")
     private String courseCode;
 
     /** 课程分类 */
     @Excel(name = "课程分类")
     private String courseCategory;
 
-    /** 授课教师ID，关联sys_user表 */
-    @Excel(name = "授课教师ID，关联sys_user表")
+    /** 授课教师ID */
+    @Excel(name = "授课教师ID")
     private Long teacherId;
 
     /** 课程学分 */
@@ -50,6 +50,10 @@ public class Course extends BaseEntity
     /** 课程状态（1-启用，0-停用） */
     @Excel(name = "课程状态", readConverterExp = "1=-启用，0-停用")
     private String status;
+
+    /** 课程的图片 */
+    @Excel(name = "课程的图片")
+    private String courseImg;
 
     public void setCourseId(Long courseId) 
     {
@@ -141,6 +145,16 @@ public class Course extends BaseEntity
         return status;
     }
 
+    public void setCourseImg(String courseImg) 
+    {
+        this.courseImg = courseImg;
+    }
+
+    public String getCourseImg() 
+    {
+        return courseImg;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -155,6 +169,7 @@ public class Course extends BaseEntity
             .append("createTime", getCreateTime())
             .append("updateTime", getUpdateTime())
             .append("status", getStatus())
+            .append("courseImg", getCourseImg())
             .toString();
     }
 }

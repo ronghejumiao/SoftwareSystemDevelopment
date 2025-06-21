@@ -49,6 +49,16 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="课程状态" prop="status">
+        <el-select v-model="queryParams.status" placeholder="请选择课程状态" clearable>
+          <el-option
+            v-for="dict in dict.type.char"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -68,28 +78,6 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
-          type="success"
-          plain
-          icon="el-icon-edit"
-          size="mini"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['system:course:edit']"
-        >修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="el-icon-delete"
-          size="mini"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['system:course:remove']"
-        >删除</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
           type="warning"
           plain
           icon="el-icon-download"
@@ -101,36 +89,31 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="courseList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="课程ID" align="center" prop="courseId" />
-      <el-table-column label="课程名称" align="center" prop="courseName" />
-      <el-table-column label="课程编号" align="center" prop="courseCode" />
-      <el-table-column label="课程分类" align="center" prop="courseCategory" />
-      <el-table-column label="授课教师ID" align="center" prop="teacherId" />
-      <el-table-column label="课程学分" align="center" prop="credit" />
-      <el-table-column label="课程学时" align="center" prop="hours" />
-      <el-table-column label="课程描述" align="center" prop="courseDesc" />
-      <el-table-column label="课程状态" align="center" prop="status" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template slot-scope="scope">
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-edit"
-            @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:course:edit']"
-          >修改</el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
-            v-hasPermi="['system:course:remove']"
-          >删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <el-row :gutter="20" v-loading="loading">
+      <el-col :md="6" :lg="6" :xl="6" v-for="course in courseList" :key="course.courseId" style="margin-bottom: 20px;">
+        <el-card :body-style="{ padding: '0px' }">
+          <el-image :src="baseUrl + course.courseImg" lazy class="course-image" fit="cover">
+            <div slot="error" class="image-slot">
+              <i class="el-icon-picture-outline"></i>
+            </div>
+          </el-image>
+          <div style="padding: 14px;">
+            <div class="course-body">
+              <h4 class="course-name">{{ course.courseName }}</h4>
+              <p class="course-category">{{ course.courseCategory }}</p>
+              <p class="course-desc">{{ course.courseDesc }}</p>
+            </div>
+            <div class="bottom clearfix">
+              <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(course)" v-hasPermi="['system:course:edit']">修改</el-button>
+              <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(course)" v-hasPermi="['system:course:remove']">删除</el-button>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+    <div v-if="courseList.length === 0 && !loading" style="text-align: center; color: #909399;">
+      暂无课程
+    </div>
 
     <pagination
       v-show="total>0"
@@ -140,7 +123,7 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改课程信息，存储课程的基本信息对话框 -->
+    <!-- 添加或修改课程信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="课程名称" prop="courseName">
@@ -164,6 +147,18 @@
         <el-form-item label="课程描述" prop="courseDesc">
           <el-input v-model="form.courseDesc" type="textarea" placeholder="请输入内容" />
         </el-form-item>
+        <el-form-item label="课程状态" prop="status">
+          <el-radio-group v-model="form.status">
+            <el-radio
+              v-for="dict in dict.type.char"
+              :key="dict.value"
+              :label="dict.value"
+            >{{dict.label}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="课程的图片" prop="courseImg">
+          <image-upload v-model="form.courseImg" :action="uploadUrl" :headers="uploadHeaders" />
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -175,29 +170,32 @@
 
 <script>
 import { listCourse, getCourse, delCourse, addCourse, updateCourse } from "@/api/system/course"
+import { getToken } from "@/utils/auth";
 
 export default {
   name: "Course",
+  dicts: ['char'],
   data() {
     return {
       // 遮罩层
       loading: true,
-      // 选中数组
-      ids: [],
-      // 非单个禁用
-      single: true,
-      // 非多个禁用
-      multiple: true,
+      baseUrl: process.env.VUE_APP_BASE_API,
       // 显示搜索条件
       showSearch: true,
       // 总条数
       total: 0,
-      // 课程信息，存储课程的基本信息表格数据
+      // 课程信息表格数据
       courseList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
       open: false,
+      // 图片上传地址
+      uploadUrl: "/system/course/upload",
+      // 上传请求头
+      uploadHeaders: {
+        Authorization: "Bearer " + getToken()
+      },
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -209,7 +207,8 @@ export default {
         credit: null,
         hours: null,
         courseDesc: null,
-        status: null
+        status: null,
+        courseImg: null
       },
       // 表单参数
       form: {},
@@ -219,13 +218,13 @@ export default {
           { required: true, message: "课程名称不能为空", trigger: "blur" }
         ],
         courseCode: [
-          { required: true, message: "课程编号，唯一标识不能为空", trigger: "blur" }
+          { required: true, message: "课程编号不能为空", trigger: "blur" }
         ],
         courseCategory: [
           { required: true, message: "课程分类不能为空", trigger: "blur" }
         ],
         teacherId: [
-          { required: true, message: "授课教师ID，关联sys_user表不能为空", trigger: "blur" }
+          { required: true, message: "授课教师ID不能为空", trigger: "blur" }
         ],
         credit: [
           { required: true, message: "课程学分不能为空", trigger: "blur" }
@@ -236,6 +235,9 @@ export default {
         createTime: [
           { required: true, message: "创建时间不能为空", trigger: "blur" }
         ],
+        courseImg: [
+          { required: true, message: "课程的图片不能为空", trigger: "blur" }
+        ]
       }
     }
   },
@@ -243,7 +245,7 @@ export default {
     this.getList()
   },
   methods: {
-    /** 查询课程信息，存储课程的基本信息列表 */
+    /** 查询课程信息列表 */
     getList() {
       this.loading = true
       listCourse(this.queryParams).then(response => {
@@ -270,7 +272,8 @@ export default {
         courseDesc: null,
         createTime: null,
         updateTime: null,
-        status: null
+        status: null,
+        courseImg: null
       }
       this.resetForm("form")
     },
@@ -284,26 +287,20 @@ export default {
       this.resetForm("queryForm")
       this.handleQuery()
     },
-    // 多选框选中数据
-    handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.courseId)
-      this.single = selection.length!==1
-      this.multiple = !selection.length
-    },
     /** 新增按钮操作 */
     handleAdd() {
       this.reset()
       this.open = true
-      this.title = "添加课程信息，存储课程的基本信息"
+      this.title = "添加课程信息"
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
-      const courseId = row.courseId || this.ids
+      const courseId = row.courseId
       getCourse(courseId).then(response => {
         this.form = response.data
         this.open = true
-        this.title = "修改课程信息，存储课程的基本信息"
+        this.title = "修改课程信息"
       })
     },
     /** 提交按钮 */
@@ -328,8 +325,8 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const courseIds = row.courseId || this.ids
-      this.$modal.confirm('是否确认删除课程信息，存储课程的基本信息编号为"' + courseIds + '"的数据项？').then(function() {
+      const courseIds = row.courseId
+      this.$modal.confirm('是否确认删除课程名称为"' + row.courseName + '"的数据项？').then(function() {
         return delCourse(courseIds)
       }).then(() => {
         this.getList()
@@ -345,3 +342,76 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.course-image {
+  width: 100%;
+  height: 160px;
+  display: block;
+}
+
+.image-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: #f5f7fa;
+  color: #909399;
+  font-size: 30px;
+}
+
+.course-body {
+  height: 110px; /* Fixed height for the text content area */
+  overflow: hidden;
+}
+
+.course-name {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.course-category {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.course-desc {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  /* Multi-line clamp */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit to 2 lines */
+  -webkit-box-orient: vertical;
+}
+
+.bottom {
+  margin-top: 13px;
+  line-height: 12px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.clearfix:before,
+.clearfix:after {
+    display: table;
+    content: "";
+}
+
+.clearfix:after {
+    clear: both
+}
+</style>

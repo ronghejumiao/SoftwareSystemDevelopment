@@ -12,7 +12,7 @@ import com.ruoyi.system.service.ICourseService;
  * 课程信息，存储课程的基本信息Service业务层处理
  * 
  * @author ruoyi
- * @date 2025-06-21
+ * @date 2025-06-22
  */
 @Service
 public class CourseServiceImpl implements ICourseService 

@@ -2,6 +2,10 @@ package com.ruoyi.web.controller;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+
+import com.ruoyi.common.config.RuoYiConfig;
+import com.ruoyi.common.utils.file.FileUploadUtils;
+import com.ruoyi.framework.config.ServerConfig;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,12 +24,13 @@ import com.ruoyi.system.domain.Course;
 import com.ruoyi.system.service.ICourseService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 课程信息，存储课程的基本信息Controller
- * 
+ *
  * @author ruoyi
- * @date 2025-06-21
+ * @date 2025-06-22
  */
 @RestController
 @RequestMapping("/system/course")
@@ -33,6 +38,9 @@ public class CourseController extends BaseController
 {
     @Autowired
     private ICourseService courseService;
+
+    @Autowired
+    private ServerConfig serverConfig;
 
     /**
      * 查询课程信息，存储课程的基本信息列表
@@ -96,9 +104,34 @@ public class CourseController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('system:course:remove')")
     @Log(title = "课程信息，存储课程的基本信息", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{courseIds}")
+    @DeleteMapping("/{courseIds}")
     public AjaxResult remove(@PathVariable Long[] courseIds)
     {
         return toAjax(courseService.deleteCourseByCourseIds(courseIds));
+    }
+
+    /**
+     * 课程图片上传
+     */
+    @Log(title = "课程图片", businessType = BusinessType.UPDATE)
+    @PostMapping("/upload")
+    public AjaxResult uploadFile(MultipartFile file) throws Exception
+    {
+        try
+        {
+            // 上传文件路径
+            String filePath = RuoYiConfig.getUploadPath();
+            // 上传并返回新文件名称
+            String fileName = FileUploadUtils.upload(filePath, file);
+            String url = serverConfig.getUrl() + fileName;
+            AjaxResult ajax = AjaxResult.success();
+            ajax.put("url", url);
+            ajax.put("fileName", fileName);
+            return ajax;
+        }
+        catch (Exception e)
+        {
+            return AjaxResult.error(e.getMessage());
+        }
     }
 }
