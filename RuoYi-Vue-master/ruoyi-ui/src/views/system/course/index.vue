@@ -91,7 +91,7 @@
 
     <el-row :gutter="20" v-loading="loading">
       <el-col :md="6" :lg="6" :xl="6" v-for="course in courseList" :key="course.courseId" style="margin-bottom: 20px;">
-        <el-card :body-style="{ padding: '0px' }">
+        <el-card :body-style="{ padding: '0px' }" class="course-card" @click.native="handleCourseClick(course)">
           <el-image :src="baseUrl + course.courseImg" lazy class="course-image" fit="cover">
             <div slot="error" class="image-slot">
               <i class="el-icon-picture-outline"></i>
@@ -338,12 +338,20 @@ export default {
       this.download('system/course/export', {
         ...this.queryParams
       }, `course_${new Date().getTime()}.xlsx`)
+    },
+    /** 跳转到课程详情页 */
+    handleCourseClick(course) {
+      this.$router.push({ path: '/system/course-detail/' + course.courseId });
     }
   }
 }
 </script>
 
 <style scoped>
+.course-card {
+  cursor: pointer;
+}
+
 .course-image {
   width: 100%;
   height: 160px;

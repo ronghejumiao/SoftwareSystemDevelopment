@@ -25,14 +25,6 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="文件大小" prop="fileSize">
-        <el-input
-          v-model="queryParams.fileSize"
-          placeholder="请输入文件大小"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
       <el-form-item label="上传者ID，关联sys_user表" prop="uploaderId">
         <el-input
           v-model="queryParams.uploaderId"
@@ -48,22 +40,6 @@
           value-format="yyyy-MM-dd"
           placeholder="请选择上传时间">
         </el-date-picker>
-      </el-form-item>
-      <el-form-item label="下载次数" prop="downloadCount">
-        <el-input
-          v-model="queryParams.downloadCount"
-          placeholder="请输入下载次数"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="是否公开" prop="isPublic">
-        <el-input
-          v-model="queryParams.isPublic"
-          placeholder="请输入是否公开"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -131,10 +107,6 @@
           <span>{{ parseTime(scope.row.uploadTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="状态" align="center" prop="status" />
-      <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="下载次数" align="center" prop="downloadCount" />
-      <el-table-column label="是否公开" align="center" prop="isPublic" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -163,7 +135,7 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改学习资源，存储课程的学习资源信息对话框 -->
+    <!-- 添加或修改学习资源对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="课程ID，关联course表" prop="courseId">
@@ -176,7 +148,7 @@
           <el-input v-model="form.resourcePath" placeholder="请输入存储路径" />
         </el-form-item>
         <el-form-item label="文件大小" prop="fileSize">
-          <el-input v-model="form.fileSize" placeholder="请输入文件大小" />
+          <file-upload v-model="form.fileSize"/>
         </el-form-item>
         <el-form-item label="上传者ID，关联sys_user表" prop="uploaderId">
           <el-input v-model="form.uploaderId" placeholder="请输入上传者ID，关联sys_user表" />
@@ -188,15 +160,6 @@
             value-format="yyyy-MM-dd"
             placeholder="请选择上传时间">
           </el-date-picker>
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="下载次数" prop="downloadCount">
-          <el-input v-model="form.downloadCount" placeholder="请输入下载次数" />
-        </el-form-item>
-        <el-form-item label="是否公开" prop="isPublic">
-          <el-input v-model="form.isPublic" placeholder="请输入是否公开" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -226,7 +189,7 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 学习资源，存储课程的学习资源信息表格数据
+      // 学习资源表格数据
       resourceList: [],
       // 弹出层标题
       title: "",
@@ -242,10 +205,7 @@ export default {
         resourcePath: null,
         fileSize: null,
         uploaderId: null,
-        uploadTime: null,
-        status: null,
-        downloadCount: null,
-        isPublic: null
+        uploadTime: null
       },
       // 表单参数
       form: {},
@@ -268,7 +228,7 @@ export default {
         ],
         uploadTime: [
           { required: true, message: "上传时间不能为空", trigger: "blur" }
-        ],
+        ]
       }
     }
   },
@@ -276,7 +236,7 @@ export default {
     this.getList()
   },
   methods: {
-    /** 查询学习资源，存储课程的学习资源信息列表 */
+    /** 查询学习资源列表 */
     getList() {
       this.loading = true
       listResource(this.queryParams).then(response => {
@@ -300,15 +260,7 @@ export default {
         resourcePath: null,
         fileSize: null,
         uploaderId: null,
-        uploadTime: null,
-        createBy: null,
-        createTime: null,
-        updateBy: null,
-        updateTime: null,
-        status: null,
-        remark: null,
-        downloadCount: null,
-        isPublic: null
+        uploadTime: null
       }
       this.resetForm("form")
     },
@@ -332,7 +284,7 @@ export default {
     handleAdd() {
       this.reset()
       this.open = true
-      this.title = "添加学习资源，存储课程的学习资源信息"
+      this.title = "添加学习资源"
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -341,7 +293,7 @@ export default {
       getResource(resourceId).then(response => {
         this.form = response.data
         this.open = true
-        this.title = "修改学习资源，存储课程的学习资源信息"
+        this.title = "修改学习资源"
       })
     },
     /** 提交按钮 */
@@ -367,7 +319,7 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const resourceIds = row.resourceId || this.ids
-      this.$modal.confirm('是否确认删除学习资源，存储课程的学习资源信息编号为"' + resourceIds + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认删除学习资源编号为"' + resourceIds + '"的数据项？').then(function() {
         return delResource(resourceIds)
       }).then(() => {
         this.getList()

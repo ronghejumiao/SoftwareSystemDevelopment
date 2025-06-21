@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-// 查询学习资源，存储课程的学习资源信息列表
+// 查询学习资源列表
 export function listResource(query) {
   return request({
     url: '/system/resource/list',
@@ -9,7 +9,7 @@ export function listResource(query) {
   })
 }
 
-// 查询学习资源，存储课程的学习资源信息详细
+// 查询学习资源详细
 export function getResource(resourceId) {
   return request({
     url: '/system/resource/' + resourceId,
@@ -17,7 +17,7 @@ export function getResource(resourceId) {
   })
 }
 
-// 新增学习资源，存储课程的学习资源信息
+// 新增学习资源
 export function addResource(data) {
   return request({
     url: '/system/resource',
@@ -26,7 +26,7 @@ export function addResource(data) {
   })
 }
 
-// 修改学习资源，存储课程的学习资源信息
+// 修改学习资源
 export function updateResource(data) {
   return request({
     url: '/system/resource',
@@ -35,7 +35,7 @@ export function updateResource(data) {
   })
 }
 
-// 删除学习资源，存储课程的学习资源信息
+// 删除学习资源
 export function delResource(resourceId) {
   return request({
     url: '/system/resource/' + resourceId,

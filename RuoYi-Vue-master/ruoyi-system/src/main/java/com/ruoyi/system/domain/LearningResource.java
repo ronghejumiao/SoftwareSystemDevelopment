@@ -8,10 +8,10 @@ import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
- * 学习资源，存储课程的学习资源信息对象 learning_resource
+ * 学习资源对象 learning_resource
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-22
  */
 public class LearningResource extends BaseEntity
 {
@@ -48,18 +48,6 @@ public class LearningResource extends BaseEntity
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Excel(name = "上传时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date uploadTime;
-
-    /** 状态（1-正常，0-禁用） */
-    @Excel(name = "状态", readConverterExp = "1=-正常，0-禁用")
-    private String status;
-
-    /** 下载次数 */
-    @Excel(name = "下载次数")
-    private Long downloadCount;
-
-    /** 是否公开（0-私有，1-公开） */
-    @Excel(name = "是否公开", readConverterExp = "0=-私有，1-公开")
-    private String isPublic;
 
     public void setResourceId(Long resourceId) 
     {
@@ -141,36 +129,6 @@ public class LearningResource extends BaseEntity
         return uploadTime;
     }
 
-    public void setStatus(String status) 
-    {
-        this.status = status;
-    }
-
-    public String getStatus() 
-    {
-        return status;
-    }
-
-    public void setDownloadCount(Long downloadCount) 
-    {
-        this.downloadCount = downloadCount;
-    }
-
-    public Long getDownloadCount() 
-    {
-        return downloadCount;
-    }
-
-    public void setIsPublic(String isPublic) 
-    {
-        this.isPublic = isPublic;
-    }
-
-    public String getIsPublic() 
-    {
-        return isPublic;
-    }
-
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -182,14 +140,6 @@ public class LearningResource extends BaseEntity
             .append("fileSize", getFileSize())
             .append("uploaderId", getUploaderId())
             .append("uploadTime", getUploadTime())
-            .append("createBy", getCreateBy())
-            .append("createTime", getCreateTime())
-            .append("updateBy", getUpdateBy())
-            .append("updateTime", getUpdateTime())
-            .append("status", getStatus())
-            .append("remark", getRemark())
-            .append("downloadCount", getDownloadCount())
-            .append("isPublic", getIsPublic())
             .toString();
     }
 }

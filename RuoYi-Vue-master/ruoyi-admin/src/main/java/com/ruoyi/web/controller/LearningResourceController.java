@@ -22,10 +22,10 @@ import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
- * 学习资源，存储课程的学习资源信息Controller
+ * 学习资源Controller
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-22
  */
 @RestController
 @RequestMapping("/system/resource")
@@ -35,7 +35,7 @@ public class LearningResourceController extends BaseController
     private ILearningResourceService learningResourceService;
 
     /**
-     * 查询学习资源，存储课程的学习资源信息列表
+     * 查询学习资源列表
      */
     @PreAuthorize("@ss.hasPermi('system:resource:list')")
     @GetMapping("/list")
@@ -47,20 +47,20 @@ public class LearningResourceController extends BaseController
     }
 
     /**
-     * 导出学习资源，存储课程的学习资源信息列表
+     * 导出学习资源列表
      */
     @PreAuthorize("@ss.hasPermi('system:resource:export')")
-    @Log(title = "学习资源，存储课程的学习资源信息", businessType = BusinessType.EXPORT)
+    @Log(title = "学习资源", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, LearningResource learningResource)
     {
         List<LearningResource> list = learningResourceService.selectLearningResourceList(learningResource);
         ExcelUtil<LearningResource> util = new ExcelUtil<LearningResource>(LearningResource.class);
-        util.exportExcel(response, list, "学习资源，存储课程的学习资源信息数据");
+        util.exportExcel(response, list, "学习资源数据");
     }
 
     /**
-     * 获取学习资源，存储课程的学习资源信息详细信息
+     * 获取学习资源详细信息
      */
     @PreAuthorize("@ss.hasPermi('system:resource:query')")
     @GetMapping(value = "/{resourceId}")
@@ -70,10 +70,10 @@ public class LearningResourceController extends BaseController
     }
 
     /**
-     * 新增学习资源，存储课程的学习资源信息
+     * 新增学习资源
      */
     @PreAuthorize("@ss.hasPermi('system:resource:add')")
-    @Log(title = "学习资源，存储课程的学习资源信息", businessType = BusinessType.INSERT)
+    @Log(title = "学习资源", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody LearningResource learningResource)
     {
@@ -81,10 +81,10 @@ public class LearningResourceController extends BaseController
     }
 
     /**
-     * 修改学习资源，存储课程的学习资源信息
+     * 修改学习资源
      */
     @PreAuthorize("@ss.hasPermi('system:resource:edit')")
-    @Log(title = "学习资源，存储课程的学习资源信息", businessType = BusinessType.UPDATE)
+    @Log(title = "学习资源", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody LearningResource learningResource)
     {
@@ -92,10 +92,10 @@ public class LearningResourceController extends BaseController
     }
 
     /**
-     * 删除学习资源，存储课程的学习资源信息
+     * 删除学习资源
      */
     @PreAuthorize("@ss.hasPermi('system:resource:remove')")
-    @Log(title = "学习资源，存储课程的学习资源信息", businessType = BusinessType.DELETE)
+    @Log(title = "学习资源", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{resourceIds}")
     public AjaxResult remove(@PathVariable Long[] resourceIds)
     {

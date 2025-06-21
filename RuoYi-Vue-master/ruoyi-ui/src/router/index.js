@@ -93,13 +93,13 @@ export const constantRoutes = [
 // 动态路由，基于用户权限动态去加载
 export const dynamicRoutes = [
   {
-    path: '/system/user-auth',
+    path: '/system/user/authRole/:userId(\\d+)',
     component: Layout,
     hidden: true,
     permissions: ['system:user:edit'],
     children: [
       {
-        path: 'role/:userId(\\d+)',
+        path: 'index',
         component: () => import('@/views/system/user/authRole'),
         name: 'AuthRole',
         meta: { title: '分配角色', activeMenu: '/system/user' }
@@ -107,16 +107,30 @@ export const dynamicRoutes = [
     ]
   },
   {
-    path: '/system/role-auth',
+    path: '/system/role/authUser/:roleId(\\d+)',
     component: Layout,
     hidden: true,
     permissions: ['system:role:edit'],
     children: [
       {
-        path: 'user/:roleId(\\d+)',
+        path: 'index',
         component: () => import('@/views/system/role/authUser'),
         name: 'AuthUser',
         meta: { title: '分配用户', activeMenu: '/system/role' }
+      }
+    ]
+  },
+  {
+    path: '/system/course-detail/:courseId(\\d+)',
+    component: Layout,
+    hidden: true,
+    permissions: ['system:course:list'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/system/course/detail'),
+        name: 'CourseDetail',
+        meta: { title: '课程详情', activeMenu: '/system/course' }
       }
     ]
   },

@@ -1,7 +1,6 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
-import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.mapper.LearningResourceMapper;
@@ -9,10 +8,10 @@ import com.ruoyi.system.domain.LearningResource;
 import com.ruoyi.system.service.ILearningResourceService;
 
 /**
- * 学习资源，存储课程的学习资源信息Service业务层处理
+ * 学习资源Service业务层处理
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-22
  */
 @Service
 public class LearningResourceServiceImpl implements ILearningResourceService 
@@ -21,10 +20,10 @@ public class LearningResourceServiceImpl implements ILearningResourceService
     private LearningResourceMapper learningResourceMapper;
 
     /**
-     * 查询学习资源，存储课程的学习资源信息
+     * 查询学习资源
      * 
-     * @param resourceId 学习资源，存储课程的学习资源信息主键
-     * @return 学习资源，存储课程的学习资源信息
+     * @param resourceId 学习资源主键
+     * @return 学习资源
      */
     @Override
     public LearningResource selectLearningResourceByResourceId(Long resourceId)
@@ -33,10 +32,10 @@ public class LearningResourceServiceImpl implements ILearningResourceService
     }
 
     /**
-     * 查询学习资源，存储课程的学习资源信息列表
+     * 查询学习资源列表
      * 
-     * @param learningResource 学习资源，存储课程的学习资源信息
-     * @return 学习资源，存储课程的学习资源信息
+     * @param learningResource 学习资源
+     * @return 学习资源
      */
     @Override
     public List<LearningResource> selectLearningResourceList(LearningResource learningResource)
@@ -45,35 +44,33 @@ public class LearningResourceServiceImpl implements ILearningResourceService
     }
 
     /**
-     * 新增学习资源，存储课程的学习资源信息
+     * 新增学习资源
      * 
-     * @param learningResource 学习资源，存储课程的学习资源信息
+     * @param learningResource 学习资源
      * @return 结果
      */
     @Override
     public int insertLearningResource(LearningResource learningResource)
     {
-        learningResource.setCreateTime(DateUtils.getNowDate());
         return learningResourceMapper.insertLearningResource(learningResource);
     }
 
     /**
-     * 修改学习资源，存储课程的学习资源信息
+     * 修改学习资源
      * 
-     * @param learningResource 学习资源，存储课程的学习资源信息
+     * @param learningResource 学习资源
      * @return 结果
      */
     @Override
     public int updateLearningResource(LearningResource learningResource)
     {
-        learningResource.setUpdateTime(DateUtils.getNowDate());
         return learningResourceMapper.updateLearningResource(learningResource);
     }
 
     /**
-     * 批量删除学习资源，存储课程的学习资源信息
+     * 批量删除学习资源
      * 
-     * @param resourceIds 需要删除的学习资源，存储课程的学习资源信息主键
+     * @param resourceIds 需要删除的学习资源主键
      * @return 结果
      */
     @Override
@@ -83,9 +80,9 @@ public class LearningResourceServiceImpl implements ILearningResourceService
     }
 
     /**
-     * 删除学习资源，存储课程的学习资源信息信息
+     * 删除学习资源信息
      * 
-     * @param resourceId 学习资源，存储课程的学习资源信息主键
+     * @param resourceId 学习资源主键
      * @return 结果
      */
     @Override
