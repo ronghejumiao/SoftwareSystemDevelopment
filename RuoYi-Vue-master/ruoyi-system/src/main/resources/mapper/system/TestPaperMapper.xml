@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TestPaperMapper">
+    
+    <resultMap type="TestPaper" id="TestPaperResult">
+        <result property="paperId"    column="paper_id"    />
+        <result property="libraryId"    column="library_id"    />
+        <result property="paperName"    column="paper_name"    />
+        <result property="paperDesc"    column="paper_desc"    />
+        <result property="totalScore"    column="total_score"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectTestPaperVo">
+        select paper_id, library_id, paper_name, paper_desc, total_score, create_time, update_time from test_paper
+    </sql>
+
+    <select id="selectTestPaperList" parameterType="TestPaper" resultMap="TestPaperResult">
+        <include refid="selectTestPaperVo"/>
+        <where>  
+            <if test="libraryId != null "> and library_id = #{libraryId}</if>
+            <if test="paperName != null  and paperName != ''"> and paper_name like concat('%', #{paperName}, '%')</if>
+            <if test="paperDesc != null  and paperDesc != ''"> and paper_desc = #{paperDesc}</if>
+            <if test="totalScore != null "> and total_score = #{totalScore}</if>
+        </where>
+    </select>
+    
+    <select id="selectTestPaperByPaperId" parameterType="Long" resultMap="TestPaperResult">
+        <include refid="selectTestPaperVo"/>
+        where paper_id = #{paperId}
+    </select>
+
+    <insert id="insertTestPaper" parameterType="TestPaper" useGeneratedKeys="true" keyProperty="paperId">
+        insert into test_paper
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="libraryId != null">library_id,</if>
+            <if test="paperName != null and paperName != ''">paper_name,</if>
+            <if test="paperDesc != null">paper_desc,</if>
+            <if test="totalScore != null">total_score,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="libraryId != null">#{libraryId},</if>
+            <if test="paperName != null and paperName != ''">#{paperName},</if>
+            <if test="paperDesc != null">#{paperDesc},</if>
+            <if test="totalScore != null">#{totalScore},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTestPaper" parameterType="TestPaper">
+        update test_paper
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="libraryId != null">library_id = #{libraryId},</if>
+            <if test="paperName != null and paperName != ''">paper_name = #{paperName},</if>
+            <if test="paperDesc != null">paper_desc = #{paperDesc},</if>
+            <if test="totalScore != null">total_score = #{totalScore},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where paper_id = #{paperId}
+    </update>
+
+    <delete id="deleteTestPaperByPaperId" parameterType="Long">
+        delete from test_paper where paper_id = #{paperId}
+    </delete>
+
+    <delete id="deleteTestPaperByPaperIds" parameterType="String">
+        delete from test_paper where paper_id in 
+        <foreach item="paperId" collection="array" open="(" separator="," close=")">
+            #{paperId}
+        </foreach>
+    </delete>
+</mapper>

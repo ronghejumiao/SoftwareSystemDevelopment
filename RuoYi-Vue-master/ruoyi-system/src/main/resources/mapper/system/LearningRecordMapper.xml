@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.LearningRecordMapper">
+    
+    <resultMap type="LearningRecord" id="LearningRecordResult">
+        <result property="recordId"    column="record_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="joinTime"    column="join_time"    />
+        <result property="courseProgress"    column="course_progress"    />
+    </resultMap>
+
+    <sql id="selectLearningRecordVo">
+        select record_id, user_id, course_id, join_time, course_progress from learning_record
+    </sql>
+
+    <select id="selectLearningRecordList" parameterType="LearningRecord" resultMap="LearningRecordResult">
+        <include refid="selectLearningRecordVo"/>
+        <where>  
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="joinTime != null "> and join_time = #{joinTime}</if>
+            <if test="courseProgress != null "> and course_progress = #{courseProgress}</if>
+        </where>
+    </select>
+    
+    <select id="selectLearningRecordByRecordId" parameterType="Long" resultMap="LearningRecordResult">
+        <include refid="selectLearningRecordVo"/>
+        where record_id = #{recordId}
+    </select>
+
+    <insert id="insertLearningRecord" parameterType="LearningRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into learning_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="courseId != null">course_id,</if>
+            <if test="joinTime != null">join_time,</if>
+            <if test="courseProgress != null">course_progress,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="courseId != null">#{courseId},</if>
+            <if test="joinTime != null">#{joinTime},</if>
+            <if test="courseProgress != null">#{courseProgress},</if>
+         </trim>
+    </insert>
+
+    <update id="updateLearningRecord" parameterType="LearningRecord">
+        update learning_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="joinTime != null">join_time = #{joinTime},</if>
+            <if test="courseProgress != null">course_progress = #{courseProgress},</if>
+        </trim>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteLearningRecordByRecordId" parameterType="Long">
+        delete from learning_record where record_id = #{recordId}
+    </delete>
+
+    <delete id="deleteLearningRecordByRecordIds" parameterType="String">
+        delete from learning_record where record_id in 
+        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+</mapper>

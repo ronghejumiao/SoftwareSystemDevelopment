@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.ScoreMapper">
+    
+    <resultMap type="Score" id="ScoreResult">
+        <result property="scoreId"    column="score_id"    />
+        <result property="learningRecordId"    column="learning_record_id"    />
+        <result property="taskId"    column="task_id"    />
+        <result property="paperId"    column="paper_id"    />
+        <result property="score"    column="score"    />
+        <result property="scoreDesc"    column="score_desc"    />
+        <result property="submitTime"    column="submit_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectScoreVo">
+        select score_id, learning_record_id, task_id, paper_id, score, score_desc, submit_time, create_time, update_time from score
+    </sql>
+
+    <select id="selectScoreList" parameterType="Score" resultMap="ScoreResult">
+        <include refid="selectScoreVo"/>
+        <where>  
+            <if test="learningRecordId != null "> and learning_record_id = #{learningRecordId}</if>
+            <if test="taskId != null "> and task_id = #{taskId}</if>
+            <if test="paperId != null "> and paper_id = #{paperId}</if>
+            <if test="score != null "> and score = #{score}</if>
+            <if test="scoreDesc != null  and scoreDesc != ''"> and score_desc = #{scoreDesc}</if>
+            <if test="submitTime != null "> and submit_time = #{submitTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectScoreByScoreId" parameterType="Long" resultMap="ScoreResult">
+        <include refid="selectScoreVo"/>
+        where score_id = #{scoreId}
+    </select>
+
+    <insert id="insertScore" parameterType="Score" useGeneratedKeys="true" keyProperty="scoreId">
+        insert into score
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="learningRecordId != null">learning_record_id,</if>
+            <if test="taskId != null">task_id,</if>
+            <if test="paperId != null">paper_id,</if>
+            <if test="score != null">score,</if>
+            <if test="scoreDesc != null">score_desc,</if>
+            <if test="submitTime != null">submit_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="learningRecordId != null">#{learningRecordId},</if>
+            <if test="taskId != null">#{taskId},</if>
+            <if test="paperId != null">#{paperId},</if>
+            <if test="score != null">#{score},</if>
+            <if test="scoreDesc != null">#{scoreDesc},</if>
+            <if test="submitTime != null">#{submitTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateScore" parameterType="Score">
+        update score
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="learningRecordId != null">learning_record_id = #{learningRecordId},</if>
+            <if test="taskId != null">task_id = #{taskId},</if>
+            <if test="paperId != null">paper_id = #{paperId},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="scoreDesc != null">score_desc = #{scoreDesc},</if>
+            <if test="submitTime != null">submit_time = #{submitTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where score_id = #{scoreId}
+    </update>
+
+    <delete id="deleteScoreByScoreId" parameterType="Long">
+        delete from score where score_id = #{scoreId}
+    </delete>
+
+    <delete id="deleteScoreByScoreIds" parameterType="String">
+        delete from score where score_id in 
+        <foreach item="scoreId" collection="array" open="(" separator="," close=")">
+            #{scoreId}
+        </foreach>
+    </delete>
+</mapper>

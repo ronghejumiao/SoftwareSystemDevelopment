@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.VideoLearningRecordMapper">
+    
+    <resultMap type="VideoLearningRecord" id="VideoLearningRecordResult">
+        <result property="recordId"    column="record_id"    />
+        <result property="learningRecordId"    column="learning_record_id"    />
+        <result property="resourceId"    column="resource_id"    />
+        <result property="totalDuration"    column="total_duration"    />
+        <result property="watchedDuration"    column="watched_duration"    />
+        <result property="skipSegments"    column="skip_segments"    />
+        <result property="repeatSegments"    column="repeat_segments"    />
+        <result property="completionRate"    column="completion_rate"    />
+        <result property="lastWatchTime"    column="last_watch_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectVideoLearningRecordVo">
+        select record_id, learning_record_id, resource_id, total_duration, watched_duration, skip_segments, repeat_segments, completion_rate, last_watch_time, create_time, update_time from video_learning_record
+    </sql>
+
+    <select id="selectVideoLearningRecordList" parameterType="VideoLearningRecord" resultMap="VideoLearningRecordResult">
+        <include refid="selectVideoLearningRecordVo"/>
+        <where>  
+            <if test="learningRecordId != null "> and learning_record_id = #{learningRecordId}</if>
+            <if test="resourceId != null "> and resource_id = #{resourceId}</if>
+            <if test="totalDuration != null "> and total_duration = #{totalDuration}</if>
+            <if test="watchedDuration != null "> and watched_duration = #{watchedDuration}</if>
+            <if test="skipSegments != null  and skipSegments != ''"> and skip_segments = #{skipSegments}</if>
+            <if test="repeatSegments != null  and repeatSegments != ''"> and repeat_segments = #{repeatSegments}</if>
+            <if test="completionRate != null "> and completion_rate = #{completionRate}</if>
+            <if test="lastWatchTime != null "> and last_watch_time = #{lastWatchTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectVideoLearningRecordByRecordId" parameterType="Long" resultMap="VideoLearningRecordResult">
+        <include refid="selectVideoLearningRecordVo"/>
+        where record_id = #{recordId}
+    </select>
+
+    <insert id="insertVideoLearningRecord" parameterType="VideoLearningRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into video_learning_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="learningRecordId != null">learning_record_id,</if>
+            <if test="resourceId != null">resource_id,</if>
+            <if test="totalDuration != null">total_duration,</if>
+            <if test="watchedDuration != null">watched_duration,</if>
+            <if test="skipSegments != null">skip_segments,</if>
+            <if test="repeatSegments != null">repeat_segments,</if>
+            <if test="completionRate != null">completion_rate,</if>
+            <if test="lastWatchTime != null">last_watch_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="learningRecordId != null">#{learningRecordId},</if>
+            <if test="resourceId != null">#{resourceId},</if>
+            <if test="totalDuration != null">#{totalDuration},</if>
+            <if test="watchedDuration != null">#{watchedDuration},</if>
+            <if test="skipSegments != null">#{skipSegments},</if>
+            <if test="repeatSegments != null">#{repeatSegments},</if>
+            <if test="completionRate != null">#{completionRate},</if>
+            <if test="lastWatchTime != null">#{lastWatchTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateVideoLearningRecord" parameterType="VideoLearningRecord">
+        update video_learning_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="learningRecordId != null">learning_record_id = #{learningRecordId},</if>
+            <if test="resourceId != null">resource_id = #{resourceId},</if>
+            <if test="totalDuration != null">total_duration = #{totalDuration},</if>
+            <if test="watchedDuration != null">watched_duration = #{watchedDuration},</if>
+            <if test="skipSegments != null">skip_segments = #{skipSegments},</if>
+            <if test="repeatSegments != null">repeat_segments = #{repeatSegments},</if>
+            <if test="completionRate != null">completion_rate = #{completionRate},</if>
+            <if test="lastWatchTime != null">last_watch_time = #{lastWatchTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteVideoLearningRecordByRecordId" parameterType="Long">
+        delete from video_learning_record where record_id = #{recordId}
+    </delete>
+
+    <delete id="deleteVideoLearningRecordByRecordIds" parameterType="String">
+        delete from video_learning_record where record_id in 
+        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+</mapper>

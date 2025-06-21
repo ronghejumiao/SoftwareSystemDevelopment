@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.KnowledgeNodeMapper">
+    
+    <resultMap type="KnowledgeNode" id="KnowledgeNodeResult">
+        <result property="nodeId"    column="node_id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="nodeName"    column="node_name"    />
+        <result property="nodeDesc"    column="node_desc"    />
+        <result property="nodeLevel"    column="node_level"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectKnowledgeNodeVo">
+        select node_id, course_id, node_name, node_desc, node_level, parent_id, create_time, update_time from knowledge_node
+    </sql>
+
+    <select id="selectKnowledgeNodeList" parameterType="KnowledgeNode" resultMap="KnowledgeNodeResult">
+        <include refid="selectKnowledgeNodeVo"/>
+        <where>  
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="nodeName != null  and nodeName != ''"> and node_name like concat('%', #{nodeName}, '%')</if>
+            <if test="nodeDesc != null  and nodeDesc != ''"> and node_desc = #{nodeDesc}</if>
+            <if test="nodeLevel != null "> and node_level = #{nodeLevel}</if>
+            <if test="parentId != null "> and parent_id = #{parentId}</if>
+        </where>
+    </select>
+    
+    <select id="selectKnowledgeNodeByNodeId" parameterType="Long" resultMap="KnowledgeNodeResult">
+        <include refid="selectKnowledgeNodeVo"/>
+        where node_id = #{nodeId}
+    </select>
+
+    <insert id="insertKnowledgeNode" parameterType="KnowledgeNode" useGeneratedKeys="true" keyProperty="nodeId">
+        insert into knowledge_node
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="nodeName != null and nodeName != ''">node_name,</if>
+            <if test="nodeDesc != null">node_desc,</if>
+            <if test="nodeLevel != null">node_level,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="nodeName != null and nodeName != ''">#{nodeName},</if>
+            <if test="nodeDesc != null">#{nodeDesc},</if>
+            <if test="nodeLevel != null">#{nodeLevel},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateKnowledgeNode" parameterType="KnowledgeNode">
+        update knowledge_node
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="nodeName != null and nodeName != ''">node_name = #{nodeName},</if>
+            <if test="nodeDesc != null">node_desc = #{nodeDesc},</if>
+            <if test="nodeLevel != null">node_level = #{nodeLevel},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where node_id = #{nodeId}
+    </update>
+
+    <delete id="deleteKnowledgeNodeByNodeId" parameterType="Long">
+        delete from knowledge_node where node_id = #{nodeId}
+    </delete>
+
+    <delete id="deleteKnowledgeNodeByNodeIds" parameterType="String">
+        delete from knowledge_node where node_id in 
+        <foreach item="nodeId" collection="array" open="(" separator="," close=")">
+            #{nodeId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CourseImgMapper">
+    
+    <resultMap type="CourseImg" id="CourseImgResult">
+        <result property="mapId"    column="map_id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="mapName"    column="map_name"    />
+        <result property="mapUrl"    column="map_url"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectCourseImgVo">
+        select map_id, course_id, map_name, map_url, create_time, update_time from course_img
+    </sql>
+
+    <select id="selectCourseImgList" parameterType="CourseImg" resultMap="CourseImgResult">
+        <include refid="selectCourseImgVo"/>
+        <where>  
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="mapName != null  and mapName != ''"> and map_name like concat('%', #{mapName}, '%')</if>
+            <if test="mapUrl != null  and mapUrl != ''"> and map_url = #{mapUrl}</if>
+        </where>
+    </select>
+    
+    <select id="selectCourseImgByMapId" parameterType="Long" resultMap="CourseImgResult">
+        <include refid="selectCourseImgVo"/>
+        where map_id = #{mapId}
+    </select>
+
+    <insert id="insertCourseImg" parameterType="CourseImg" useGeneratedKeys="true" keyProperty="mapId">
+        insert into course_img
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="mapName != null and mapName != ''">map_name,</if>
+            <if test="mapUrl != null and mapUrl != ''">map_url,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="mapName != null and mapName != ''">#{mapName},</if>
+            <if test="mapUrl != null and mapUrl != ''">#{mapUrl},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateCourseImg" parameterType="CourseImg">
+        update course_img
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="mapName != null and mapName != ''">map_name = #{mapName},</if>
+            <if test="mapUrl != null and mapUrl != ''">map_url = #{mapUrl},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where map_id = #{mapId}
+    </update>
+
+    <delete id="deleteCourseImgByMapId" parameterType="Long">
+        delete from course_img where map_id = #{mapId}
+    </delete>
+
+    <delete id="deleteCourseImgByMapIds" parameterType="String">
+        delete from course_img where map_id in 
+        <foreach item="mapId" collection="array" open="(" separator="," close=")">
+            #{mapId}
+        </foreach>
+    </delete>
+</mapper>
