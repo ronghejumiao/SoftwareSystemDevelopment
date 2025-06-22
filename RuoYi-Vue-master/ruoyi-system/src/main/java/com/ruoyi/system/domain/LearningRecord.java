@@ -11,7 +11,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * 学习记录，记录学生的课程学习关联信息对象 learning_record
  * 
  * @author ruoyi
- * @date 2025-06-21
+ * @date 2025-06-20
  */
 public class LearningRecord extends BaseEntity
 {

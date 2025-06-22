@@ -2,13 +2,12 @@ package com.ruoyi.system.service;
 
 import java.util.List;
 import com.ruoyi.system.domain.TestPaper;
-import com.ruoyi.system.domain.vo.PaperGenerateRequest;
 
 /**
  * 试卷，一个试卷库包含多个试卷Service接口
  * 
  * @author ruoyi
- * @date 2025-06-21
+ * @date 2025-06-20
  */
 public interface ITestPaperService 
 {
@@ -59,12 +58,4 @@ public interface ITestPaperService
      * @return 结果
      */
     public int deleteTestPaperByPaperId(Long paperId);
-
-    /**
-     * 生成试卷
-     * 
-     * @param request 试卷生成请求
-     * @return 生成的试卷
-     */
-    public TestPaper generatePaper(PaperGenerateRequest request);
 }

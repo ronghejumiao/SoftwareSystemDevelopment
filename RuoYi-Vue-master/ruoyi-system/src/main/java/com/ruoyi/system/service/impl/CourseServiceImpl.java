@@ -12,7 +12,11 @@ import com.ruoyi.system.service.ICourseService;
  * 课程信息，存储课程的基本信息Service业务层处理
  * 
  * @author ruoyi
+<<<<<<< HEAD
  * @date 2025-06-22
+=======
+ * @date 2025-06-20
+>>>>>>> parent of 58ccf7c (Merge branch 'main' of https://github.com/ronghejumiao/SoftwareSystemDevelopment)
  */
 @Service
 public class CourseServiceImpl implements ICourseService 

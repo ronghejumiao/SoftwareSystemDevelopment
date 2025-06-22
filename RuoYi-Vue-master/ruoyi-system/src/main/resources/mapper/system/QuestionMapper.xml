@@ -96,11 +96,4 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{questionId}
         </foreach>
     </delete>
-
-    <select id="selectQuestionsByCourseId" parameterType="Long" resultMap="QuestionResult">
-        <include refid="selectQuestionVo"/>
-        where bank_id in (
-            select bank_id from question_bank where course_id = #{courseId}
-        )
-    </select>
 </mapper>

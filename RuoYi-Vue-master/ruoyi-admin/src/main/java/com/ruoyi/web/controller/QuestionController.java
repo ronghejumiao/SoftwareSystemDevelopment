@@ -1,4 +1,4 @@
-package com.ruoyi.web.controller;
+package com.ruoyi.system.controller;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
@@ -17,10 +17,7 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.system.domain.Question;
-import com.ruoyi.system.domain.TestPaper;
-import com.ruoyi.system.domain.vo.PaperGenerateRequest;
 import com.ruoyi.system.service.IQuestionService;
-import com.ruoyi.system.service.IPaperGenerateService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
 
@@ -36,9 +33,6 @@ public class QuestionController extends BaseController
 {
     @Autowired
     private IQuestionService questionService;
-    
-    @Autowired
-    private IPaperGenerateService paperGenerateService;
 
     /**
      * 查询题目，存储题库中的题目信息列表
@@ -106,32 +100,5 @@ public class QuestionController extends BaseController
     public AjaxResult remove(@PathVariable Long[] questionIds)
     {
         return toAjax(questionService.deleteQuestionByQuestionIds(questionIds));
-    }
-
-    /**
-     * 根据课程ID获取题目列表
-     */
-    @PreAuthorize("@ss.hasPermi('system:question:list')")
-    @GetMapping("/course/{courseId}")
-    public AjaxResult getQuestionsByCourseId(@PathVariable("courseId") Long courseId)
-    {
-        List<Question> list = questionService.selectQuestionsByCourseId(courseId);
-        return success(list);
-    }
-
-    /**
-     * 生成试卷
-     */
-    @PreAuthorize("@ss.hasPermi('system:question:generate')")
-    @Log(title = "生成试卷", businessType = BusinessType.INSERT)
-    @PostMapping("/generate")
-    public AjaxResult generatePaper(@RequestBody PaperGenerateRequest request)
-    {
-        try {
-            TestPaper testPaper = paperGenerateService.generatePaper(request);
-            return success(testPaper);
-        } catch (Exception e) {
-            return error(e.getMessage());
-        }
     }
 }

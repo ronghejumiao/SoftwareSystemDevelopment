@@ -28,14 +28,6 @@ public interface CoursePaperLibraryMapper
     public List<CoursePaperLibrary> selectCoursePaperLibraryList(CoursePaperLibrary coursePaperLibrary);
 
     /**
-     * 根据课程ID查询试卷库
-     * 
-     * @param courseId 课程ID
-     * @return 课程试卷库
-     */
-    public CoursePaperLibrary selectCoursePaperLibraryByCourseId(Long courseId);
-
-    /**
      * 新增课程试卷库，一个课程对应一个试卷库
      * 
      * @param coursePaperLibrary 课程试卷库，一个课程对应一个试卷库

@@ -71,16 +71,4 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{libraryId}
         </foreach>
     </delete>
-
-    <select id="selectCoursePaperLibraryByCourseId" parameterType="Long" resultMap="CoursePaperLibraryResult">
-        select library_id, course_id, library_name, library_desc, create_time, update_time 
-        from course_paper_library 
-        where course_id = #{courseId}
-    </select>
-
-    <select id="selectByCourseId" parameterType="Long" resultMap="CoursePaperLibraryResult">
-        select library_id, course_id, library_name, library_desc, create_time, update_time 
-        from course_paper_library 
-        where course_id = #{courseId}
-    </select>
 </mapper>

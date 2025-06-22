@@ -10,7 +10,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * 试卷，一个试卷库包含多个试卷对象 test_paper
  * 
  * @author ruoyi
- * @date 2025-06-21
+ * @date 2025-06-20
  */
 public class TestPaper extends BaseEntity
 {
@@ -34,13 +34,6 @@ public class TestPaper extends BaseEntity
     /** 总分 */
     @Excel(name = "总分")
     private BigDecimal totalScore;
-
-    /** 试卷题目内容，JSON格式存储 */
-    @Excel(name = "试卷题目内容，JSON格式存储")
-    private String content;
-
-    /** 课程ID，用于查询 */
-    private Long courseId;
 
     public void setPaperId(Long paperId) 
     {
@@ -92,26 +85,6 @@ public class TestPaper extends BaseEntity
         return totalScore;
     }
 
-    public void setContent(String content) 
-    {
-        this.content = content;
-    }
-
-    public String getContent() 
-    {
-        return content;
-    }
-
-    public void setCourseId(Long courseId) 
-    {
-        this.courseId = courseId;
-    }
-
-    public Long getCourseId() 
-    {
-        return courseId;
-    }
-
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -122,8 +95,6 @@ public class TestPaper extends BaseEntity
             .append("totalScore", getTotalScore())
             .append("createTime", getCreateTime())
             .append("updateTime", getUpdateTime())
-            .append("content", getContent())
-            .append("courseId", getCourseId())
             .toString();
     }
 }
