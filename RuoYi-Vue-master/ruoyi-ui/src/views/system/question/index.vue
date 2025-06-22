@@ -699,7 +699,7 @@ export default {
   },
   created() {
     // 临时设置courseId，后续可以从路由参数获取
-    this.courseId = this.$route.query.courseId || this.$route.params.courseId || 10001 // 临时设置为1，实际应该从课程模块获取
+    this.courseId = this.$route.query.courseId || this.$route.params.courseId || 1 // 临时设置为1，实际应该从课程模块获取
 
     // 根据courseId查询题目
     this.getQuestionsByCourse()
