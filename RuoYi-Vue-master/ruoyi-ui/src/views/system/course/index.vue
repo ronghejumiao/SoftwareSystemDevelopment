@@ -49,6 +49,17 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+
+      <el-form-item label="课程的图片" prop="courseImg">
+        <el-input
+          v-model="queryParams.courseImg"
+          placeholder="请输入课程的图片"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+
+      </el-form-item>
+
       <el-form-item label="课程状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择课程状态" clearable>
           <el-option
@@ -58,6 +69,7 @@
             :value="dict.value"
           />
         </el-select>
+
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -89,6 +101,39 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
+
+    <el-table v-loading="loading" :data="courseList" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="55" align="center" />
+      <el-table-column label="课程ID" align="center" prop="courseId" />
+      <el-table-column label="课程名称" align="center" prop="courseName" />
+      <el-table-column label="课程编号" align="center" prop="courseCode" />
+      <el-table-column label="课程分类" align="center" prop="courseCategory" />
+      <el-table-column label="授课教师ID" align="center" prop="teacherId" />
+      <el-table-column label="课程学分" align="center" prop="credit" />
+      <el-table-column label="课程学时" align="center" prop="hours" />
+      <el-table-column label="课程描述" align="center" prop="courseDesc" />
+      <el-table-column label="课程状态" align="center" prop="status" />
+      <el-table-column label="课程的图片" align="center" prop="courseImg" />
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+        <template slot-scope="scope">
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click="handleUpdate(scope.row)"
+            v-hasPermi="['system:course:edit']"
+          >修改</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-delete"
+            @click="handleDelete(scope.row)"
+            v-hasPermi="['system:course:remove']"
+          >删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
     <el-row :gutter="20" v-loading="loading">
       <el-col :md="6" :lg="6" :xl="6" v-for="course in courseList" :key="course.courseId" style="margin-bottom: 20px;">
         <el-card :body-style="{ padding: '0px' }" class="course-card" @click.native="handleCourseClick(course)">
@@ -114,6 +159,34 @@
     <div v-if="courseList.length === 0 && !loading" style="text-align: center; color: #909399;">
       暂无课程
     </div>
+
+
+    <el-row :gutter="20" v-loading="loading">
+      <el-col :md="6" :lg="6" :xl="6" v-for="course in courseList" :key="course.courseId" style="margin-bottom: 20px;">
+        <el-card :body-style="{ padding: '0px' }" class="course-card" @click.native="handleCourseClick(course)">
+          <el-image :src="baseUrl + course.courseImg" lazy class="course-image" fit="cover">
+            <div slot="error" class="image-slot">
+              <i class="el-icon-picture-outline"></i>
+            </div>
+          </el-image>
+          <div style="padding: 14px;">
+            <div class="course-body">
+              <h4 class="course-name">{{ course.courseName }}</h4>
+              <p class="course-category">{{ course.courseCategory }}</p>
+              <p class="course-desc">{{ course.courseDesc }}</p>
+            </div>
+            <div class="bottom clearfix">
+              <el-button size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(course)" v-hasPermi="['system:course:edit']">修改</el-button>
+              <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDelete(course)" v-hasPermi="['system:course:remove']">删除</el-button>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+    <div v-if="courseList.length === 0 && !loading" style="text-align: center; color: #909399;">
+      暂无课程
+    </div>
+
 
     <pagination
       v-show="total>0"
@@ -147,6 +220,16 @@
         <el-form-item label="课程描述" prop="courseDesc">
           <el-input v-model="form.courseDesc" type="textarea" placeholder="请输入内容" />
         </el-form-item>
+
+
+        <el-form-item label="课程的图片" prop="courseImg">
+          <el-input v-model="form.courseImg" placeholder="请输入课程的图片" />
+        </el-form-item>
+
+        <el-form-item label="课程的图片" prop="courseImg">
+          <el-input v-model="form.courseImg" placeholder="请输入课程的图片" />
+
+        </el-form-item>
         <el-form-item label="课程状态" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio
@@ -158,6 +241,7 @@
         </el-form-item>
         <el-form-item label="课程的图片" prop="courseImg">
           <image-upload v-model="form.courseImg" :action="uploadUrl" :headers="uploadHeaders" />
+
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
