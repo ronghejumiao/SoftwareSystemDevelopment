@@ -99,8 +99,11 @@
       <el-table-column label="课程ID" align="center" prop="courseId" />
       <el-table-column label="资源名称" align="center" prop="resourceName" />
       <el-table-column label="资源类型" align="center" prop="resourceType" />
-      <el-table-column label="存储路径" align="center" prop="resourcePath" />
-      <el-table-column label="文件大小" align="center" prop="fileSize" />
+      <el-table-column label="文件名称" align="center" prop="resourcePath">
+        <template slot-scope="scope">
+          <span>{{ getFileName(scope.row.resourcePath) }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="上传者ID" align="center" prop="uploaderId" />
       <el-table-column label="上传时间" align="center" prop="uploadTime" width="180">
         <template slot-scope="scope">
@@ -138,14 +141,14 @@
     <!-- 添加或修改学习资源对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="课程ID" prop="courseId">
-          <el-input v-model="form.courseId" placeholder="请输入课程ID" />
+        <el-form-item label="课程编号" prop="courseCode">
+          <el-input v-model="form.courseCode" placeholder="请输入课程编号" @blur="handleCourseCodeBlur" :disabled="isUpdate" />
         </el-form-item>
         <el-form-item label="资源名称" prop="resourceName">
           <el-input v-model="form.resourceName" placeholder="请输入资源名称" />
         </el-form-item>
         <el-form-item label="上传资源" prop="resourcePath">
-          <file-upload v-model="form.resourcePath" :action="uploadUrl" :headers="uploadHeaders" :file-size="3072" />
+          <file-upload v-model="form.resourcePath" :action="uploadUrl" :headers="uploadHeaders" :file-size="3072" :limit="isUpdate ? 1 : 10" @upload-completed="handleResourceUploadSuccess" />
         </el-form-item>
         <el-form-item label="上传者ID" prop="uploaderId">
           <el-input v-model="form.uploaderId" placeholder="请输入上传者ID" />
@@ -162,6 +165,7 @@
 <script>
 import { listResource, getResource, delResource, addResource, updateResource } from "@/api/system/resource"
 import { getToken } from "@/utils/auth"
+import { listCourse, getCourse } from "@/api/system/course"
 
 export default {
   name: "Resource",
@@ -185,6 +189,10 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 是否为修改
+      isUpdate: false,
+      // 上传的文件列表
+      uploadedFiles: [],
       // 文件上传地址
       uploadUrl: "/system/resource/upload",
       // 上传请求头
@@ -207,8 +215,11 @@ export default {
       form: {},
       // 表单校验
       rules: {
+        courseCode: [
+          { required: true, message: "课程编号不能为空", trigger: "blur" }
+        ],
         courseId: [
-          { required: true, message: "课程ID不能为空", trigger: "blur" }
+          { required: true, message: "请输入有效的课程编号", trigger: "change" }
         ],
         resourceName: [
           { required: true, message: "资源名称不能为空", trigger: "blur" }
@@ -223,6 +234,16 @@ export default {
     this.getList()
   },
   methods: {
+    getFileName(path) {
+      if (path) {
+        const lastSlash = path.lastIndexOf('/');
+        if (lastSlash !== -1) {
+            return path.substring(lastSlash + 1);
+        }
+        return path;
+      }
+      return '';
+    },
     /** 查询学习资源列表 */
     getList() {
       this.loading = true
@@ -242,14 +263,16 @@ export default {
       this.form = {
         resourceId: null,
         courseId: null,
+        courseCode: null,
         resourceName: null,
         resourceType: null,
         resourcePath: null,
         fileSize: null,
         uploaderId: null,
         uploadTime: null
-      }
-      this.resetForm("form")
+      };
+      this.uploadedFiles = [];
+      this.resetForm("form");
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -269,16 +292,46 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
-      this.reset()
-      this.open = true
-      this.title = "添加学习资源"
+      this.reset();
+      this.isUpdate = false;
+      this.open = true;
+      this.title = "添加学习资源";
+    },
+    handleCourseCodeBlur() {
+      if (this.form.courseCode) {
+        listCourse({ courseCode: this.form.courseCode, pageNum: 1, pageSize: 1 }).then(response => {
+          if (response.rows && response.rows.length > 0) {
+            this.form.courseId = response.rows[0].courseId;
+            this.$refs.form.validateField('courseId');
+          } else {
+            this.form.courseId = null;
+            this.$modal.msgError("未找到该课程编号对应的课程");
+          }
+        });
+      } else {
+        this.form.courseId = null;
+      }
+    },
+    handleResourceUploadSuccess(res, file) {
+      this.uploadedFiles.push({
+        path: res.fileName,
+        size: file.size,
+        type: res.fileName.substring(res.fileName.lastIndexOf(".") + 1),
+        name: file.name.lastIndexOf('.') !== -1 ? file.name.substring(0, file.name.lastIndexOf('.')) : file.name
+      });
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-      this.reset()
+      this.reset();
+      this.isUpdate = true;
       const resourceId = row.resourceId || this.ids
       getResource(resourceId).then(response => {
         this.form = response.data
+        if (this.form.courseId) {
+          getCourse(this.form.courseId).then(courseResponse => {
+            this.$set(this.form, 'courseCode', courseResponse.data.courseCode);
+          });
+        }
         this.open = true
         this.title = "修改学习资源"
       })
@@ -287,26 +340,43 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          if (this.form.resourcePath) {
-            const path = this.form.resourcePath
-            const lastDotIndex = path.lastIndexOf(".");
-            if (lastDotIndex !== -1) {
-              this.form.resourceType = path.substring(lastDotIndex + 1);
-            }
-          }
           if (this.form.resourceId != null) {
+            if (this.uploadedFiles.length > 0) {
+              const newFile = this.uploadedFiles[0];
+              this.form.resourcePath = newFile.path;
+              this.form.resourceType = newFile.type;
+              this.form.fileSize = newFile.size;
+            }
             updateResource(this.form).then(response => {
               this.$modal.msgSuccess("修改成功")
               this.open = false
               this.getList()
             })
           } else {
-            this.form.uploadTime = new Date()
-            addResource(this.form).then(response => {
-              this.$modal.msgSuccess("新增成功")
-              this.open = false
-              this.getList()
-            })
+            if (this.uploadedFiles.length === 0) {
+              this.$modal.msgError("请上传资源文件");
+              return;
+            }
+            const promises = this.uploadedFiles.map(file => {
+              const resourceData = {
+                ...this.form,
+                resourcePath: file.path,
+                resourceType: file.type,
+                fileSize: file.size,
+                uploadTime: new Date(),
+                resourceName: this.form.resourceName ? `${this.form.resourceName} - ${file.name}` : file.name,
+              };
+              delete resourceData.resourceId;
+              return addResource(resourceData);
+            });
+
+            Promise.all(promises).then(() => {
+              this.$modal.msgSuccess(`成功新增 ${this.uploadedFiles.length} 个资源`);
+              this.open = false;
+              this.getList();
+            }).catch(() => {
+              this.$modal.msgError("新增资源失败");
+            });
           }
         }
       })
