@@ -1,4 +1,4 @@
-package com.ruoyi.system.controller;
+package com.ruoyi.web.controller;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
@@ -25,10 +25,10 @@ import com.ruoyi.common.core.page.TableDataInfo;
  * 学习记录，记录学生的课程学习关联信息Controller
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-21
  */
 @RestController
-@RequestMapping("/system/learningRecord")
+@RequestMapping("/system/record")
 public class LearningRecordController extends BaseController
 {
     @Autowired
@@ -37,7 +37,7 @@ public class LearningRecordController extends BaseController
     /**
      * 查询学习记录，记录学生的课程学习关联信息列表
      */
-    @PreAuthorize("@ss.hasPermi('system:learningRecord:list')")
+    @PreAuthorize("@ss.hasPermi('system:record:list')")
     @GetMapping("/list")
     public TableDataInfo list(LearningRecord learningRecord)
     {
@@ -49,7 +49,7 @@ public class LearningRecordController extends BaseController
     /**
      * 导出学习记录，记录学生的课程学习关联信息列表
      */
-    @PreAuthorize("@ss.hasPermi('system:learningRecord:export')")
+    @PreAuthorize("@ss.hasPermi('system:record:export')")
     @Log(title = "学习记录，记录学生的课程学习关联信息", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, LearningRecord learningRecord)
@@ -62,7 +62,7 @@ public class LearningRecordController extends BaseController
     /**
      * 获取学习记录，记录学生的课程学习关联信息详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:learningRecord:query')")
+    @PreAuthorize("@ss.hasPermi('system:record:query')")
     @GetMapping(value = "/{recordId}")
     public AjaxResult getInfo(@PathVariable("recordId") Long recordId)
     {
@@ -72,7 +72,7 @@ public class LearningRecordController extends BaseController
     /**
      * 新增学习记录，记录学生的课程学习关联信息
      */
-    @PreAuthorize("@ss.hasPermi('system:learningRecord:add')")
+    @PreAuthorize("@ss.hasPermi('system:record:add')")
     @Log(title = "学习记录，记录学生的课程学习关联信息", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody LearningRecord learningRecord)
@@ -83,7 +83,7 @@ public class LearningRecordController extends BaseController
     /**
      * 修改学习记录，记录学生的课程学习关联信息
      */
-    @PreAuthorize("@ss.hasPermi('system:learningRecord:edit')")
+    @PreAuthorize("@ss.hasPermi('system:record:edit')")
     @Log(title = "学习记录，记录学生的课程学习关联信息", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody LearningRecord learningRecord)
@@ -94,7 +94,7 @@ public class LearningRecordController extends BaseController
     /**
      * 删除学习记录，记录学生的课程学习关联信息
      */
-    @PreAuthorize("@ss.hasPermi('system:learningRecord:remove')")
+    @PreAuthorize("@ss.hasPermi('system:record:remove')")
     @Log(title = "学习记录，记录学生的课程学习关联信息", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{recordIds}")
     public AjaxResult remove(@PathVariable Long[] recordIds)

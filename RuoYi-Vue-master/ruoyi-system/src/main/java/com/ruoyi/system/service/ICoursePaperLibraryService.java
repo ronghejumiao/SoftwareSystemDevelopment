@@ -58,4 +58,12 @@ public interface ICoursePaperLibraryService
      * @return 结果
      */
     public int deleteCoursePaperLibraryByLibraryId(Long libraryId);
+
+    /**
+     * 根据课程ID查询试卷库
+     * 
+     * @param courseId 课程ID
+     * @return 试卷库信息
+     */
+    public CoursePaperLibrary selectCoursePaperLibraryByCourseId(Long courseId);
 }

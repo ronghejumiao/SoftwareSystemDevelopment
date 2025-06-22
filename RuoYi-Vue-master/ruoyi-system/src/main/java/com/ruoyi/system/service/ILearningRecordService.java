@@ -7,7 +7,7 @@ import com.ruoyi.system.domain.LearningRecord;
  * 学习记录，记录学生的课程学习关联信息Service接口
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-21
  */
 public interface ILearningRecordService 
 {

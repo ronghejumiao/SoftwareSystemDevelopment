@@ -7,11 +7,7 @@ import com.ruoyi.system.domain.Course;
  * 课程信息，存储课程的基本信息Mapper接口
  * 
  * @author ruoyi
-<<<<<<< HEAD
  * @date 2025-06-22
-=======
- * @date 2025-06-20
->>>>>>> parent of 58ccf7c (Merge branch 'main' of https://github.com/ronghejumiao/SoftwareSystemDevelopment)
  */
 public interface CourseMapper 
 {

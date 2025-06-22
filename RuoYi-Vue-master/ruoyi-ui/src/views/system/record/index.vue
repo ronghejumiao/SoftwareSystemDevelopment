@@ -1,18 +1,34 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="课程ID" prop="courseId">
+      <el-form-item label="用户ID，关联sys_user表" prop="userId">
         <el-input
-          v-model="queryParams.courseId"
-          placeholder="请输入课程ID"
+          v-model="queryParams.userId"
+          placeholder="请输入用户ID，关联sys_user表"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="题库名称" prop="bankName">
+      <el-form-item label="课程ID，关联course表" prop="courseId">
         <el-input
-          v-model="queryParams.bankName"
-          placeholder="请输入题库名称"
+          v-model="queryParams.courseId"
+          placeholder="请输入课程ID，关联course表"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="选课时间" prop="joinTime">
+        <el-date-picker clearable
+          v-model="queryParams.joinTime"
+          type="date"
+          value-format="yyyy-MM-dd"
+          placeholder="请选择选课时间">
+        </el-date-picker>
+      </el-form-item>
+      <el-form-item label="课程进度" prop="courseProgress">
+        <el-input
+          v-model="queryParams.courseProgress"
+          placeholder="请输入课程进度"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -31,7 +47,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:bank:add']"
+          v-hasPermi="['system:record:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -42,7 +58,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['system:bank:edit']"
+          v-hasPermi="['system:record:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -53,7 +69,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['system:bank:remove']"
+          v-hasPermi="['system:record:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -63,18 +79,23 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['system:bank:export']"
+          v-hasPermi="['system:record:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="bankList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="recordList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="题库ID" align="center" prop="bankId" />
-      <el-table-column label="课程ID" align="center" prop="courseId" />
-      <el-table-column label="题库名称" align="center" prop="bankName" />
-      <el-table-column label="题库描述" align="center" prop="bankDesc" />
+      <el-table-column label="记录ID，主键，自增" align="center" prop="recordId" />
+      <el-table-column label="用户ID，关联sys_user表" align="center" prop="userId" />
+      <el-table-column label="课程ID，关联course表" align="center" prop="courseId" />
+      <el-table-column label="选课时间" align="center" prop="joinTime" width="180">
+        <template slot-scope="scope">
+          <span>{{ parseTime(scope.row.joinTime, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="课程进度" align="center" prop="courseProgress" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -82,19 +103,19 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:bank:edit']"
+            v-hasPermi="['system:record:edit']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['system:bank:remove']"
+            v-hasPermi="['system:record:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-
+    
     <pagination
       v-show="total>0"
       :total="total"
@@ -103,17 +124,25 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改题库，存储课程的题库信息对话框 -->
+    <!-- 添加或修改学习记录，记录学生的课程学习关联信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="用户ID，关联sys_user表" prop="userId">
+          <el-input v-model="form.userId" placeholder="请输入用户ID，关联sys_user表" />
+        </el-form-item>
         <el-form-item label="课程ID，关联course表" prop="courseId">
-          <el-input v-model="form.courseId" placeholder="请输入课程ID" />
+          <el-input v-model="form.courseId" placeholder="请输入课程ID，关联course表" />
         </el-form-item>
-        <el-form-item label="题库名称" prop="bankName">
-          <el-input v-model="form.bankName" placeholder="请输入题库名称" />
+        <el-form-item label="选课时间" prop="joinTime">
+          <el-date-picker clearable
+            v-model="form.joinTime"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="请选择选课时间">
+          </el-date-picker>
         </el-form-item>
-        <el-form-item label="题库描述" prop="bankDesc">
-          <el-input v-model="form.bankDesc" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="课程进度" prop="courseProgress">
+          <el-input v-model="form.courseProgress" placeholder="请输入课程进度" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -125,10 +154,10 @@
 </template>
 
 <script>
-import { listBank, getBank, delBank, addBank, updateBank } from "@/api/system/bank"
+import { listRecord, getRecord, delRecord, addRecord, updateRecord } from "@/api/system/record"
 
 export default {
-  name: "Bank",
+  name: "Record",
   data() {
     return {
       // 遮罩层
@@ -143,8 +172,8 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 题库，存储课程的题库信息表格数据
-      bankList: [],
+      // 学习记录，记录学生的课程学习关联信息表格数据
+      recordList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -153,22 +182,23 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
+        userId: null,
         courseId: null,
-        bankName: null,
-        bankDesc: null,
+        joinTime: null,
+        courseProgress: null
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
+        userId: [
+          { required: true, message: "用户ID，关联sys_user表不能为空", trigger: "blur" }
+        ],
         courseId: [
           { required: true, message: "课程ID，关联course表不能为空", trigger: "blur" }
         ],
-        bankName: [
-          { required: true, message: "题库名称不能为空", trigger: "blur" }
-        ],
-        createTime: [
-          { required: true, message: "创建时间不能为空", trigger: "blur" }
+        joinTime: [
+          { required: true, message: "选课时间不能为空", trigger: "blur" }
         ],
       }
     }
@@ -177,11 +207,11 @@ export default {
     this.getList()
   },
   methods: {
-    /** 查询题库，存储课程的题库信息列表 */
+    /** 查询学习记录，记录学生的课程学习关联信息列表 */
     getList() {
       this.loading = true
-      listBank(this.queryParams).then(response => {
-        this.bankList = response.rows
+      listRecord(this.queryParams).then(response => {
+        this.recordList = response.rows
         this.total = response.total
         this.loading = false
       })
@@ -194,12 +224,11 @@ export default {
     // 表单重置
     reset() {
       this.form = {
-        bankId: null,
+        recordId: null,
+        userId: null,
         courseId: null,
-        bankName: null,
-        bankDesc: null,
-        createTime: null,
-        updateTime: null
+        joinTime: null,
+        courseProgress: null
       }
       this.resetForm("form")
     },
@@ -215,7 +244,7 @@ export default {
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.bankId)
+      this.ids = selection.map(item => item.recordId)
       this.single = selection.length!==1
       this.multiple = !selection.length
     },
@@ -223,30 +252,30 @@ export default {
     handleAdd() {
       this.reset()
       this.open = true
-      this.title = "添加题库，存储课程的题库信息"
+      this.title = "添加学习记录，记录学生的课程学习关联信息"
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
-      const bankId = row.bankId || this.ids
-      getBank(bankId).then(response => {
+      const recordId = row.recordId || this.ids
+      getRecord(recordId).then(response => {
         this.form = response.data
         this.open = true
-        this.title = "修改题库，存储课程的题库信息"
+        this.title = "修改学习记录，记录学生的课程学习关联信息"
       })
     },
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          if (this.form.bankId != null) {
-            updateBank(this.form).then(response => {
+          if (this.form.recordId != null) {
+            updateRecord(this.form).then(response => {
               this.$modal.msgSuccess("修改成功")
               this.open = false
               this.getList()
             })
           } else {
-            addBank(this.form).then(response => {
+            addRecord(this.form).then(response => {
               this.$modal.msgSuccess("新增成功")
               this.open = false
               this.getList()
@@ -257,9 +286,9 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const bankIds = row.bankId || this.ids
-      this.$modal.confirm('是否确认删除题库，存储课程的题库信息编号为"' + bankIds + '"的数据项？').then(function() {
-        return delBank(bankIds)
+      const recordIds = row.recordId || this.ids
+      this.$modal.confirm('是否确认删除学习记录，记录学生的课程学习关联信息编号为"' + recordIds + '"的数据项？').then(function() {
+        return delRecord(recordIds)
       }).then(() => {
         this.getList()
         this.$modal.msgSuccess("删除成功")
@@ -267,9 +296,9 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/bank/export', {
+      this.download('system/record/export', {
         ...this.queryParams
-      }, `bank_${new Date().getTime()}.xlsx`)
+      }, `record_${new Date().getTime()}.xlsx`)
     }
   }
 }

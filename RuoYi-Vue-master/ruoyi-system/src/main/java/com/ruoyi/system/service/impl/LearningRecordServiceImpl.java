@@ -11,7 +11,7 @@ import com.ruoyi.system.service.ILearningRecordService;
  * 学习记录，记录学生的课程学习关联信息Service业务层处理
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-21
  */
 @Service
 public class LearningRecordServiceImpl implements ILearningRecordService 
