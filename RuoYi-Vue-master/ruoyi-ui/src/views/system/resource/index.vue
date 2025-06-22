@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="课程ID，关联course表" prop="courseId">
+      <el-form-item label="课程ID" prop="courseId">
         <el-input
           v-model="queryParams.courseId"
-          placeholder="请输入课程ID，关联course表"
+          placeholder="请输入课程ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -25,10 +25,10 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="上传者ID，关联sys_user表" prop="uploaderId">
+      <el-form-item label="上传者ID" prop="uploaderId">
         <el-input
           v-model="queryParams.uploaderId"
-          placeholder="请输入上传者ID，关联sys_user表"
+          placeholder="请输入上传者ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -95,13 +95,13 @@
 
     <el-table v-loading="loading" :data="resourceList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="资源ID，主键，自增" align="center" prop="resourceId" />
-      <el-table-column label="课程ID，关联course表" align="center" prop="courseId" />
+      <el-table-column label="资源ID" align="center" prop="resourceId" />
+      <el-table-column label="课程ID" align="center" prop="courseId" />
       <el-table-column label="资源名称" align="center" prop="resourceName" />
       <el-table-column label="资源类型" align="center" prop="resourceType" />
       <el-table-column label="存储路径" align="center" prop="resourcePath" />
       <el-table-column label="文件大小" align="center" prop="fileSize" />
-      <el-table-column label="上传者ID，关联sys_user表" align="center" prop="uploaderId" />
+      <el-table-column label="上传者ID" align="center" prop="uploaderId" />
       <el-table-column label="上传时间" align="center" prop="uploadTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.uploadTime, '{y}-{m}-{d}') }}</span>
@@ -138,28 +138,17 @@
     <!-- 添加或修改学习资源对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="课程ID，关联course表" prop="courseId">
-          <el-input v-model="form.courseId" placeholder="请输入课程ID，关联course表" />
+        <el-form-item label="课程ID" prop="courseId">
+          <el-input v-model="form.courseId" placeholder="请输入课程ID" />
         </el-form-item>
         <el-form-item label="资源名称" prop="resourceName">
           <el-input v-model="form.resourceName" placeholder="请输入资源名称" />
         </el-form-item>
-        <el-form-item label="存储路径" prop="resourcePath">
-          <el-input v-model="form.resourcePath" placeholder="请输入存储路径" />
+        <el-form-item label="上传资源" prop="resourcePath">
+          <file-upload v-model="form.resourcePath" :action="uploadUrl" :headers="uploadHeaders" :file-size="3072" />
         </el-form-item>
-        <el-form-item label="文件大小" prop="fileSize">
-          <file-upload v-model="form.fileSize"/>
-        </el-form-item>
-        <el-form-item label="上传者ID，关联sys_user表" prop="uploaderId">
-          <el-input v-model="form.uploaderId" placeholder="请输入上传者ID，关联sys_user表" />
-        </el-form-item>
-        <el-form-item label="上传时间" prop="uploadTime">
-          <el-date-picker clearable
-            v-model="form.uploadTime"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择上传时间">
-          </el-date-picker>
+        <el-form-item label="上传者ID" prop="uploaderId">
+          <el-input v-model="form.uploaderId" placeholder="请输入上传者ID" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -172,6 +161,7 @@
 
 <script>
 import { listResource, getResource, delResource, addResource, updateResource } from "@/api/system/resource"
+import { getToken } from "@/utils/auth"
 
 export default {
   name: "Resource",
@@ -195,6 +185,12 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 文件上传地址
+      uploadUrl: "/system/resource/upload",
+      // 上传请求头
+      uploadHeaders: {
+        Authorization: "Bearer " + getToken()
+      },
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -212,22 +208,13 @@ export default {
       // 表单校验
       rules: {
         courseId: [
-          { required: true, message: "课程ID，关联course表不能为空", trigger: "blur" }
+          { required: true, message: "课程ID不能为空", trigger: "blur" }
         ],
         resourceName: [
           { required: true, message: "资源名称不能为空", trigger: "blur" }
         ],
-        resourceType: [
-          { required: true, message: "资源类型不能为空", trigger: "change" }
-        ],
         resourcePath: [
-          { required: true, message: "存储路径不能为空", trigger: "blur" }
-        ],
-        uploaderId: [
-          { required: true, message: "上传者ID，关联sys_user表不能为空", trigger: "blur" }
-        ],
-        uploadTime: [
-          { required: true, message: "上传时间不能为空", trigger: "blur" }
+          { required: true, message: "请上传资源文件", trigger: "blur" }
         ]
       }
     }
@@ -300,6 +287,13 @@ export default {
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
+          if (this.form.resourcePath) {
+            const path = this.form.resourcePath
+            const lastDotIndex = path.lastIndexOf(".");
+            if (lastDotIndex !== -1) {
+              this.form.resourceType = path.substring(lastDotIndex + 1);
+            }
+          }
           if (this.form.resourceId != null) {
             updateResource(this.form).then(response => {
               this.$modal.msgSuccess("修改成功")
@@ -307,6 +301,7 @@ export default {
               this.getList()
             })
           } else {
+            this.form.uploadTime = new Date()
             addResource(this.form).then(response => {
               this.$modal.msgSuccess("新增成功")
               this.open = false
