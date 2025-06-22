@@ -58,4 +58,12 @@ public interface IQuestionService
      * @return 结果
      */
     public int deleteQuestionByQuestionId(Long questionId);
+
+    /**
+     * 根据课程ID查询题目列表
+     * 
+     * @param courseId 课程ID
+     * @return 题目列表
+     */
+    public List<Question> selectQuestionsByCourseId(Long courseId);
 }

@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="课程ID，关联course表" prop="courseId">
+      <el-form-item label="课程ID" prop="courseId">
         <el-input
           v-model="queryParams.courseId"
-          placeholder="请输入课程ID，关联course表"
+          placeholder="请输入课程ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -71,8 +71,8 @@
 
     <el-table v-loading="loading" :data="bankList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="题库ID，主键，自增" align="center" prop="bankId" />
-      <el-table-column label="课程ID，关联course表" align="center" prop="courseId" />
+      <el-table-column label="题库ID" align="center" prop="bankId" />
+      <el-table-column label="课程ID" align="center" prop="courseId" />
       <el-table-column label="题库名称" align="center" prop="bankName" />
       <el-table-column label="题库描述" align="center" prop="bankDesc" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -94,7 +94,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -107,7 +107,7 @@
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="课程ID，关联course表" prop="courseId">
-          <el-input v-model="form.courseId" placeholder="请输入课程ID，关联course表" />
+          <el-input v-model="form.courseId" placeholder="请输入课程ID" />
         </el-form-item>
         <el-form-item label="题库名称" prop="bankName">
           <el-input v-model="form.bankName" placeholder="请输入题库名称" />

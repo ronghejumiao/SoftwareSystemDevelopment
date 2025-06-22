@@ -17,6 +17,7 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.system.domain.TestPaper;
+import com.ruoyi.system.domain.vo.PaperGenerateRequest;
 import com.ruoyi.system.service.ITestPaperService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
@@ -25,7 +26,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
  * 试卷，一个试卷库包含多个试卷Controller
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-21
  */
 @RestController
 @RequestMapping("/system/paper")
@@ -100,5 +101,21 @@ public class TestPaperController extends BaseController
     public AjaxResult remove(@PathVariable Long[] paperIds)
     {
         return toAjax(testPaperService.deleteTestPaperByPaperIds(paperIds));
+    }
+
+    /**
+     * 生成试卷
+     */
+    @PreAuthorize("@ss.hasPermi('system:paper:add')")
+    @Log(title = "生成试卷", businessType = BusinessType.INSERT)
+    @PostMapping("/generate")
+    public AjaxResult generatePaper(@RequestBody PaperGenerateRequest request)
+    {
+        try {
+            TestPaper testPaper = testPaperService.generatePaper(request);
+            return success(testPaper);
+        } catch (Exception e) {
+            return error("试卷生成失败：" + e.getMessage());
+        }
     }
 }

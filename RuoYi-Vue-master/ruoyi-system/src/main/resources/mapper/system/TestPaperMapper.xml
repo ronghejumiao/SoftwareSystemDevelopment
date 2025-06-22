@@ -12,19 +12,24 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="totalScore"    column="total_score"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateTime"    column="update_time"    />
+        <result property="content"    column="content"    />
     </resultMap>
 
     <sql id="selectTestPaperVo">
-        select paper_id, library_id, paper_name, paper_desc, total_score, create_time, update_time from test_paper
+        select paper_id, library_id, paper_name, paper_desc, total_score, create_time, update_time, content from test_paper
     </sql>
 
     <select id="selectTestPaperList" parameterType="TestPaper" resultMap="TestPaperResult">
-        <include refid="selectTestPaperVo"/>
+        select tp.paper_id, tp.library_id, tp.paper_name, tp.paper_desc, tp.total_score, tp.create_time, tp.update_time, tp.content 
+        from test_paper tp
+        left join course_paper_library cpl on tp.library_id = cpl.library_id
         <where>  
-            <if test="libraryId != null "> and library_id = #{libraryId}</if>
-            <if test="paperName != null  and paperName != ''"> and paper_name like concat('%', #{paperName}, '%')</if>
-            <if test="paperDesc != null  and paperDesc != ''"> and paper_desc = #{paperDesc}</if>
-            <if test="totalScore != null "> and total_score = #{totalScore}</if>
+            <if test="libraryId != null "> and tp.library_id = #{libraryId}</if>
+            <if test="paperName != null  and paperName != ''"> and tp.paper_name like concat('%', #{paperName}, '%')</if>
+            <if test="paperDesc != null  and paperDesc != ''"> and tp.paper_desc = #{paperDesc}</if>
+            <if test="totalScore != null "> and tp.total_score = #{totalScore}</if>
+            <if test="content != null  and content != ''"> and tp.content = #{content}</if>
+            <if test="courseId != null "> and cpl.course_id = #{courseId}</if>
         </where>
     </select>
     
@@ -42,6 +47,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="totalScore != null">total_score,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateTime != null">update_time,</if>
+            <if test="content != null">content,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="libraryId != null">#{libraryId},</if>
@@ -50,6 +56,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="totalScore != null">#{totalScore},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateTime != null">#{updateTime},</if>
+            <if test="content != null">#{content},</if>
          </trim>
     </insert>
 
@@ -62,6 +69,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="totalScore != null">total_score = #{totalScore},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="content != null">content = #{content},</if>
         </trim>
         where paper_id = #{paperId}
     </update>
