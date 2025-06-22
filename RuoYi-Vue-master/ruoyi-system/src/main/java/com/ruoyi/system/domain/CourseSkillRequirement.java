@@ -1,39 +1,38 @@
 package com.ruoyi.system.domain;
 
-import java.math.BigDecimal;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
- * 课程能力要求，一个课程包含多个能力要求对象 course_skill_requirement
+ * 课程能力要求对象 course_skill_requirement
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-22
  */
 public class CourseSkillRequirement extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
-    /** 要求ID，主键，自增 */
+    /** 要求ID */
     private Long requirementId;
 
-    /** 课程ID，关联course表 */
-    @Excel(name = "课程ID，关联course表")
+    /** 课程ID */
+    @Excel(name = "课程ID")
     private Long courseId;
 
-    /** 能力名称（如"Python编程"） */
-    @Excel(name = "能力名称", readConverterExp = "如='Python编程'")
+    /** 能力名称 */
+    @Excel(name = "能力名称")
     private String skillName;
 
-    /** 能力层级（1-基础，2-进阶，3-精通） */
-    @Excel(name = "能力层级", readConverterExp = "1=-基础，2-进阶，3-精通")
-    private Long skillLevel;
+    /** 课程描述 */
+    @Excel(name = "课程描述")
+    private String description;
 
-    /** 达标分数（0-100，如80分达标） */
-    @Excel(name = "达标分数", readConverterExp = "0=-100，如80分达标")
-    private BigDecimal requiredScore;
+    /** 课堂要求描述 */
+    @Excel(name = "课堂要求描述")
+    private String requiredText;
 
     public void setRequirementId(Long requirementId) 
     {
@@ -65,24 +64,24 @@ public class CourseSkillRequirement extends BaseEntity
         return skillName;
     }
 
-    public void setSkillLevel(Long skillLevel) 
+    public void setDescription(String description) 
     {
-        this.skillLevel = skillLevel;
+        this.description = description;
     }
 
-    public Long getSkillLevel() 
+    public String getDescription() 
     {
-        return skillLevel;
+        return description;
     }
 
-    public void setRequiredScore(BigDecimal requiredScore) 
+    public void setRequiredText(String requiredText) 
     {
-        this.requiredScore = requiredScore;
+        this.requiredText = requiredText;
     }
 
-    public BigDecimal getRequiredScore() 
+    public String getRequiredText() 
     {
-        return requiredScore;
+        return requiredText;
     }
 
     @Override
@@ -91,8 +90,8 @@ public class CourseSkillRequirement extends BaseEntity
             .append("requirementId", getRequirementId())
             .append("courseId", getCourseId())
             .append("skillName", getSkillName())
-            .append("skillLevel", getSkillLevel())
-            .append("requiredScore", getRequiredScore())
+            .append("description", getDescription())
+            .append("requiredText", getRequiredText())
             .append("createTime", getCreateTime())
             .append("updateTime", getUpdateTime())
             .toString();

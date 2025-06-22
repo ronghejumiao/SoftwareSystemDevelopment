@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="课程ID，关联course表" prop="courseId">
+      <el-form-item label="课程编号" prop="courseCode">
         <el-input
-          v-model="queryParams.courseId"
-          placeholder="请输入课程ID，关联course表"
+          v-model="queryParams.courseCode"
+          placeholder="请输入课程编号"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -17,18 +17,18 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="能力层级" prop="skillLevel">
+      <el-form-item label="课程描述" prop="description">
         <el-input
-          v-model="queryParams.skillLevel"
-          placeholder="请输入能力层级"
+          v-model="queryParams.description"
+          placeholder="请输入课程描述"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="达标分数" prop="requiredScore">
+      <el-form-item label="课堂要求描述" prop="requiredText">
         <el-input
-          v-model="queryParams.requiredScore"
-          placeholder="请输入达标分数"
+          v-model="queryParams.requiredText"
+          placeholder="请输入课堂要求描述"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -87,11 +87,11 @@
 
     <el-table v-loading="loading" :data="requirementList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="要求ID，主键，自增" align="center" prop="requirementId" />
-      <el-table-column label="课程ID，关联course表" align="center" prop="courseId" />
+      <el-table-column label="要求ID" align="center" prop="requirementId" />
+      <el-table-column label="课程编号" align="center" prop="courseCode" />
       <el-table-column label="能力名称" align="center" prop="skillName" />
-      <el-table-column label="能力层级" align="center" prop="skillLevel" />
-      <el-table-column label="达标分数" align="center" prop="requiredScore" />
+      <el-table-column label="课程描述" align="center" prop="description" />
+      <el-table-column label="课堂要求描述" align="center" prop="requiredText" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -120,20 +120,20 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改课程能力要求，一个课程包含多个能力要求对话框 -->
+    <!-- 添加或修改课程能力要求对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="课程ID，关联course表" prop="courseId">
-          <el-input v-model="form.courseId" placeholder="请输入课程ID，关联course表" />
+        <el-form-item label="课程编号" prop="courseCode">
+          <el-input v-model="form.courseCode" placeholder="请输入课程编号" />
         </el-form-item>
         <el-form-item label="能力名称" prop="skillName">
           <el-input v-model="form.skillName" placeholder="请输入能力名称" />
         </el-form-item>
-        <el-form-item label="能力层级" prop="skillLevel">
-          <el-input v-model="form.skillLevel" placeholder="请输入能力层级" />
+        <el-form-item label="课程描述" prop="description">
+          <el-input v-model="form.description" placeholder="请输入课程描述" />
         </el-form-item>
-        <el-form-item label="达标分数" prop="requiredScore">
-          <el-input v-model="form.requiredScore" placeholder="请输入达标分数" />
+        <el-form-item label="课堂要求描述" prop="requiredText">
+          <el-input v-model="form.requiredText" placeholder="请输入课堂要求描述" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -146,6 +146,7 @@
 
 <script>
 import { listRequirement, getRequirement, delRequirement, addRequirement, updateRequirement } from "@/api/system/requirement"
+import { listCourse, getCourse } from "@/api/system/course"
 
 export default {
   name: "Requirement",
@@ -163,7 +164,7 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 课程能力要求，一个课程包含多个能力要求表格数据
+      // 课程能力要求表格数据
       requirementList: [],
       // 弹出层标题
       title: "",
@@ -173,26 +174,26 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        courseId: null,
+        courseCode: null,
         skillName: null,
-        skillLevel: null,
-        requiredScore: null,
+        description: null,
+        requiredText: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
-        courseId: [
-          { required: true, message: "课程ID，关联course表不能为空", trigger: "blur" }
+        courseCode: [
+          { required: true, message: "课程编号不能为空", trigger: "blur" }
         ],
         skillName: [
           { required: true, message: "能力名称不能为空", trigger: "blur" }
         ],
-        skillLevel: [
-          { required: true, message: "能力层级不能为空", trigger: "blur" }
+        description: [
+          { required: true, message: "课程描述不能为空", trigger: "blur" }
         ],
-        requiredScore: [
-          { required: true, message: "达标分数不能为空", trigger: "blur" }
+        requiredText: [
+          { required: true, message: "课堂要求描述不能为空", trigger: "blur" }
         ],
         createTime: [
           { required: true, message: "创建时间不能为空", trigger: "blur" }
@@ -204,13 +205,40 @@ export default {
     this.getList()
   },
   methods: {
-    /** 查询课程能力要求，一个课程包含多个能力要求列表 */
-    getList() {
+    /** 查询课程能力要求列表 */
+    async getList() {
       this.loading = true
-      listRequirement(this.queryParams).then(response => {
-        this.requirementList = response.rows
-        this.total = response.total
-        this.loading = false
+      let params = { ...this.queryParams };
+      // 通过courseCode查ID
+      if (params.courseCode) {
+        const res = await listCourse({ courseCode: params.courseCode, pageNum: 1, pageSize: 1 });
+        if (res.rows && res.rows.length > 0) {
+          params.courseId = res.rows[0].courseId;
+        } else {
+          params.courseId = -1; // 查不到时查一个不会有结果的ID
+        }
+      }
+      listRequirement(params).then(async response => {
+        const list = response.rows || [];
+        // 批量查找所有courseId对应的courseCode
+        const idSet = Array.from(new Set(list.map(item => item.courseId).filter(Boolean)));
+        let idToCode = {};
+        if (idSet.length > 0) {
+          // 批量查找所有课程信息
+          const courseRes = await listCourse({ pageNum: 1, pageSize: 9999 });
+          if (courseRes.rows) {
+            courseRes.rows.forEach(c => {
+              idToCode[c.courseId] = c.courseCode;
+            });
+          }
+        }
+        // 为每条数据补充courseCode
+        list.forEach(item => {
+          item.courseCode = idToCode[item.courseId] || '';
+        });
+        this.requirementList = list;
+        this.total = response.total;
+        this.loading = false;
       })
     },
     // 取消按钮
@@ -222,10 +250,10 @@ export default {
     reset() {
       this.form = {
         requirementId: null,
-        courseId: null,
+        courseCode: null,
         skillName: null,
-        skillLevel: null,
-        requiredScore: null,
+        description: null,
+        requiredText: null,
         createTime: null,
         updateTime: null
       }
@@ -251,22 +279,41 @@ export default {
     handleAdd() {
       this.reset()
       this.open = true
-      this.title = "添加课程能力要求，一个课程包含多个能力要求"
+      this.title = "添加课程能力要求"
     },
     /** 修改按钮操作 */
-    handleUpdate(row) {
+    async handleUpdate(row) {
       this.reset()
-      const requirementId = row.requirementId || this.ids
-      getRequirement(requirementId).then(response => {
-        this.form = response.data
-        this.open = true
-        this.title = "修改课程能力要求，一个课程包含多个能力要求"
-      })
+      // 通过courseCode查ID
+      const code = row.courseCode || this.form.courseCode;
+      const res = await listCourse({ courseCode: code, pageNum: 1, pageSize: 1 });
+      if (res.rows && res.rows.length > 0) {
+        const courseId = res.rows[0].courseId;
+        getRequirement(row.requirementId).then(response => {
+          this.form = response.data
+          this.form.courseCode = code;
+          this.open = true
+          this.title = "修改课程能力要求"
+        })
+      } else {
+        this.$modal.msgError("未找到该课程编号对应的课程");
+      }
     },
     /** 提交按钮 */
-    submitForm() {
-      this.$refs["form"].validate(valid => {
+    async submitForm() {
+      this.$refs["form"].validate(async valid => {
         if (valid) {
+          // 通过courseCode查ID
+          let courseId = null;
+          if (this.form.courseCode) {
+            const res = await listCourse({ courseCode: this.form.courseCode, pageNum: 1, pageSize: 1 });
+            if (res.rows && res.rows.length > 0) {
+              courseId = res.rows[0].courseId;
+            }
+          }
+          if (courseId) {
+            this.form.courseId = courseId;
+          }
           if (this.form.requirementId != null) {
             updateRequirement(this.form).then(response => {
               this.$modal.msgSuccess("修改成功")
@@ -284,14 +331,21 @@ export default {
       })
     },
     /** 删除按钮操作 */
-    handleDelete(row) {
-      const requirementIds = row.requirementId || this.ids
-      this.$modal.confirm('是否确认删除课程能力要求，一个课程包含多个能力要求编号为"' + requirementIds + '"的数据项？').then(function() {
-        return delRequirement(requirementIds)
-      }).then(() => {
-        this.getList()
-        this.$modal.msgSuccess("删除成功")
-      }).catch(() => {})
+    async handleDelete(row) {
+      // 通过courseCode查ID
+      const code = row.courseCode;
+      const res = await listCourse({ courseCode: code, pageNum: 1, pageSize: 1 });
+      if (res.rows && res.rows.length > 0) {
+        const courseId = res.rows[0].courseId;
+        this.$modal.confirm('是否确认删除课程编号为"' + code + '"的数据项？').then(function() {
+          return delRequirement(row.requirementId)
+        }).then(() => {
+          this.getList()
+          this.$modal.msgSuccess("删除成功")
+        }).catch(() => {})
+      } else {
+        this.$modal.msgError("未找到该课程编号对应的课程");
+      }
     },
     /** 导出按钮操作 */
     handleExport() {

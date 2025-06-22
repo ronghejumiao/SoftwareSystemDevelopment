@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-// 查询课程能力要求，一个课程包含多个能力要求列表
+// 查询课程能力要求列表
 export function listRequirement(query) {
   return request({
     url: '/system/requirement/list',
@@ -9,7 +9,7 @@ export function listRequirement(query) {
   })
 }
 
-// 查询课程能力要求，一个课程包含多个能力要求详细
+// 查询课程能力要求详细
 export function getRequirement(requirementId) {
   return request({
     url: '/system/requirement/' + requirementId,
@@ -17,7 +17,7 @@ export function getRequirement(requirementId) {
   })
 }
 
-// 新增课程能力要求，一个课程包含多个能力要求
+// 新增课程能力要求
 export function addRequirement(data) {
   return request({
     url: '/system/requirement',
@@ -26,7 +26,7 @@ export function addRequirement(data) {
   })
 }
 
-// 修改课程能力要求，一个课程包含多个能力要求
+// 修改课程能力要求
 export function updateRequirement(data) {
   return request({
     url: '/system/requirement',
@@ -35,7 +35,7 @@ export function updateRequirement(data) {
   })
 }
 
-// 删除课程能力要求，一个课程包含多个能力要求
+// 删除课程能力要求
 export function delRequirement(requirementId) {
   return request({
     url: '/system/requirement/' + requirementId,

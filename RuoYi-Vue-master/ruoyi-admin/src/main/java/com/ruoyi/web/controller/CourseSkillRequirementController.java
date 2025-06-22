@@ -22,10 +22,10 @@ import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
- * 课程能力要求，一个课程包含多个能力要求Controller
+ * 课程能力要求Controller
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-22
  */
 @RestController
 @RequestMapping("/system/requirement")
@@ -35,7 +35,7 @@ public class CourseSkillRequirementController extends BaseController
     private ICourseSkillRequirementService courseSkillRequirementService;
 
     /**
-     * 查询课程能力要求，一个课程包含多个能力要求列表
+     * 查询课程能力要求列表
      */
     @PreAuthorize("@ss.hasPermi('system:requirement:list')")
     @GetMapping("/list")
@@ -47,20 +47,20 @@ public class CourseSkillRequirementController extends BaseController
     }
 
     /**
-     * 导出课程能力要求，一个课程包含多个能力要求列表
+     * 导出课程能力要求列表
      */
     @PreAuthorize("@ss.hasPermi('system:requirement:export')")
-    @Log(title = "课程能力要求，一个课程包含多个能力要求", businessType = BusinessType.EXPORT)
+    @Log(title = "课程能力要求", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, CourseSkillRequirement courseSkillRequirement)
     {
         List<CourseSkillRequirement> list = courseSkillRequirementService.selectCourseSkillRequirementList(courseSkillRequirement);
         ExcelUtil<CourseSkillRequirement> util = new ExcelUtil<CourseSkillRequirement>(CourseSkillRequirement.class);
-        util.exportExcel(response, list, "课程能力要求，一个课程包含多个能力要求数据");
+        util.exportExcel(response, list, "课程能力要求数据");
     }
 
     /**
-     * 获取课程能力要求，一个课程包含多个能力要求详细信息
+     * 获取课程能力要求详细信息
      */
     @PreAuthorize("@ss.hasPermi('system:requirement:query')")
     @GetMapping(value = "/{requirementId}")
@@ -70,10 +70,10 @@ public class CourseSkillRequirementController extends BaseController
     }
 
     /**
-     * 新增课程能力要求，一个课程包含多个能力要求
+     * 新增课程能力要求
      */
     @PreAuthorize("@ss.hasPermi('system:requirement:add')")
-    @Log(title = "课程能力要求，一个课程包含多个能力要求", businessType = BusinessType.INSERT)
+    @Log(title = "课程能力要求", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody CourseSkillRequirement courseSkillRequirement)
     {
@@ -81,10 +81,10 @@ public class CourseSkillRequirementController extends BaseController
     }
 
     /**
-     * 修改课程能力要求，一个课程包含多个能力要求
+     * 修改课程能力要求
      */
     @PreAuthorize("@ss.hasPermi('system:requirement:edit')")
-    @Log(title = "课程能力要求，一个课程包含多个能力要求", businessType = BusinessType.UPDATE)
+    @Log(title = "课程能力要求", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody CourseSkillRequirement courseSkillRequirement)
     {
@@ -92,10 +92,10 @@ public class CourseSkillRequirementController extends BaseController
     }
 
     /**
-     * 删除课程能力要求，一个课程包含多个能力要求
+     * 删除课程能力要求
      */
     @PreAuthorize("@ss.hasPermi('system:requirement:remove')")
-    @Log(title = "课程能力要求，一个课程包含多个能力要求", businessType = BusinessType.DELETE)
+    @Log(title = "课程能力要求", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{requirementIds}")
     public AjaxResult remove(@PathVariable Long[] requirementIds)
     {

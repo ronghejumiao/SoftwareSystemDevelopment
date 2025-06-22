@@ -142,16 +142,6 @@
         <el-form-item label="课程描述" prop="courseDesc">
           <el-input v-model="form.courseDesc" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-
-
-        <el-form-item label="课程的图片" prop="courseImg">
-          <el-input v-model="form.courseImg" placeholder="请输入课程的图片" />
-        </el-form-item>
-
-        <el-form-item label="课程的图片" prop="courseImg">
-          <el-input v-model="form.courseImg" placeholder="请输入课程的图片" />
-
-        </el-form-item>
         <el-form-item label="课程状态" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio
@@ -163,7 +153,6 @@
         </el-form-item>
         <el-form-item label="课程的图片" prop="courseImg">
           <image-upload v-model="form.courseImg" :action="uploadUrl" :headers="uploadHeaders" />
-
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">

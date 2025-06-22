@@ -8,14 +8,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="requirementId"    column="requirement_id"    />
         <result property="courseId"    column="course_id"    />
         <result property="skillName"    column="skill_name"    />
-        <result property="skillLevel"    column="skill_level"    />
-        <result property="requiredScore"    column="required_score"    />
+        <result property="description"    column="description"    />
+        <result property="requiredText"    column="required_text"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateTime"    column="update_time"    />
     </resultMap>
 
     <sql id="selectCourseSkillRequirementVo">
-        select requirement_id, course_id, skill_name, skill_level, required_score, create_time, update_time from course_skill_requirement
+        select requirement_id, course_id, skill_name, description, required_text, create_time, update_time from course_skill_requirement
     </sql>
 
     <select id="selectCourseSkillRequirementList" parameterType="CourseSkillRequirement" resultMap="CourseSkillRequirementResult">
@@ -23,8 +23,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <where>  
             <if test="courseId != null "> and course_id = #{courseId}</if>
             <if test="skillName != null  and skillName != ''"> and skill_name like concat('%', #{skillName}, '%')</if>
-            <if test="skillLevel != null "> and skill_level = #{skillLevel}</if>
-            <if test="requiredScore != null "> and required_score = #{requiredScore}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="requiredText != null  and requiredText != ''"> and required_text = #{requiredText}</if>
         </where>
     </select>
     
@@ -38,16 +38,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="courseId != null">course_id,</if>
             <if test="skillName != null and skillName != ''">skill_name,</if>
-            <if test="skillLevel != null">skill_level,</if>
-            <if test="requiredScore != null">required_score,</if>
+            <if test="description != null and description != ''">description,</if>
+            <if test="requiredText != null and requiredText != ''">required_text,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateTime != null">update_time,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="courseId != null">#{courseId},</if>
             <if test="skillName != null and skillName != ''">#{skillName},</if>
-            <if test="skillLevel != null">#{skillLevel},</if>
-            <if test="requiredScore != null">#{requiredScore},</if>
+            <if test="description != null and description != ''">#{description},</if>
+            <if test="requiredText != null and requiredText != ''">#{requiredText},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateTime != null">#{updateTime},</if>
          </trim>
@@ -58,8 +58,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="SET" suffixOverrides=",">
             <if test="courseId != null">course_id = #{courseId},</if>
             <if test="skillName != null and skillName != ''">skill_name = #{skillName},</if>
-            <if test="skillLevel != null">skill_level = #{skillLevel},</if>
-            <if test="requiredScore != null">required_score = #{requiredScore},</if>
+            <if test="description != null and description != ''">description = #{description},</if>
+            <if test="requiredText != null and requiredText != ''">required_text = #{requiredText},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </trim>
