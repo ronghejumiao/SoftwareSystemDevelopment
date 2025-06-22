@@ -42,3 +42,28 @@ export function delQuestion(questionId) {
     method: 'delete'
   })
 }
+
+// 根据课程ID获取题库中的题目列表
+export function getQuestionsByCourseId(courseId) {
+  return request({
+    url: '/system/question/course/' + courseId,
+    method: 'get'
+  })
+}
+
+// 根据课程ID获取试卷库信息
+export function getLibraryByCourseId(courseId) {
+  return request({
+    url: '/system/library/course/' + courseId,
+    method: 'get'
+  })
+}
+
+// 生成试卷
+export function generatePaper(data) {
+  return request({
+    url: '/system/paper/generate',
+    method: 'post',
+    data: data
+  })
+}

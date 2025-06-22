@@ -93,4 +93,16 @@ public class QuestionServiceImpl implements IQuestionService
     {
         return questionMapper.deleteQuestionByQuestionId(questionId);
     }
+
+    /**
+     * 根据课程ID查询题目列表
+     * 
+     * @param courseId 课程ID
+     * @return 题目列表
+     */
+    @Override
+    public List<Question> selectQuestionsByCourseId(Long courseId)
+    {
+        return questionMapper.selectQuestionsByCourseId(courseId);
+    }
 }

@@ -93,4 +93,16 @@ public class CoursePaperLibraryServiceImpl implements ICoursePaperLibraryService
     {
         return coursePaperLibraryMapper.deleteCoursePaperLibraryByLibraryId(libraryId);
     }
+
+    /**
+     * 根据课程ID查询试卷库
+     * 
+     * @param courseId 课程ID
+     * @return 试卷库信息
+     */
+    @Override
+    public CoursePaperLibrary selectCoursePaperLibraryByCourseId(Long courseId)
+    {
+        return coursePaperLibraryMapper.selectCoursePaperLibraryByCourseId(courseId);
+    }
 }
