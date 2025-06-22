@@ -1,4 +1,4 @@
-package com.ruoyi.system.controller;
+package com.ruoyi.web.controller;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
@@ -25,7 +25,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
  * 课程信息，存储课程的基本信息Controller
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-21
  */
 @RestController
 @RequestMapping("/system/course")

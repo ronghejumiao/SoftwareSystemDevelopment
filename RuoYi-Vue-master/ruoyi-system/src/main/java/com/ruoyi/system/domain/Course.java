@@ -10,7 +10,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * 课程信息，存储课程的基本信息对象 course
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-21
  */
 public class Course extends BaseEntity
 {
