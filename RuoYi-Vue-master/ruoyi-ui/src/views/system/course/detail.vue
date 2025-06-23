@@ -42,6 +42,7 @@
             </div>
 
 
+
             <div class="requirement-content">
               <div class="requirement-desc"><b>课程描述：</b>{{ item.description }}</div>
               <div class="requirement-required"><b>课堂要求：</b>{{ item.requiredText }}</div>
@@ -127,6 +128,7 @@
         </div>
       </el-tab-pane>
     </el-tabs>
+
 
 
 
