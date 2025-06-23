@@ -41,6 +41,7 @@
               </div>
             </div>
 
+
             <div class="requirement-content">
               <div class="requirement-desc"><b>课程描述：</b>{{ item.description }}</div>
               <div class="requirement-required"><b>课堂要求：</b>{{ item.requiredText }}</div>
@@ -114,14 +115,7 @@
           </div>
         </el-dialog>
       </el-tab-pane>
-      <el-tab-pane label="学习任务" name="tasks">
-        <div class="block-title"><i class="el-icon-s-operation"></i> 学习任务</div>
-        <p>这里是学习任务内容区域。</p>
-      </el-tab-pane>
-      <el-tab-pane label="答题" name="quiz">
-        <div class="block-title"><i class="el-icon-edit-outline"></i> 答题</div>
-        <p>这里是答题内容区域。</p>
-      </el-tab-pane>
+
       <el-tab-pane label="学习任务" name="tasks">
         <course-task v-if="course.courseId" :course-id="course.courseId" @switch-tab="handleSwitchTab" />
         <div v-else style="text-align: center; padding: 40px; color: #909399;">加载中...</div>
@@ -133,6 +127,7 @@
         </div>
       </el-tab-pane>
     </el-tabs>
+
 
 
     <!-- 添加或修改学习资源对话框 -->
@@ -383,6 +378,7 @@ export default {
       this.reset();
     },
 
+
     // 课程能力要求相关
     getRequirementList() {
       if (!this.course.courseId) return;
@@ -468,6 +464,7 @@ export default {
     handleSwitchTab(tabName) {
       this.activeTab = tabName;
     },
+
 
   }
 };
