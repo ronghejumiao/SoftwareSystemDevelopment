@@ -42,3 +42,11 @@ export function delPaper(paperId) {
     method: 'delete'
   })
 }
+
+// 根据课程ID查询试卷列表
+export function listPaperByCourseId(courseId) {
+  return request({
+    url: '/system/paper/course/' + courseId,
+    method: 'get'
+  })
+}

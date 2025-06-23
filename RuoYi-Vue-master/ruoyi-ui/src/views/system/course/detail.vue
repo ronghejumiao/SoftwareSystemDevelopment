@@ -40,6 +40,7 @@
                 <el-button size="mini" type="text" icon="el-icon-delete" @click="handleDeleteRequirement(item)">删除</el-button>
               </div>
             </div>
+
             <div class="requirement-content">
               <div class="requirement-desc"><b>课程描述：</b>{{ item.description }}</div>
               <div class="requirement-required"><b>课堂要求：</b>{{ item.requiredText }}</div>
@@ -121,7 +122,35 @@
         <div class="block-title"><i class="el-icon-edit-outline"></i> 答题</div>
         <p>这里是答题内容区域。</p>
       </el-tab-pane>
+      <el-tab-pane label="学习任务" name="tasks">
+        <course-task v-if="course.courseId" :course-id="course.courseId" @switch-tab="handleSwitchTab" />
+        <div v-else style="text-align: center; padding: 40px; color: #909399;">加载中...</div>
+      </el-tab-pane>
+      <el-tab-pane label="答题" name="quiz">
+        <course-quiz v-if="course.courseId" :course-id="course.courseId" />
+        <div v-else style="text-align: center; padding: 40px; color: #909399;">
+          加载中...
+        </div>
+      </el-tab-pane>
     </el-tabs>
+
+
+    <!-- 添加或修改学习资源对话框 -->
+    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="资源名称" prop="resourceName">
+          <el-input v-model="form.resourceName" placeholder="请输入资源名称 (作为分组依据)" />
+        </el-form-item>
+        <el-form-item label="上传资源" prop="resourcePath">
+          <file-upload v-model="form.resourcePath" :action="uploadUrl" :headers="uploadHeaders" :file-size="3072" :limit="isUpdate ? 1 : 10" @upload-completed="handleResourceUploadSuccess" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="cancel">取 消</el-button>
+      </div>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -132,10 +161,13 @@ import { getToken } from "@/utils/auth";
 import FileUpload from '@/components/FileUpload';
 import { listRequirement, addRequirement, updateRequirement, delRequirement } from '@/api/system/requirement';
 import { listCourse } from '@/api/system/course';
+import CourseQuiz from './quiz.vue';
+import CourseTask from './task.vue';
+
 
 export default {
   name: "CourseDetail",
-  components: { FileUpload },
+  components: { FileUpload, CourseQuiz, CourseTask },
   data() {
     return {
       activeTab: 'requirements',
@@ -210,11 +242,11 @@ export default {
         const parts = resourceName.split(' - ');
         const groupName = parts.length > 1 ? parts[0].trim() : '其他';
         const displayName = parts.length > 1 ? parts.slice(1).join(' - ').trim() : resourceName;
-        
+
         if (!groups[groupName]) {
           groups[groupName] = [];
         }
-        
+
         groups[groupName].push({
           ...resource,
           displayName: displayName
@@ -240,6 +272,8 @@ export default {
     getResourceList(courseId) {
       listResource({ courseId: courseId, pageSize: 999 }).then(response => {
         this.resourceList = response.rows;
+      }).catch(() => {
+        this.resourceList = [];
       });
     },
     handlePreview(resource) {
@@ -348,6 +382,7 @@ export default {
       this.open = false;
       this.reset();
     },
+
     // 课程能力要求相关
     getRequirementList() {
       if (!this.course.courseId) return;
@@ -428,7 +463,12 @@ export default {
   watch: {
     'course.courseId'(val) {
       if (val) this.getRequirementList();
-    }
+    },
+
+    handleSwitchTab(tabName) {
+      this.activeTab = tabName;
+    },
+
   }
 };
 </script>
@@ -580,4 +620,4 @@ export default {
   display: flex;
   gap: 6px;
 }
-</style> 
+</style>

@@ -1,6 +1,7 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
+import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.mapper.LearningRecordMapper;
@@ -52,6 +53,9 @@ public class LearningRecordServiceImpl implements ILearningRecordService
     @Override
     public int insertLearningRecord(LearningRecord learningRecord)
     {
+        if (learningRecord.getJoinTime() == null) {
+            learningRecord.setJoinTime(new Date());
+        }
         return learningRecordMapper.insertLearningRecord(learningRecord);
     }
 

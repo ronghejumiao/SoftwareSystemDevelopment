@@ -58,4 +58,21 @@ public interface IScoreService
      * @return 结果
      */
     public int deleteScoreByScoreId(Long scoreId);
+
+    /**
+     * 根据用户ID和课程ID查询成绩
+     * 
+     * @param userId 用户ID
+     * @param courseId 课程ID
+     * @return 成绩列表
+     */
+    public List<Score> selectScoreByUserAndCourse(Long userId, Long courseId);
+
+    /**
+     * 根据用户ID查询所有成绩
+     * 
+     * @param userId 用户ID
+     * @return 成绩列表
+     */
+    public List<Score> selectScoreByUserId(Long userId);
 }

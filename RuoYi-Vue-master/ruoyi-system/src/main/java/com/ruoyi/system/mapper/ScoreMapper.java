@@ -1,6 +1,7 @@
 package com.ruoyi.system.mapper;
 
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 import com.ruoyi.system.domain.Score;
 
 /**
@@ -58,4 +59,21 @@ public interface ScoreMapper
      * @return 结果
      */
     public int deleteScoreByScoreIds(Long[] scoreIds);
+
+    /**
+     * 根据用户ID和课程ID查询成绩
+     * 
+     * @param userId 用户ID
+     * @param courseId 课程ID
+     * @return 成绩列表
+     */
+    public List<Score> selectScoreByUserAndCourse(@Param("userId") Long userId, @Param("courseId") Long courseId);
+
+    /**
+     * 根据用户ID查询所有成绩
+     * 
+     * @param userId 用户ID
+     * @return 成绩列表
+     */
+    public List<Score> selectScoreByUserId(@Param("userId") Long userId);
 }

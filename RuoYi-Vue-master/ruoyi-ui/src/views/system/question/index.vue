@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <!-- 课程信息显示区域 -->
-    <el-card class="course-info-card" v-if="courseId">
+    <el-card class="course-info-card" v-if="isStudentFromCourse && courseId">
       <div class="course-info">
         <el-row :gutter="20">
           <el-col :span="8">
@@ -26,7 +26,7 @@
       </div>
     </el-card>
 
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch && !isStudentFromCourse" label-width="68px">
       <el-form-item label="题库ID" prop="bankId">
         <el-input
           v-model="queryParams.bankId"
@@ -629,6 +629,7 @@ export default {
       // 试卷生成相关数据
       paperDialogVisible: false,
       courseId: null, // 从路由参数获取
+      isStudentFromCourse: false, // 是否为学生通过课程跳转进入
       allQuestions: [], // 所有题目
       filteredQuestions: [], // 筛选后的题目
       paperConfig: {
@@ -698,14 +699,12 @@ export default {
     }
   },
   created() {
-    // 临时设置courseId，后续可以从路由参数获取
-    this.courseId = this.$route.query.courseId || this.$route.params.courseId || 1 // 临时设置为1，实际应该从课程模块获取
-
-    // 根据courseId查询题目
-    this.getQuestionsByCourse()
-
-    // 初始化随机组卷配置
-    this.calculateQuestions()
+    this.handleRouteChange(this.$route);
+  },
+  watch: {
+    '$route'(to, from) {
+      this.handleRouteChange(to);
+    }
   },
   methods: {
     jumpToLibrary() {
@@ -714,47 +713,81 @@ export default {
         query: { courseId: this.courseId }
       });
     },
+    
+    handleRouteChange(route) {
+      const courseId = route.query.courseId || route.params.courseId || null;
+      this.isStudentFromCourse = !!courseId;
+      this.courseId = courseId;
+      
+      this.queryParams.pageNum = 1; // 每次路由变化都重置到第一页
 
-    /** 查询题目，存储题库中的题目信息列表 */
+      if (this.isStudentFromCourse) {
+        // 学生或从课程跳转的模式
+        this.showSearch = false;
+        this.queryParams.courseId = courseId;
+        this.getQuestionsByCourse();
+      } else {
+        // 管理员直接访问的模式
+        this.showSearch = true;
+        // 清理可能残留的 courseId
+        delete this.queryParams.courseId;
+        this.getList();
+      }
+    },
+
+    /** 查询题目列表 */
     getList() {
-      this.loading = true
-      listQuestion(this.queryParams).then(response => {
-        this.questionList = response.rows
-        this.total = response.total
-        this.loading = false
-      })
+      this.loading = true;
+      // 明确复制一份参数，避免污染
+      const params = { ...this.queryParams };
+      
+      // 确保在 admin 模式下，如果 courseId 为空或不存在，不发送该参数
+      if (!this.isStudentFromCourse && !params.courseId) {
+        delete params.courseId;
+      }
+
+      listQuestion(params).then(response => {
+        this.questionList = response.rows;
+        this.total = response.total;
+        this.loading = false;
+      });
     },
 
     /** 根据课程ID查询题目列表 */
     getQuestionsByCourse() {
-      if (!this.courseId) {
-        this.$modal.msgError("未找到课程ID")
-        return
+      this.loading = true;
+      if (this.isStudentFromCourse) {
+        getQuestionsByCourseId(this.courseId).then(response => {
+          this.allQuestions = response.data || [];
+          this.filteredQuestions = [...this.allQuestions]; // 确保筛选列表与完整列表同步
+          // 学生模式下，数据在前端分页
+          this.updateQuestionList();
+          this.loading = false;
+        }).catch(() => {
+          this.$modal.msgError("加载题目失败");
+          this.loading = false;
+        });
+      } else {
+        // 如果错误地调用到这里，则转到正确的查询方法
+        this.getList();
       }
-
-      this.loading = true
-      getQuestionsByCourseId(this.courseId).then(response => {
-        this.allQuestions = response.data || []
-        this.filteredQuestions = [...this.allQuestions]
-        this.updateQuestionList() // 更新表格数据并应用分页
-        this.loading = false
-      }).catch(() => {
-        this.$modal.msgError("加载题目失败")
-        this.loading = false
-      })
+    },
+    
+    /** 处理分页变化 */
+    handlePagination() {
+      if (this.isStudentFromCourse) {
+        this.updateQuestionList();
+      } else {
+        this.getList();
+      }
     },
 
     /** 更新表格数据并应用分页 */
     updateQuestionList() {
-      const startIndex = (this.queryParams.pageNum - 1) * this.queryParams.pageSize
-      const endIndex = startIndex + this.queryParams.pageSize
-      this.questionList = this.allQuestions.slice(startIndex, endIndex)
-      this.total = this.allQuestions.length
-    },
-
-    /** 处理分页变化 */
-    handlePagination() {
-      this.updateQuestionList()
+      const startIndex = (this.queryParams.pageNum - 1) * this.queryParams.pageSize;
+      const endIndex = startIndex + this.queryParams.pageSize;
+      this.questionList = this.filteredQuestions.slice(startIndex, endIndex);
+      this.total = this.filteredQuestions.length;
     },
 
     // 取消按钮
@@ -781,14 +814,23 @@ export default {
     },
     /** 搜索按钮操作 */
     handleQuery() {
-      this.queryParams.pageNum = 1
-      this.updateQuestionList()
+      this.queryParams.pageNum = 1;
+      if (this.isStudentFromCourse) {
+        this.filterQuestions(); // 学生模式下，执行前端筛选
+      } else {
+        this.getList(); // admin模式，重新查询
+      }
     },
+    
     /** 重置按钮操作 */
     resetQuery() {
-      this.resetForm("queryForm")
-      this.queryParams.pageNum = 1
-      this.updateQuestionList()
+      this.resetForm("queryForm");
+      this.queryParams.pageNum = 1;
+      if (this.isStudentFromCourse) {
+        this.resetFilter(); // 学生模式，重置前端筛选
+      } else {
+        this.getList(); // admin模式，重新查询
+      }
     },
     // 多选框选中数据
     handleSelectionChange(selection) {

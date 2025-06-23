@@ -86,4 +86,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{scoreId}
         </foreach>
     </delete>
+
+    <!-- 根据用户ID和课程ID查询成绩 -->
+    <select id="selectScoreByUserAndCourse" resultMap="ScoreResult">
+        select s.score_id, s.learning_record_id, s.task_id, s.paper_id, s.score, s.score_desc, s.submit_time, s.create_time, s.update_time
+        from score s
+        inner join learning_record lr on s.learning_record_id = lr.record_id
+        where lr.user_id = #{userId} and lr.course_id = #{courseId}
+    </select>
+
+    <!-- 根据用户ID查询所有成绩 -->
+    <select id="selectScoreByUserId" resultMap="ScoreResult">
+        select s.score_id, s.learning_record_id, s.task_id, s.paper_id, s.score, s.score_desc, s.submit_time, s.create_time, s.update_time
+        from score s
+        inner join learning_record lr on s.learning_record_id = lr.record_id
+        where lr.user_id = #{userId}
+    </select>
 </mapper>

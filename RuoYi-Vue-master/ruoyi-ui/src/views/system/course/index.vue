@@ -336,7 +336,10 @@ export default {
     },
     /** 跳转到课程详情页 */
     handleCourseClick(course) {
-      this.$router.push({ path: '/system/course-detail/' + course.courseId });
+      this.$router.push({ 
+        name: 'CourseDetail', 
+        params: { courseId: course.courseId }
+      });
     }
   }
 }

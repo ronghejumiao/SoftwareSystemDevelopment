@@ -1,6 +1,32 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+    <!-- 课程信息显示区域 -->
+    <el-card class="course-info-card" v-if="isStudentFromCourse && courseId">
+      <div class="course-info">
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <div class="info-item">
+              <span class="label">当前课程ID：</span>
+              <span class="value">{{ courseId }}</span>
+            </div>
+          </el-col>
+          <el-col :span="8">
+            <div class="info-item">
+              <span class="label">试卷总数：</span>
+              <span class="value">{{ paperList.length }}份</span>
+            </div>
+          </el-col>
+          <el-col :span="8">
+            <div class="info-item">
+              <span class="label">状态：</span>
+              <el-tag type="success">正常</el-tag>
+            </div>
+          </el-col>
+        </el-row>
+      </div>
+    </el-card>
+
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch && !isStudentFromCourse" label-width="68px">
       <el-form-item label="课程ID" prop="courseId">
         <el-input
           v-model="queryParams.courseId"
@@ -276,24 +302,49 @@ export default {
       // 题目详情相关属性
       questionDetailVisible: false,
       currentPaper: {},
-      questionList: []
+      questionList: [],
+      isStudentFromCourse: false,
+      courseId: null
     }
   },
   created() {
-    // 从路由参数获取courseId，如果没有则使用默认值
-    const courseId = this.$route.query.courseId || this.$route.params.courseId || 10002 // 默认使用10002
-    if (courseId) {
-      this.queryParams.courseId = courseId
+    // 获取courseId，优先从路由参数获取
+    this.courseId = this.$route.query.courseId || this.$route.params.courseId || null;
+    
+    // 判断是否为学生通过跳转进入
+    this.isStudentFromCourse = !!this.courseId;
+    
+    // 如果是学生通过跳转进入，设置固定的courseId并禁用搜索
+    if (this.isStudentFromCourse) {
+      this.courseId = this.courseId || 1; // 如果没有courseId，默认使用1
+      this.showSearch = false; // 禁用搜索功能
+      this.queryParams.courseId = this.courseId; // 设置查询参数
+    } else {
+      // admin直接进入，展示所有试卷，允许搜索
+      this.showSearch = true;
+      // 移除courseId限制，允许查看所有试卷
+      delete this.queryParams.courseId;
     }
-    this.getList()
+    
+    this.getList();
   },
   watch: {
     // 监听路由变化，确保页面刷新后保持courseId筛选
     '$route'(to, from) {
-      const courseId = to.query.courseId || to.params.courseId || 10002
-      if (courseId && courseId !== this.queryParams.courseId) {
-        this.queryParams.courseId = courseId
-        this.getList()
+      const courseId = to.query.courseId || to.params.courseId || null;
+      if (courseId !== this.courseId) {
+        this.courseId = courseId;
+        this.isStudentFromCourse = !!courseId;
+        
+        if (this.isStudentFromCourse) {
+          this.showSearch = false;
+          this.queryParams.courseId = courseId;
+        } else {
+          this.showSearch = true;
+          delete this.queryParams.courseId;
+        }
+        
+        this.getList();
       }
     }
   },
@@ -441,6 +492,31 @@ export default {
 </script>
 
 <style scoped>
+.course-info-card {
+  margin-bottom: 20px;
+}
+
+.course-info {
+  padding: 10px 0;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-item .label {
+  font-weight: bold;
+  color: #606266;
+  margin-right: 8px;
+}
+
+.info-item .value {
+  color: #409EFF;
+  font-weight: 500;
+}
+
 .question-detail-container {
   padding: 20px 0;
 }

@@ -101,4 +101,26 @@ public class ScoreController extends BaseController
     {
         return toAjax(scoreService.deleteScoreByScoreIds(scoreIds));
     }
+
+    /**
+     * 根据用户ID和课程ID查询成绩
+     */
+    @PreAuthorize("@ss.hasPermi('system:score:list')")
+    @GetMapping("/user/{userId}/course/{courseId}")
+    public AjaxResult getScoreByUserAndCourse(@PathVariable("userId") Long userId, @PathVariable("courseId") Long courseId)
+    {
+        List<Score> list = scoreService.selectScoreByUserAndCourse(userId, courseId);
+        return success(list);
+    }
+
+    /**
+     * 根据用户ID查询所有成绩
+     */
+    @PreAuthorize("@ss.hasPermi('system:score:list')")
+    @GetMapping("/user/{userId}")
+    public AjaxResult getScoreByUserId(@PathVariable("userId") Long userId)
+    {
+        List<Score> list = scoreService.selectScoreByUserId(userId);
+        return success(list);
+    }
 }

@@ -93,4 +93,29 @@ public class ScoreServiceImpl implements IScoreService
     {
         return scoreMapper.deleteScoreByScoreId(scoreId);
     }
+
+    /**
+     * 根据用户ID和课程ID查询成绩
+     * 
+     * @param userId 用户ID
+     * @param courseId 课程ID
+     * @return 成绩列表
+     */
+    @Override
+    public List<Score> selectScoreByUserAndCourse(Long userId, Long courseId)
+    {
+        return scoreMapper.selectScoreByUserAndCourse(userId, courseId);
+    }
+
+    /**
+     * 根据用户ID查询所有成绩
+     * 
+     * @param userId 用户ID
+     * @return 成绩列表
+     */
+    @Override
+    public List<Score> selectScoreByUserId(Long userId)
+    {
+        return scoreMapper.selectScoreByUserId(userId);
+    }
 }

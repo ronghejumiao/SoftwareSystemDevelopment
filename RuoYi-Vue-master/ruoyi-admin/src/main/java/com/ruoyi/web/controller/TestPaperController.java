@@ -118,4 +118,17 @@ public class TestPaperController extends BaseController
             return error("试卷生成失败：" + e.getMessage());
         }
     }
+
+    /**
+     * 根据课程ID查询试卷列表
+     */
+    @PreAuthorize("@ss.hasPermi('system:paper:list')")
+    @GetMapping("/course/{courseId}")
+    public AjaxResult listByCourseId(@PathVariable("courseId") Long courseId)
+    {
+        TestPaper testPaper = new TestPaper();
+        testPaper.setCourseId(courseId);
+        List<TestPaper> list = testPaperService.selectTestPaperList(testPaper);
+        return success(list);
+    }
 }

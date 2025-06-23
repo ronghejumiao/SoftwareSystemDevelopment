@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-// 查询学习记录，记录学生的课程学习关联信息列表
+// 查询学习记录列表
 export function listLearningRecord(query) {
   return request({
     url: '/system/learningRecord/list',
@@ -9,7 +9,15 @@ export function listLearningRecord(query) {
   })
 }
 
-// 查询学习记录，记录学生的课程学习关联信息详细
+// 根据用户ID和课程ID查询学习记录
+export function getLearningRecordByUserAndCourse(userId, courseId) {
+  return request({
+    url: '/system/learningRecord/user/' + userId + '/course/' + courseId,
+    method: 'get'
+  })
+}
+
+// 查询学习记录详细
 export function getLearningRecord(recordId) {
   return request({
     url: '/system/learningRecord/' + recordId,
@@ -17,8 +25,11 @@ export function getLearningRecord(recordId) {
   })
 }
 
-// 新增学习记录，记录学生的课程学习关联信息
+// 新增学习记录
 export function addLearningRecord(data) {
+  if (!data.joinTime) {
+    data.joinTime = new Date();
+  }
   return request({
     url: '/system/learningRecord',
     method: 'post',
@@ -26,7 +37,7 @@ export function addLearningRecord(data) {
   })
 }
 
-// 修改学习记录，记录学生的课程学习关联信息
+// 修改学习记录
 export function updateLearningRecord(data) {
   return request({
     url: '/system/learningRecord',
@@ -35,7 +46,7 @@ export function updateLearningRecord(data) {
   })
 }
 
-// 删除学习记录，记录学生的课程学习关联信息
+// 删除学习记录
 export function delLearningRecord(recordId) {
   return request({
     url: '/system/learningRecord/' + recordId,
