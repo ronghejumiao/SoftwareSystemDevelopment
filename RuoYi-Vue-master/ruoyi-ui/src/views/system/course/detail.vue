@@ -42,7 +42,6 @@
             </div>
 
 
-
             <div class="requirement-content">
               <div class="requirement-desc"><b>课程描述：</b>{{ item.description }}</div>
               <div class="requirement-required"><b>课堂要求：</b>{{ item.requiredText }}</div>
@@ -132,6 +131,7 @@
 
 
 
+
     <!-- 添加或修改学习资源对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
@@ -160,7 +160,6 @@ import { listRequirement, addRequirement, updateRequirement, delRequirement } fr
 import { listCourse } from '@/api/system/course';
 import CourseQuiz from './quiz.vue';
 import CourseTask from './task.vue';
-
 
 export default {
   name: "CourseDetail",
