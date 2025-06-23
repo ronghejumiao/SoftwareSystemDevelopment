@@ -15,12 +15,13 @@
       <el-form-item prop="password">
         <el-input
           v-model="loginForm.password"
-          type="password"
+          :type="passwordType"
           auto-complete="off"
           placeholder="密码"
           @keyup.enter.native="handleLogin"
         >
           <svg-icon slot="prefix" icon-class="password" class="el-input__icon input-icon" />
+          <svg-icon slot="suffix" :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" @click="showPwd" class="el-input__icon input-icon" style="cursor: pointer;" />
         </el-input>
       </el-form-item>
       <el-form-item prop="code" v-if="captchaEnabled">
@@ -72,6 +73,7 @@ export default {
     return {
       title: process.env.VUE_APP_TITLE,
       codeUrl: "",
+      passwordType: 'password',
       loginForm: {
         username: "admin",
         password: "admin123",
@@ -92,7 +94,7 @@ export default {
       // 验证码开关
       captchaEnabled: true,
       // 注册开关
-      register: false,
+      register: true,
       redirect: undefined
     }
   },
@@ -109,6 +111,9 @@ export default {
     this.getCookie()
   },
   methods: {
+    showPwd() {
+      this.passwordType = this.passwordType === 'password' ? 'text' : 'password';
+    },
     getCode() {
       getCodeImg().then(res => {
         this.captchaEnabled = res.captchaEnabled === undefined ? true : res.captchaEnabled

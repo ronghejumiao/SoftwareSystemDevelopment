@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.system.mapper.ClassinfoMapper">
-    
+
     <resultMap type="Classinfo" id="ClassinfoResult">
         <result property="classId"    column="class_id"    />
         <result property="className"    column="class_name"    />
@@ -18,12 +18,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectClassinfoList" parameterType="Classinfo" resultMap="ClassinfoResult">
         <include refid="selectClassinfoVo"/>
-        <where>  
+        <where>
             <if test="className != null  and className != ''"> and class_name like concat('%', #{className}, '%')</if>
             <if test="courseId != null "> and course_id = #{courseId}</if>
         </where>
     </select>
-    
+
     <select id="selectClassinfoByClassId" parameterType="Long" resultMap="ClassinfoResult">
         <include refid="selectClassinfoVo"/>
         where class_id = #{classId}
@@ -36,13 +36,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="courseId != null">course_id,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateTime != null">update_time,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="className != null and className != ''">#{className},</if>
             <if test="courseId != null">#{courseId},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateTime != null">#{updateTime},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateClassinfo" parameterType="Classinfo">
@@ -61,7 +61,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteClassinfoByClassIds" parameterType="String">
-        delete from classinfo where class_id in 
+        delete from classinfo where class_id in
         <foreach item="classId" collection="array" open="(" separator="," close=")">
             #{classId}
         </foreach>

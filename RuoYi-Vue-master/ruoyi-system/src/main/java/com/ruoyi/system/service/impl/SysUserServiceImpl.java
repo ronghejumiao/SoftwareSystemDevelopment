@@ -276,9 +276,21 @@ public class SysUserServiceImpl implements ISysUserService
      * @return 结果
      */
     @Override
+    @Transactional
     public boolean registerUser(SysUser user)
     {
-        return userMapper.insertUser(user) > 0;
+        user.setCreateBy(user.getUserName());
+        int rows = userMapper.insertUser(user);
+        if (rows > 0)
+        {
+            // 新增用户与角色管理
+            Long[] roles = user.getRoleIds();
+            if (StringUtils.isNotNull(roles) && roles.length > 0)
+            {
+                insertUserRole(user);
+            }
+        }
+        return rows > 0;
     }
 
     /**
@@ -386,7 +398,23 @@ public class SysUserServiceImpl implements ISysUserService
      */
     public void insertUserRole(SysUser user)
     {
-        this.insertUserRole(user.getUserId(), user.getRoleIds());
+        Long[] roles = user.getRoleIds();
+        if (StringUtils.isNotNull(roles))
+        {
+            // 新增用户与角色管理
+            List<SysUserRole> list = new ArrayList<SysUserRole>();
+            for (Long roleId : roles)
+            {
+                SysUserRole ur = new SysUserRole();
+                ur.setUserId(user.getUserId());
+                ur.setRoleId(roleId);
+                list.add(ur);
+            }
+            if (list.size() > 0)
+            {
+                userMapper.batchUserRole(list);
+            }
+        }
     }
 
     /**

@@ -9,14 +9,6 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="课程ID" prop="courseId">
-        <el-input
-          v-model="queryParams.courseId"
-          placeholder="请输入课程ID"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -90,6 +82,13 @@
             @click="handleDelete(scope.row)"
             v-hasPermi="['system:classinfo:remove']"
           >删除</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-view"
+            @click="handleDetail(scope.row)"
+            v-hasPermi="['system:classinfo:query']"
+          >详情</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -102,14 +101,14 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改班级信息，存储班级的基本信息对话框 -->
+    <!-- 添加或修改班级信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="班级名称" prop="className">
           <el-input v-model="form.className" placeholder="请输入班级名称" />
         </el-form-item>
-        <el-form-item label="课程ID" prop="courseId">
-          <el-input v-model="form.courseId" placeholder="请输入课程ID" />
+        <el-form-item label="课程id" prop="courseId">
+          <el-input v-model="form.courseId" placeholder="请输入课程id" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -117,11 +116,39 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!-- 班级信息详细 -->
+    <el-dialog :title="title" :visible.sync="detailOpen" width="700px" append-to-body>
+      <el-form ref="form" :model="form" label-width="100px">
+        <el-form-item label="班级名称：">{{ form.className }}</el-form-item>
+      </el-form>
+      <el-divider content-position="center">关联课程信息</el-divider>
+      <div v-if="form.course">
+        <el-form ref="courseForm" :model="form.course" label-width="100px">
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="课程名称：">{{ form.course.courseName }}</el-form-item>
+              <el-form-item label="学分：">{{ form.course.credit }}</el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="课程编码：">{{ form.course.courseCode }}</el-form-item>
+              <el-form-item label="学时：">{{ form.course.hours }}</el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+      </div>
+      <div v-else class="no-course-tip">
+        <p>暂无关联课程信息</p>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="detailOpen = false">关 闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listClassinfo, getClassinfo, delClassinfo, addClassinfo, updateClassinfo } from "@/api/system/classinfo"
+import { listClassinfo, getClassinfo, delClassinfo, addClassinfo, updateClassinfo, getDetail } from "@/api/system/classinfo"
 
 export default {
   name: "Classinfo",
@@ -150,10 +177,12 @@ export default {
         pageNum: 1,
         pageSize: 10,
         className: null,
-        courseId: null,
+        courseId: null
       },
       // 表单参数
-      form: {},
+      form: {
+        course: {} // 初始化课程对象
+      },
       // 表单校验
       rules: {
         className: [
@@ -165,7 +194,9 @@ export default {
         createTime: [
           { required: true, message: "创建时间不能为空", trigger: "blur" }
         ],
-      }
+      },
+      // 详情对话框
+      detailOpen: false,
     }
   },
   created() {
@@ -186,16 +217,19 @@ export default {
       this.open = false
       this.reset()
     },
-    // 表单重置
+    /**
+     * 表单重置
+     */
     reset() {
       this.form = {
         classId: null,
         className: null,
         courseId: null,
         createTime: null,
-        updateTime: null
-      }
-      this.resetForm("form")
+        updateTime: null,
+        course: null // 重置时清空课程信息
+      };
+      this.resetForm("form");
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -264,6 +298,16 @@ export default {
       this.download('system/classinfo/export', {
         ...this.queryParams
       }, `classinfo_${new Date().getTime()}.xlsx`)
+    },
+    /** 详细按钮操作 */
+    handleDetail(row) {
+      this.reset();
+      const classId = row.classId || this.ids
+      getDetail(classId).then(response => {
+        this.form = response.data;
+        this.detailOpen = true;
+        this.title = "班级详情";
+      });
     }
   }
 }

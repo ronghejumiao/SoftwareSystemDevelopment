@@ -59,6 +59,18 @@ public class SysRoleServiceImpl implements ISysRoleService
     }
 
     /**
+     * 查询公开的角色列表（用于注册等场景）
+     *
+     * @param role 角色信息
+     * @return 角色列表
+     */
+    @Override
+    public List<SysRole> selectPublicRoleList(SysRole role)
+    {
+        return roleMapper.selectRoleList(role);
+    }
+
+    /**
      * 根据用户ID查询角色
      * 
      * @param userId 用户ID

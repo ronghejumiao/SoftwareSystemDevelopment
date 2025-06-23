@@ -10,24 +10,57 @@
       <el-form-item prop="password">
         <el-input
           v-model="registerForm.password"
-          type="password"
+          :type="passwordType"
           auto-complete="off"
           placeholder="密码"
           @keyup.enter.native="handleRegister"
         >
           <svg-icon slot="prefix" icon-class="password" class="el-input__icon input-icon" />
+          <svg-icon slot="suffix" :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" @click="showPwd" class="el-input__icon input-icon" style="cursor: pointer;" />
         </el-input>
       </el-form-item>
       <el-form-item prop="confirmPassword">
         <el-input
           v-model="registerForm.confirmPassword"
-          type="password"
+          :type="confirmPasswordType"
           auto-complete="off"
           placeholder="确认密码"
           @keyup.enter.native="handleRegister"
         >
           <svg-icon slot="prefix" icon-class="password" class="el-input__icon input-icon" />
+          <svg-icon slot="suffix" :icon-class="confirmPasswordType === 'password' ? 'eye' : 'eye-open'" @click="showConfirmPwd" class="el-input__icon input-icon" style="cursor: pointer;" />
         </el-input>
+      </el-form-item>
+      <el-form-item prop="nickName">
+        <el-input v-model="registerForm.nickName" type="text" auto-complete="off" placeholder="您的真实姓名">
+          <svg-icon slot="prefix" icon-class="user" class="el-input__icon input-icon" />
+        </el-input>
+      </el-form-item>
+      <el-form-item prop="email">
+        <el-input v-model="registerForm.email" type="text" auto-complete="off" placeholder="邮箱地址">
+          <svg-icon slot="prefix" icon-class="email" class="el-input__icon input-icon" />
+        </el-input>
+      </el-form-item>
+      <el-form-item prop="phonenumber">
+        <el-input v-model="registerForm.phonenumber" type="text" auto-complete="off" placeholder="手机号码">
+          <svg-icon slot="prefix" icon-class="phone" class="el-input__icon input-icon" />
+        </el-input>
+      </el-form-item>
+      <el-form-item prop="sex">
+        <el-radio-group v-model="registerForm.sex" style="width:100%; text-align: center;">
+            <el-radio label="0">男</el-radio>
+            <el-radio label="1">女</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item prop="roleId">
+        <el-select v-model="registerForm.roleId" placeholder="请选择角色" style="width: 100%">
+          <el-option
+            v-for="role in roleOptions"
+            :key="role.roleId"
+            :label="role.roleName"
+            :value="role.roleId">
+          </el-option>
+        </el-select>
       </el-form-item>
       <el-form-item prop="code" v-if="captchaEnabled">
         <el-input
@@ -67,7 +100,7 @@
 </template>
 
 <script>
-import { getCodeImg, register } from "@/api/login"
+import { getCodeImg, register, getRegisterRoles } from "@/api/login"
 
 export default {
   name: "Register",
@@ -82,13 +115,21 @@ export default {
     return {
       title: process.env.VUE_APP_TITLE,
       codeUrl: "",
+      passwordType: 'password',
+      confirmPasswordType: 'password',
       registerForm: {
         username: "",
         password: "",
         confirmPassword: "",
+        nickName: "",
+        email: "",
+        phonenumber: "",
+        sex: "0",
+        roleId: "",
         code: "",
         uuid: ""
       },
+      roleOptions: [],
       registerRules: {
         username: [
           { required: true, trigger: "blur", message: "请输入您的账号" },
@@ -97,11 +138,25 @@ export default {
         password: [
           { required: true, trigger: "blur", message: "请输入您的密码" },
           { min: 5, max: 20, message: "用户密码长度必须介于 5 和 20 之间", trigger: "blur" },
-          { pattern: /^[^<>"'|\\]+$/, message: "不能包含非法字符：< > \" ' \\\ |", trigger: "blur" }
+          { pattern: /^[^<>"'|\\\\]+$/, message: "不能包含非法字符：< > \" ' \\ |", trigger: "blur" }
         ],
         confirmPassword: [
           { required: true, trigger: "blur", message: "请再次输入您的密码" },
           { required: true, validator: equalToPassword, trigger: "blur" }
+        ],
+        nickName: [
+          { required: true, trigger: "blur", message: "请输入您的真实姓名" }
+        ],
+        email: [
+          { required: true, message: "邮箱地址不能为空", trigger: "blur" },
+          { type: "email", message: "请输入正确的邮箱地址", trigger: ["blur", "change"] }
+        ],
+        phonenumber: [
+          { required: true, message: "手机号码不能为空", trigger: "blur" },
+          { pattern: /^1[3-9]\d{9}$/, message: "请输入正确的手机号码", trigger: "blur" }
+        ],
+        roleId: [
+          { required: true, trigger: "change", message: "请选择角色" }
         ],
         code: [{ required: true, trigger: "change", message: "请输入验证码" }]
       },
@@ -111,8 +166,15 @@ export default {
   },
   created() {
     this.getCode()
+    this.getRoles()
   },
   methods: {
+    showPwd() {
+      this.passwordType = this.passwordType === 'password' ? 'text' : 'password';
+    },
+    showConfirmPwd() {
+      this.confirmPasswordType = this.confirmPasswordType === 'password' ? 'text' : 'password';
+    },
     getCode() {
       getCodeImg().then(res => {
         this.captchaEnabled = res.captchaEnabled === undefined ? true : res.captchaEnabled
@@ -120,6 +182,20 @@ export default {
           this.codeUrl = "data:image/gif;base64," + res.img
           this.registerForm.uuid = res.uuid
         }
+      })
+    },
+    getRoles() {
+      getRegisterRoles().then(res => {
+        // 兼容后端返回格式
+        if (Array.isArray(res)) {
+          this.roleOptions = res
+        } else if (res && Array.isArray(res.data)) {
+          this.roleOptions = res.data
+        } else {
+          this.roleOptions = []
+        }
+      }).catch(() => {
+        this.$message.error("获取角色列表失败")
       })
     },
     handleRegister() {

@@ -1,55 +1,38 @@
 <template>
-  <div class="app-container">
-    <el-row :gutter="20">
-      <el-col :span="6" :xs="24">
-        <el-card class="box-card">
-          <div slot="header" class="clearfix">
-            <span>个人信息</span>
-          </div>
-          <div>
-            <div class="text-center">
-              <userAvatar />
+  <div class="profile-container">
+    <el-row :gutter="30">
+      <!-- Left Card: User Info -->
+      <el-col :span="8" :xs="24">
+        <el-card class="profile-card user-card">
+          <div class="user-info-section">
+            <div class="user-avatar">
+              <userAvatar :user="user" />
             </div>
-            <ul class="list-group list-group-striped">
-              <li class="list-group-item">
-                <svg-icon icon-class="user" />用户名称
-                <div class="pull-right">{{ user.userName }}</div>
-              </li>
-              <li class="list-group-item">
-                <svg-icon icon-class="phone" />手机号码
-                <div class="pull-right">{{ user.phonenumber }}</div>
-              </li>
-              <li class="list-group-item">
-                <svg-icon icon-class="email" />用户邮箱
-                <div class="pull-right">{{ user.email }}</div>
-              </li>
-              <li class="list-group-item">
-                <svg-icon icon-class="tree" />所属部门
-                <div class="pull-right" v-if="user.dept">{{ user.dept.deptName }} / {{ postGroup }}</div>
-              </li>
-              <li class="list-group-item">
-                <svg-icon icon-class="peoples" />所属角色
-                <div class="pull-right">{{ roleGroup }}</div>
-              </li>
-              <li class="list-group-item">
-                <svg-icon icon-class="date" />创建日期
-                <div class="pull-right">{{ user.createTime }}</div>
-              </li>
+            <h2 class="user-name">{{ user.nickName }}</h2>
+            <p class="user-role">{{ roleGroup }}</p>
+            <ul class="user-details">
+              <li><i class="el-icon-user"></i>用户名<div class="detail-value">{{ user.userName }}</div></li>
+              <li><i class="el-icon-phone-outline"></i>手机号码 <div class="detail-value">{{ user.phonenumber }}</div></li>
+              <li><i class="el-icon-message"></i>用户邮箱 <div class="detail-value">{{ user.email }}</div></li>
+              <li><i class="el-icon-date"></i>创建日期 <div class="detail-value">{{ user.createTime }}</div></li>
+
             </ul>
           </div>
         </el-card>
       </el-col>
-      <el-col :span="18" :xs="24">
-        <el-card>
+
+      <!-- Right Card: Actions -->
+      <el-col :span="16" :xs="24">
+        <el-card class="profile-card">
           <div slot="header" class="clearfix">
             <span>基本资料</span>
           </div>
-          <el-tabs v-model="selectedTab">
+          <el-tabs v-model="activeTab" class="profile-tabs">
             <el-tab-pane label="基本资料" name="userinfo">
               <userInfo :user="user" />
             </el-tab-pane>
             <el-tab-pane label="修改密码" name="resetPwd">
-              <resetPwd />
+              <resetPwd :user="user" />
             </el-tab-pane>
           </el-tabs>
         </el-card>
@@ -72,14 +55,10 @@ export default {
       user: {},
       roleGroup: {},
       postGroup: {},
-      selectedTab: "userinfo"
+      activeTab: "userinfo"
     }
   },
   created() {
-    const activeTab = this.$route.params && this.$route.params.activeTab
-    if (activeTab) {
-      this.selectedTab = activeTab
-    }
     this.getUser()
   },
   methods: {
@@ -93,3 +72,89 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.profile-container {
+  background-color: #f4f6f8;
+  padding: 30px;
+  height: 100px;
+}
+
+.clearfix:before,
+.clearfix:after {
+  display: table;
+  content: "";
+}
+.clearfix:after {
+  clear: both
+}
+
+.profile-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: none;
+  margin-bottom: 30px;
+}
+
+.user-card {
+  .user-info-section {
+    text-align: center;
+    padding: 20px 0;
+  }
+  .user-avatar {
+    margin-bottom: 20px;
+    // 使用 ::v-deep 来影响子组件样式，放大头像
+    ::v-deep .user-info-head {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+    }
+  }
+  .user-name {
+    font-size: 24px;
+    font-weight: 500;
+    margin: 0 0 5px;
+  }
+  .user-role {
+    font-size: 14px;
+    color: #909399;
+    margin-bottom: 25px;
+  }
+  .user-details {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+
+    li {
+      font-size: 14px;
+      padding: 15px 10px;
+      border-bottom: 1px solid #f0f3f5;
+      display: flex;
+      align-items: center;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      i {
+        font-size: 16px;
+        margin-right: 10px;
+        color: #909399;
+      }
+
+      .detail-value {
+        margin-left: auto;
+        color: #303133;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+.profile-tabs {
+  .el-tab-pane {
+    padding: 10px;
+  }
+}
+</style>

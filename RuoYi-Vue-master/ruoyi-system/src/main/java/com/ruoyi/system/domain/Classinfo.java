@@ -7,7 +7,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
  * 班级信息，存储班级的基本信息对象 classinfo
- * 
+ *
  * @author ruoyi
  * @date 2025-06-20
  */
@@ -26,32 +26,32 @@ public class Classinfo extends BaseEntity
     @Excel(name = "课程ID，关联course表")
     private Long courseId;
 
-    public void setClassId(Long classId) 
+    public void setClassId(Long classId)
     {
         this.classId = classId;
     }
 
-    public Long getClassId() 
+    public Long getClassId()
     {
         return classId;
     }
 
-    public void setClassName(String className) 
+    public void setClassName(String className)
     {
         this.className = className;
     }
 
-    public String getClassName() 
+    public String getClassName()
     {
         return className;
     }
 
-    public void setCourseId(Long courseId) 
+    public void setCourseId(Long courseId)
     {
         this.courseId = courseId;
     }
 
-    public Long getCourseId() 
+    public Long getCourseId()
     {
         return courseId;
     }
@@ -59,11 +59,11 @@ public class Classinfo extends BaseEntity
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
-            .append("classId", getClassId())
-            .append("className", getClassName())
-            .append("courseId", getCourseId())
-            .append("createTime", getCreateTime())
-            .append("updateTime", getUpdateTime())
-            .toString();
+                .append("classId", getClassId())
+                .append("className", getClassName())
+                .append("courseId", getCourseId())
+                .append("createTime", getCreateTime())
+                .append("updateTime", getUpdateTime())
+                .toString();
     }
 }

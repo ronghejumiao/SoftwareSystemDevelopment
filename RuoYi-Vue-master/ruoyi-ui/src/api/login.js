@@ -31,6 +31,17 @@ export function register(data) {
   })
 }
 
+// 获取注册角色列表
+export function getRegisterRoles() {
+  return request({
+    url: '/register/roles',
+    headers: {
+      isToken: false
+    },
+    method: 'get'
+  })
+}
+
 // 获取用户详细信息
 export function getInfo() {
   return request({

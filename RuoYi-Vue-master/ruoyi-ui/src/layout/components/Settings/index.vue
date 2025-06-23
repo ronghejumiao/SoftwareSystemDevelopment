@@ -68,12 +68,6 @@
           <span>动态标题</span>
           <el-switch v-model="dynamicTitle" class="drawer-switch" />
         </div>
-
-        <div class="drawer-item">
-          <span>底部版权</span>
-          <el-switch v-model="footerVisible" class="drawer-switch" />
-        </div>
-
         <el-divider/>
 
         <el-button size="small" type="primary" plain icon="el-icon-document-add" @click="saveSetting">保存配置</el-button>

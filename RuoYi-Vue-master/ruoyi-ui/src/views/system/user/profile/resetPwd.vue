@@ -10,8 +10,8 @@
       <el-input v-model="user.confirmPassword" placeholder="请确认新密码" type="password" show-password/>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" size="mini" @click="submit">保存</el-button>
-      <el-button type="danger" size="mini" @click="close">关闭</el-button>
+      <el-button type="primary" size="medium" @click="submit">保 存</el-button>
+      <el-button size="medium" @click="close">关 闭</el-button>
     </el-form-item>
   </el-form>
 </template>
@@ -67,3 +67,15 @@ export default {
   }
 }
 </script>
+
+<style>
+.el-button {
+  margin-right: 15px;
+}
+
+::v-deep .el-form-item__label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+}
+</style>

@@ -35,6 +35,14 @@ export function updateClassinfo(data) {
   })
 }
 
+// 获取班级详细信息（包含课程）
+export function getDetail(classId) {
+  return request({
+    url: '/system/classinfo/detail/' + classId,
+    method: 'get'
+  })
+}
+
 // 删除班级信息，存储班级的基本信息
 export function delClassinfo(classId) {
   return request({

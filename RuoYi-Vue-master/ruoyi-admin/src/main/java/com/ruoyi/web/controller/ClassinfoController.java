@@ -23,7 +23,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
  * 班级信息，存储班级的基本信息Controller
- * 
+ *
  * @author ruoyi
  * @date 2025-06-20
  */
@@ -96,7 +96,7 @@ public class ClassinfoController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('system:classinfo:remove')")
     @Log(title = "班级信息，存储班级的基本信息", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{classIds}")
+    @DeleteMapping("/{classIds}")
     public AjaxResult remove(@PathVariable Long[] classIds)
     {
         return toAjax(classinfoService.deleteClassinfoByClassIds(classIds));

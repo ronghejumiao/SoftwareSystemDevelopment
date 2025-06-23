@@ -3,6 +3,7 @@ package com.ruoyi.system.mapper;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.system.domain.SysUserRole;
 
 /**
  * 用户表 数据层
@@ -58,6 +59,14 @@ public interface SysUserMapper
      * @return 结果
      */
     public int insertUser(SysUser user);
+
+    /**
+     * 批量新增用户角色信息
+     * 
+     * @param userRoleList 用户角色列表
+     * @return 结果
+     */
+    public int batchUserRole(List<SysUserRole> userRoleList);
 
     /**
      * 修改用户信息
