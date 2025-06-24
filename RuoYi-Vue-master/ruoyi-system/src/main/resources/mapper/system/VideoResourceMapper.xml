@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.VideoResourceMapper">
+    
+    <resultMap type="VideoResource" id="VideoResourceResult">
+        <result property="videoId"    column="video_id"    />
+        <result property="courseId"    column="course_id"    />
+        <result property="videoName"    column="video_name"    />
+        <result property="videoType"    column="video_type"    />
+        <result property="videoPath"    column="video_path"    />
+        <result property="fileSize"    column="file_size"    />
+        <result property="duration"    column="duration"    />
+        <result property="suploaderId"    column="suploader_id"    />
+        <result property="uploadTime"    column="upload_time"    />
+        <result property="thumbnail"    column="thumbnail"    />
+        <result property="description"    column="description"    />
+    </resultMap>
+
+    <sql id="selectVideoResourceVo">
+        select video_id, course_id, video_name, video_type, video_path, file_size, duration, suploader_id, upload_time, thumbnail, description from video_resource
+    </sql>
+
+    <select id="selectVideoResourceList" parameterType="VideoResource" resultMap="VideoResourceResult">
+        <include refid="selectVideoResourceVo"/>
+        <where>  
+            <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="videoName != null  and videoName != ''"> and video_name like concat('%', #{videoName}, '%')</if>
+            <if test="videoType != null  and videoType != ''"> and video_type = #{videoType}</if>
+            <if test="videoPath != null  and videoPath != ''"> and video_path = #{videoPath}</if>
+            <if test="fileSize != null "> and file_size = #{fileSize}</if>
+            <if test="duration != null "> and duration = #{duration}</if>
+            <if test="suploaderId != null "> and suploader_id = #{suploaderId}</if>
+            <if test="uploadTime != null "> and upload_time = #{uploadTime}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+        </where>
+    </select>
+    
+    <select id="selectVideoResourceByVideoId" parameterType="Long" resultMap="VideoResourceResult">
+        <include refid="selectVideoResourceVo"/>
+        where video_id = #{videoId}
+    </select>
+
+    <insert id="insertVideoResource" parameterType="VideoResource" useGeneratedKeys="true" keyProperty="videoId">
+        insert into video_resource
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">course_id,</if>
+            <if test="videoName != null and videoName != ''">video_name,</if>
+            <if test="videoType != null and videoType != ''">video_type,</if>
+            <if test="videoPath != null and videoPath != ''">video_path,</if>
+            <if test="fileSize != null">file_size,</if>
+            <if test="duration != null">duration,</if>
+            <if test="suploaderId != null">suploader_id,</if>
+            <if test="uploadTime != null">upload_time,</if>
+            <if test="thumbnail != null">thumbnail,</if>
+            <if test="description != null">description,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="courseId != null">#{courseId},</if>
+            <if test="videoName != null and videoName != ''">#{videoName},</if>
+            <if test="videoType != null and videoType != ''">#{videoType},</if>
+            <if test="videoPath != null and videoPath != ''">#{videoPath},</if>
+            <if test="fileSize != null">#{fileSize},</if>
+            <if test="duration != null">#{duration},</if>
+            <if test="suploaderId != null">#{suploaderId},</if>
+            <if test="uploadTime != null">#{uploadTime},</if>
+            <if test="thumbnail != null">#{thumbnail},</if>
+            <if test="description != null">#{description},</if>
+         </trim>
+    </insert>
+
+    <update id="updateVideoResource" parameterType="VideoResource">
+        update video_resource
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="videoName != null and videoName != ''">video_name = #{videoName},</if>
+            <if test="videoType != null and videoType != ''">video_type = #{videoType},</if>
+            <if test="videoPath != null and videoPath != ''">video_path = #{videoPath},</if>
+            <if test="fileSize != null">file_size = #{fileSize},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="suploaderId != null">suploader_id = #{suploaderId},</if>
+            <if test="uploadTime != null">upload_time = #{uploadTime},</if>
+            <if test="thumbnail != null">thumbnail = #{thumbnail},</if>
+            <if test="description != null">description = #{description},</if>
+        </trim>
+        where video_id = #{videoId}
+    </update>
+
+    <delete id="deleteVideoResourceByVideoId" parameterType="Long">
+        delete from video_resource where video_id = #{videoId}
+    </delete>
+
+    <delete id="deleteVideoResourceByVideoIds" parameterType="String">
+        delete from video_resource where video_id in 
+        <foreach item="videoId" collection="array" open="(" separator="," close=")">
+            #{videoId}
+        </foreach>
+    </delete>
+</mapper>

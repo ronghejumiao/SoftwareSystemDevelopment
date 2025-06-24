@@ -231,7 +231,8 @@ export default {
     }
   },
   created() {
-    this.getList()
+    // 只要进入页面就加载全部资源
+    this.getList();
   },
   methods: {
     getFileName(path) {
@@ -396,6 +397,39 @@ export default {
       this.download('system/resource/export', {
         ...this.queryParams
       }, `resource_${new Date().getTime()}.xlsx`)
+    },
+    getResourceList(courseId) {
+      this.loading = true;
+      listResource({ courseId: courseId, pageSize: 999 }).then(response => {
+        this.resourceList = response.rows;
+        this.loading = false;
+      }).catch(() => {
+        this.resourceList = [];
+        this.loading = false;
+      });
+    },
+    handleSwitchTab(tabName) {
+      this.activeTab = tabName;
+    }
+  },
+  computed: {
+    groupedResources() {
+      if (!this.resourceList) return {};
+      const groups = {};
+      this.resourceList.forEach(resource => {
+        const resourceName = resource.resourceName || '';
+        const parts = resourceName.split(' - ');
+        const groupName = parts.length > 1 ? parts[0].trim() : '其他';
+        const displayName = parts.length > 1 ? parts.slice(1).join(' - ').trim() : resourceName;
+        if (!groups[groupName]) {
+          groups[groupName] = [];
+        }
+        groups[groupName].push({
+          ...resource,
+          displayName: displayName
+        });
+      });
+      return groups;
     }
   }
 }

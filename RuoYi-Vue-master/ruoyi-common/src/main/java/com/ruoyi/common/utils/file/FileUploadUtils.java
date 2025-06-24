@@ -22,10 +22,11 @@ import com.ruoyi.common.utils.uuid.Seq;
  */
 public class FileUploadUtils
 {
+
     /**
-     * 默认大小 50M
+     * 默认上传的文件大小 3072M
      */
-    public static final long DEFAULT_MAX_SIZE = 50 * 1024 * 1024L;
+    public static final long DEFAULT_MAX_SIZE = 3072L * 1024 * 1024; // 3GB
 
     /**
      * 默认的文件名最大长度 100

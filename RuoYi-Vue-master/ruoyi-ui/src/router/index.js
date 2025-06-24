@@ -87,6 +87,33 @@ export const constantRoutes = [
         meta: { title: '个人中心', icon: 'user' }
       }
     ]
+  },
+  {
+    path: '/system/course',
+    component: Layout,
+    children: [
+      {
+        path: 'detail/:courseId',
+        name: 'CourseDetail',
+        component: () => import('@/views/system/course/detail.vue'),
+        meta: { title: '课程详情', noCache: true },
+        hidden: true
+      },
+      {
+        path: 'video-list',
+        name: 'VideoList',
+        component: () => import('@/views/system/course/video-list.vue'),
+        meta: { title: '视频列表', noCache: true },
+        hidden: true
+      },
+      {
+        path: 'video-play/:videoId',
+        name: 'VideoPlay',
+        component: () => import('@/views/system/course/video-play.vue'),
+        meta: { title: '视频播放', noCache: true },
+        hidden: true
+      }
+    ]
   }
 ]
 

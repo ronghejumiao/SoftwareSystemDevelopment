@@ -69,7 +69,7 @@
           </div>
         </el-dialog>
       </el-tab-pane>
-      <el-tab-pane label="学习资源" name="resources">
+        <el-tab-pane label="学习资源" name="resources">
         <div class="block-title"><i class="el-icon-folder"></i> 学习资源</div>
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
@@ -126,6 +126,56 @@
           加载中...
         </div>
       </el-tab-pane>
+      <el-tab-pane label="视频学习" name="videos">
+        <div class="block-title"><i class="el-icon-video-camera"></i> 视频学习</div>
+        <el-row :gutter="10" class="mb8">
+          <el-col :span="1.5">
+            <el-button
+              type="primary"
+              plain
+              icon="el-icon-plus"
+              size="mini"
+              @click="handleAddVideo"
+            >新增视频</el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button
+              type="info"
+              plain
+              icon="el-icon-view"
+              size="mini"
+              @click="goToVideoList"
+            >查看全部</el-button>
+          </el-col>
+        </el-row>
+        <div v-if="Object.keys(groupedVideos).length === 0" style="text-align: center; color: #909399;">
+          暂无视频资源
+        </div>
+        <el-card class="box-card" v-for="(videos, chapterName) in groupedVideos" :key="chapterName" style="margin-bottom: 20px;">
+          <div slot="header" class="clearfix">
+            <span>{{ chapterName }}</span>
+          </div>
+          <div v-for="video in videos" :key="video.videoId" class="video-item">
+            <div class="video-info" @click="handleVideoPreview(video)">
+              <div class="video-thumbnail">
+                <img v-if="video.thumbnail" :src="baseUrl + video.thumbnail" alt="视频封面">
+                <i v-else class="el-icon-video-camera"></i>
+              </div>
+              <div class="video-details">
+                <div class="video-name">{{ video.description }}</div>
+                <div class="video-meta">
+                  <span>章节：{{ video.videoName }}</span>
+                  <span>大小：{{ video.fileSize }}MB</span>
+                </div>
+              </div>
+            </div>
+            <div class="video-actions">
+              <el-button size="mini" type="text" icon="el-icon-edit" @click.stop="handleEditVideo(video)">修改</el-button>
+              <el-button size="mini" type="text" icon="el-icon-delete" @click.stop="handleDeleteVideo(video)">删除</el-button>
+            </div>
+          </div>
+        </el-card>
+      </el-tab-pane>
     </el-tabs>
 
 
@@ -148,6 +198,66 @@
       </div>
     </el-dialog>
 
+        </el-tab-pane>
+        <el-tab-pane label="学习任务" name="tasks">
+        <div class="block-title"><i class="el-icon-s-operation"></i> 学习任务</div>
+          <p>这里是学习任务内容区域。</p>
+        </el-tab-pane>
+        <el-tab-pane label="答题" name="quiz">
+        <div class="block-title"><i class="el-icon-edit-outline"></i> 答题</div>
+          <p>这里是答题内容区域。</p>
+        </el-tab-pane>
+        <el-tab-pane label="视频学习" name="videos">
+          <div class="block-title"><i class="el-icon-video-camera"></i> 视频学习</div>
+          <el-row :gutter="10" class="mb8">
+            <el-col :span="1.5">
+              <el-button
+                type="primary"
+                plain
+                icon="el-icon-plus"
+                size="mini"
+                @click="handleAddVideo"
+              >新增视频</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button
+                type="info"
+                plain
+                icon="el-icon-view"
+                size="mini"
+                @click="goToVideoList"
+              >查看全部</el-button>
+            </el-col>
+          </el-row>
+          <div v-if="Object.keys(groupedVideos).length === 0" style="text-align: center; color: #909399;">
+            暂无视频资源
+          </div>
+          <el-card class="box-card" v-for="(videos, chapterName) in groupedVideos" :key="chapterName" style="margin-bottom: 20px;">
+            <div slot="header" class="clearfix">
+              <span>{{ chapterName }}</span>
+            </div>
+            <div v-for="video in videos" :key="video.videoId" class="video-item">
+              <div class="video-info" @click="handleVideoPreview(video)">
+                <div class="video-thumbnail">
+                  <img v-if="video.thumbnail" :src="baseUrl + video.thumbnail" alt="视频封面">
+                  <i v-else class="el-icon-video-camera"></i>
+                </div>
+                <div class="video-details">
+                  <div class="video-name">{{ video.description }}</div>
+                  <div class="video-meta">
+                    <span>章节：{{ video.videoName }}</span>
+                    <span>大小：{{ video.fileSize }}MB</span>
+                  </div>
+                </div>
+              </div>
+              <div class="video-actions">
+                <el-button size="mini" type="text" icon="el-icon-edit" @click.stop="handleEditVideo(video)">修改</el-button>
+                <el-button size="mini" type="text" icon="el-icon-delete" @click.stop="handleDeleteVideo(video)">删除</el-button>
+              </div>
+            </div>
+          </el-card>
+        </el-tab-pane>
+      </el-tabs>
   </div>
 </template>
 
@@ -160,6 +270,7 @@ import { listRequirement, addRequirement, updateRequirement, delRequirement } fr
 import { listCourse } from '@/api/system/course';
 import CourseQuiz from './quiz.vue';
 import CourseTask from './task.vue';
+import { listVideoresource, getVideoresource, delVideoresource } from "@/api/system/videoresource";
 
 export default {
   name: "CourseDetail",
@@ -202,7 +313,7 @@ export default {
           { required: true, message: "资源名称不能为空", trigger: "blur" }
         ],
       },
-      uploadUrl: process.env.VUE_APP_BASE_API + "/system/resource/upload",
+      uploadUrl:  "/system/resource/upload",
       uploadHeaders: {
         Authorization: "Bearer " + getToken()
       },
@@ -227,6 +338,10 @@ export default {
           { required: true, message: '课堂要求描述不能为空', trigger: 'blur' }
         ]
       },
+      // 视频相关
+      videoList: [],
+      groupedVideos: {},
+      uploaderId: JSON.parse(localStorage.getItem('userInfo') || '{}').userId || '',
     };
   },
   computed: {
@@ -257,6 +372,7 @@ export default {
       this.getCourseDetails(courseId);
       this.getResourceList(courseId);
       this.getRequirementList();
+      this.getVideoList(courseId);
     }
   },
   methods: {
@@ -266,10 +382,13 @@ export default {
       });
     },
     getResourceList(courseId) {
+      this.loading = true;
       listResource({ courseId: courseId, pageSize: 999 }).then(response => {
         this.resourceList = response.rows;
+        this.loading = false;
       }).catch(() => {
         this.resourceList = [];
+        this.loading = false;
       });
     },
     handlePreview(resource) {
@@ -278,6 +397,8 @@ export default {
       }
     },
     reset() {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const uploaderId = userInfo.userId || '';
       this.form = {
         resourceId: null,
         courseId: this.course.courseId,
@@ -285,7 +406,7 @@ export default {
         resourceType: null,
         resourcePath: null,
         fileSize: null,
-        uploaderId: null,
+        uploaderId: uploaderId,
         uploadTime: null,
       };
       this.uploadedFiles = [];
@@ -359,6 +480,7 @@ export default {
                 fileSize: file.size,
                 uploadTime: new Date(),
                 resourceName: `${this.form.resourceName} - ${file.name}`,
+                uploaderId: this.uploaderId,
               };
               return addResource(resourceData);
             });
@@ -455,6 +577,64 @@ export default {
           this.getRequirementList();
         });
       });
+    },
+    // 视频相关方法
+    getVideoList(courseId) {
+      listVideoresource({ courseId: courseId, pageSize: 999 }).then(response => {
+        this.videoList = response.rows;
+        // 按章节分组
+        this.groupedVideos = {};
+        this.videoList.forEach(video => {
+          const chapter = video.videoName || '未分类';
+          if (!this.groupedVideos[chapter]) {
+            this.groupedVideos[chapter] = [];
+          }
+          this.groupedVideos[chapter].push(video);
+        });
+      });
+    },
+    handleAddVideo() {
+      this.$router.push({ 
+        name: 'VideoAdd',
+        query: { 
+          courseId: this.course.courseId,
+          courseCode: this.course.courseCode
+        }
+      });
+    },
+    goToVideoList() {
+      this.$router.push({ 
+        name: 'VideoList',
+        query: { 
+          courseId: this.course.courseId,
+          courseCode: this.course.courseCode
+        }
+      });
+    },
+    handleVideoPreview(video) {
+      // 推荐跳转到大屏播放页
+      this.$router.push({ 
+        name: 'VideoPlay',
+        params: { videoId: video.videoId }
+      });
+    },
+    handleEditVideo(video) {
+      this.$router.push({ 
+        name: 'VideoEdit',
+        query: { 
+          videoId: video.videoId,
+          courseId: this.course.courseId
+        }
+      });
+    },
+    handleDeleteVideo(video) {
+      const videoId = video.videoId;
+      this.$modal.confirm('是否确认删除该视频？').then(function() {
+        return delVideoresource(videoId);
+      }).then(() => {
+        this.getVideoList(this.course.courseId);
+        this.$modal.msgSuccess("删除成功");
+      }).catch(() => {});
     },
   },
   watch: {
@@ -617,5 +797,65 @@ export default {
 .actions {
   display: flex;
   gap: 6px;
+}
+
+.video-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #EBEEF5;
+  transition: background-color 0.2s;
+}
+.video-item:last-child {
+  border-bottom: none;
+}
+.video-item:hover {
+  background-color: #f5f7fa;
+}
+.video-info {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  flex: 1;
+}
+.video-thumbnail {
+  width: 120px;
+  height: 68px;
+  margin-right: 16px;
+  background: #f5f7fa;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.video-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-thumbnail i {
+  font-size: 24px;
+  color: #909399;
+}
+.video-details {
+  flex: 1;
+}
+.video-name {
+  font-size: 14px;
+  color: #303133;
+  margin-bottom: 8px;
+}
+.video-meta {
+  font-size: 13px;
+  color: #909399;
+}
+.video-meta span {
+  margin-right: 16px;
+}
+.video-actions {
+  display: flex;
+  gap: 8px;
 }
 </style>

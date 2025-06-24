@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "ruoyi")
 public class RuoYiConfig
 {
+
     /** 项目名称 */
     private String name;
 
