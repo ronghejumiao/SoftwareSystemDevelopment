@@ -16,12 +16,17 @@ export function parseTime(time, pattern) {
     if ((typeof time === 'string') && (/^[0-9]+$/.test(time))) {
       time = parseInt(time)
     } else if (typeof time === 'string') {
-      time = time.replace(new RegExp(/-/gm), '/').replace('T', ' ').replace(new RegExp(/\.[\d]{3}/gm), '')
+      time = time.replace(new RegExp(/-/gm), '/').replace('T', ' ').replace(new RegExp(/\.[\d]{3}/gm), '').replace(/Z$/, '')
+      // 去掉尾部的时区标识，如 +08 或 +08:00，避免 Date 解析失败
+      time = time.replace(new RegExp(/([\+\-]\d{2}(?::?\d{2})?)$/), '')
     }
     if ((typeof time === 'number') && (time.toString().length === 10)) {
       time = time * 1000
     }
     date = new Date(time)
+    if (isNaN(date.getTime())) {
+      return time
+    }
   }
   const formatObj = {
     y: date.getFullYear(),

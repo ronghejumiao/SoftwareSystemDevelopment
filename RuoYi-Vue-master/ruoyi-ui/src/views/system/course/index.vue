@@ -336,9 +336,15 @@ export default {
     },
     /** 跳转到课程详情页 */
     handleCourseClick(course) {
+      // 确保courseId存在且类型正确
+      if (!course || !course.courseId) {
+        this.$message.error('课程ID不存在');
+        return;
+      }
+      
+      // 使用路径形式而非name形式，确保更一致的路由解析
       this.$router.push({ 
-        name: 'CourseDetail', 
-        params: { courseId: course.courseId }
+        path: `/system/course/detail/${course.courseId}`,
       });
     }
   }

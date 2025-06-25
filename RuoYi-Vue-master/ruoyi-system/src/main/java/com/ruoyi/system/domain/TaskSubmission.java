@@ -1,6 +1,5 @@
 package com.ruoyi.system.domain;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -9,10 +8,10 @@ import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
- * 任务提交记录，记录学生提交任务的信息对象 task_submission
+ * 任务提交记录对象 task_submission
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-24
  */
 public class TaskSubmission extends BaseEntity
 {
@@ -29,10 +28,6 @@ public class TaskSubmission extends BaseEntity
     @Excel(name = "任务ID，关联learning_task表")
     private Long taskId;
 
-    /** 提交用户ID，关联sys_user表 */
-    @Excel(name = "提交用户ID，关联sys_user表")
-    private Long userId;
-
     /** 提交内容 */
     @Excel(name = "提交内容")
     private String submissionContent;
@@ -42,41 +37,61 @@ public class TaskSubmission extends BaseEntity
     private String submissionFile;
 
     /** 提交时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "提交时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "提交时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date submissionTime;
 
     /** 是否评分（0-未评分，1-已评分） */
     @Excel(name = "是否评分", readConverterExp = "0=-未评分，1-已评分")
     private String isGraded;
 
-    /** 评分分数 */
-    @Excel(name = "评分分数")
-    private BigDecimal gradeScore;
-
     /** 评分评语 */
     @Excel(name = "评分评语")
     private String gradeComment;
 
-    /** 评分人ID，关联sys_user表 */
-    @Excel(name = "评分人ID，关联sys_user表")
+    /** 用户ID */
+    private Long userId;
+
+    /** 评分得分 */
+    private java.math.BigDecimal gradeScore;
+
+    /** 评分人ID */
     private Long graderId;
 
     /** 评分时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "评分时间", width = 30, dateFormat = "yyyy-MM-dd")
-    private Date gradeTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private java.util.Date gradeTime;
 
-    /** 状态（1-正常，0-已撤回） */
-    @Excel(name = "状态", readConverterExp = "1=-正常，0-已撤回")
+    /** 状态 */
     private String status;
 
-    /** 删除标志（0-正常，2-已删除） */
+    /** 备注 */
+    private String remark;
+
+    /** 删除标识 */
     private String delFlag;
 
     /** 租户ID */
-    @Excel(name = "租户ID")
     private Long tenantId;
+
+    /** 学生姓名 */
+    private String studentName;
+
+    /** 学生头像 */
+    private String studentAvatar;
+
+    /** 任务名称 */
+    private String taskName;
+
+    /** 课程名称 */
+    private String courseName;
+
+    /** 截止时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date dueDate;
+
+    /** 分数（用于前端展示，取自 gradeScore 别名） */
+    private java.math.BigDecimal score;
 
     public void setSubmissionId(Long submissionId) 
     {
@@ -106,16 +121,6 @@ public class TaskSubmission extends BaseEntity
     public Long getTaskId() 
     {
         return taskId;
-    }
-
-    public void setUserId(Long userId) 
-    {
-        this.userId = userId;
-    }
-
-    public Long getUserId() 
-    {
-        return userId;
     }
 
     public void setSubmissionContent(String submissionContent) 
@@ -158,16 +163,6 @@ public class TaskSubmission extends BaseEntity
         return isGraded;
     }
 
-    public void setGradeScore(BigDecimal gradeScore) 
-    {
-        this.gradeScore = gradeScore;
-    }
-
-    public BigDecimal getGradeScore() 
-    {
-        return gradeScore;
-    }
-
     public void setGradeComment(String gradeComment) 
     {
         this.gradeComment = gradeComment;
@@ -178,55 +173,42 @@ public class TaskSubmission extends BaseEntity
         return gradeComment;
     }
 
-    public void setGraderId(Long graderId) 
-    {
-        this.graderId = graderId;
-    }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 
-    public Long getGraderId() 
-    {
-        return graderId;
-    }
+    public java.math.BigDecimal getGradeScore() { return gradeScore; }
+    public void setGradeScore(java.math.BigDecimal gradeScore) { this.gradeScore = gradeScore; }
 
-    public void setGradeTime(Date gradeTime) 
-    {
-        this.gradeTime = gradeTime;
-    }
+    public Long getGraderId() { return graderId; }
+    public void setGraderId(Long graderId) { this.graderId = graderId; }
 
-    public Date getGradeTime() 
-    {
-        return gradeTime;
-    }
+    public java.util.Date getGradeTime() { return gradeTime; }
+    public void setGradeTime(java.util.Date gradeTime) { this.gradeTime = gradeTime; }
 
-    public void setStatus(String status) 
-    {
-        this.status = status;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public String getStatus() 
-    {
-        return status;
-    }
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
 
-    public void setDelFlag(String delFlag) 
-    {
-        this.delFlag = delFlag;
-    }
+    public String getDelFlag() { return delFlag; }
+    public void setDelFlag(String delFlag) { this.delFlag = delFlag; }
 
-    public String getDelFlag() 
-    {
-        return delFlag;
-    }
+    public Long getTenantId() { return tenantId; }
+    public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
 
-    public void setTenantId(Long tenantId) 
-    {
-        this.tenantId = tenantId;
-    }
-
-    public Long getTenantId() 
-    {
-        return tenantId;
-    }
+    public String getStudentName() { return studentName; }
+    public void setStudentName(String studentName) { this.studentName = studentName; }
+    public String getStudentAvatar() { return studentAvatar; }
+    public void setStudentAvatar(String studentAvatar) { this.studentAvatar = studentAvatar; }
+    public String getTaskName() { return taskName; }
+    public void setTaskName(String taskName) { this.taskName = taskName; }
+    public String getCourseName() { return courseName; }
+    public void setCourseName(String courseName) { this.courseName = courseName; }
+    public Date getDueDate() { return dueDate; }
+    public void setDueDate(Date dueDate) { this.dueDate = dueDate; }
+    public java.math.BigDecimal getScore() { return score; }
+    public void setScore(java.math.BigDecimal score) { this.score = score; }
 
     @Override
     public String toString() {
@@ -234,23 +216,21 @@ public class TaskSubmission extends BaseEntity
             .append("submissionId", getSubmissionId())
             .append("recordId", getRecordId())
             .append("taskId", getTaskId())
-            .append("userId", getUserId())
             .append("submissionContent", getSubmissionContent())
             .append("submissionFile", getSubmissionFile())
             .append("submissionTime", getSubmissionTime())
             .append("isGraded", getIsGraded())
-            .append("gradeScore", getGradeScore())
             .append("gradeComment", getGradeComment())
+            .append("userId", getUserId())
+            .append("gradeScore", getGradeScore())
             .append("graderId", getGraderId())
             .append("gradeTime", getGradeTime())
-            .append("createBy", getCreateBy())
-            .append("createTime", getCreateTime())
-            .append("updateBy", getUpdateBy())
-            .append("updateTime", getUpdateTime())
             .append("status", getStatus())
             .append("remark", getRemark())
             .append("delFlag", getDelFlag())
             .append("tenantId", getTenantId())
+            .append("createTime", getCreateTime())
+            .append("updateTime", getUpdateTime())
             .toString();
     }
 }

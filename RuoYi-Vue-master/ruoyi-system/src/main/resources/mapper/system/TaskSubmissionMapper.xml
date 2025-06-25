@@ -8,51 +8,53 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="submissionId"    column="submission_id"    />
         <result property="recordId"    column="record_id"    />
         <result property="taskId"    column="task_id"    />
-        <result property="userId"    column="user_id"    />
         <result property="submissionContent"    column="submission_content"    />
         <result property="submissionFile"    column="submission_file"    />
         <result property="submissionTime"    column="submission_time"    />
         <result property="isGraded"    column="is_graded"    />
-        <result property="gradeScore"    column="grade_score"    />
         <result property="gradeComment"    column="grade_comment"    />
-        <result property="graderId"    column="grader_id"    />
-        <result property="gradeTime"    column="grade_time"    />
-        <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
-        <result property="updateBy"    column="update_by"    />
         <result property="updateTime"    column="update_time"    />
-        <result property="status"    column="status"    />
-        <result property="remark"    column="remark"    />
-        <result property="delFlag"    column="del_flag"    />
-        <result property="tenantId"    column="tenant_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="gradeScore"    column="grade_score" />
+        <result property="studentName" column="student_name" />
+        <result property="studentAvatar" column="student_avatar" />
+        <result property="taskName" column="task_name" />
+        <result property="courseName" column="course_name" />
+        <result property="dueDate" column="due_date" />
+        <result property="score" column="score" />
     </resultMap>
 
     <sql id="selectTaskSubmissionVo">
-        select submission_id, record_id, task_id, user_id, submission_content, submission_file, submission_time, is_graded, grade_score, grade_comment, grader_id, grade_time, create_by, create_time, update_by, update_time, status, remark, del_flag, tenant_id from task_submission
+        select ts.*, su.user_name as student_name,
+               su.avatar as student_avatar,
+               lt.task_name as task_name,
+               lt.due_date as due_date,
+               c.course_name,
+               ts.grade_score as score
+        from task_submission ts
+        left join learning_record lr on lr.record_id = ts.record_id
+        left join sys_user su on su.user_id = lr.user_id
+        left join learning_task lt on lt.task_id = ts.task_id
+        left join course c on c.course_id = lt.course_id
     </sql>
 
     <select id="selectTaskSubmissionList" parameterType="TaskSubmission" resultMap="TaskSubmissionResult">
         <include refid="selectTaskSubmissionVo"/>
         <where>  
-            <if test="recordId != null "> and record_id = #{recordId}</if>
-            <if test="taskId != null "> and task_id = #{taskId}</if>
-            <if test="userId != null "> and user_id = #{userId}</if>
-            <if test="submissionContent != null  and submissionContent != ''"> and submission_content = #{submissionContent}</if>
-            <if test="submissionFile != null  and submissionFile != ''"> and submission_file = #{submissionFile}</if>
-            <if test="submissionTime != null "> and submission_time = #{submissionTime}</if>
-            <if test="isGraded != null  and isGraded != ''"> and is_graded = #{isGraded}</if>
-            <if test="gradeScore != null "> and grade_score = #{gradeScore}</if>
-            <if test="gradeComment != null  and gradeComment != ''"> and grade_comment = #{gradeComment}</if>
-            <if test="graderId != null "> and grader_id = #{graderId}</if>
-            <if test="gradeTime != null "> and grade_time = #{gradeTime}</if>
-            <if test="status != null  and status != ''"> and status = #{status}</if>
-            <if test="tenantId != null "> and tenant_id = #{tenantId}</if>
+            <if test="recordId != null "> and ts.record_id = #{recordId}</if>
+            <if test="taskId != null "> and ts.task_id = #{taskId}</if>
+            <if test="submissionContent != null  and submissionContent != ''"> and ts.submission_content = #{submissionContent}</if>
+            <if test="submissionFile != null  and submissionFile != ''"> and ts.submission_file = #{submissionFile}</if>
+            <if test="submissionTime != null "> and ts.submission_time = #{submissionTime}</if>
+            <if test="isGraded != null  and isGraded != ''"> and ts.is_graded = #{isGraded}</if>
+            <if test="gradeComment != null  and gradeComment != ''"> and ts.grade_comment = #{gradeComment}</if>
         </where>
     </select>
     
     <select id="selectTaskSubmissionBySubmissionId" parameterType="Long" resultMap="TaskSubmissionResult">
         <include refid="selectTaskSubmissionVo"/>
-        where submission_id = #{submissionId}
+        where ts.submission_id = #{submissionId}
     </select>
 
     <insert id="insertTaskSubmission" parameterType="TaskSubmission" useGeneratedKeys="true" keyProperty="submissionId">
@@ -60,44 +62,31 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="recordId != null">record_id,</if>
             <if test="taskId != null">task_id,</if>
-            <if test="userId != null">user_id,</if>
             <if test="submissionContent != null">submission_content,</if>
             <if test="submissionFile != null">submission_file,</if>
-            <if test="submissionTime != null">submission_time,</if>
+            submission_time,
             <if test="isGraded != null">is_graded,</if>
-            <if test="gradeScore != null">grade_score,</if>
             <if test="gradeComment != null">grade_comment,</if>
-            <if test="graderId != null">grader_id,</if>
-            <if test="gradeTime != null">grade_time,</if>
-            <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
-            <if test="updateBy != null">update_by,</if>
             <if test="updateTime != null">update_time,</if>
-            <if test="status != null">status,</if>
-            <if test="remark != null">remark,</if>
-            <if test="delFlag != null">del_flag,</if>
-            <if test="tenantId != null">tenant_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="gradeScore != null">grade_score,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="recordId != null">#{recordId},</if>
             <if test="taskId != null">#{taskId},</if>
-            <if test="userId != null">#{userId},</if>
             <if test="submissionContent != null">#{submissionContent},</if>
             <if test="submissionFile != null">#{submissionFile},</if>
-            <if test="submissionTime != null">#{submissionTime},</if>
+            <choose>
+              <when test="submissionTime != null">#{submissionTime}</when>
+              <otherwise>now()</otherwise>
+            </choose>,
             <if test="isGraded != null">#{isGraded},</if>
-            <if test="gradeScore != null">#{gradeScore},</if>
             <if test="gradeComment != null">#{gradeComment},</if>
-            <if test="graderId != null">#{graderId},</if>
-            <if test="gradeTime != null">#{gradeTime},</if>
-            <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
-            <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
-            <if test="status != null">#{status},</if>
-            <if test="remark != null">#{remark},</if>
-            <if test="delFlag != null">#{delFlag},</if>
-            <if test="tenantId != null">#{tenantId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="gradeScore != null">#{gradeScore},</if>
          </trim>
     </insert>
 
@@ -106,23 +95,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="SET" suffixOverrides=",">
             <if test="recordId != null">record_id = #{recordId},</if>
             <if test="taskId != null">task_id = #{taskId},</if>
-            <if test="userId != null">user_id = #{userId},</if>
             <if test="submissionContent != null">submission_content = #{submissionContent},</if>
             <if test="submissionFile != null">submission_file = #{submissionFile},</if>
             <if test="submissionTime != null">submission_time = #{submissionTime},</if>
             <if test="isGraded != null">is_graded = #{isGraded},</if>
-            <if test="gradeScore != null">grade_score = #{gradeScore},</if>
             <if test="gradeComment != null">grade_comment = #{gradeComment},</if>
-            <if test="graderId != null">grader_id = #{graderId},</if>
-            <if test="gradeTime != null">grade_time = #{gradeTime},</if>
-            <if test="createBy != null">create_by = #{createBy},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
-            <if test="updateBy != null">update_by = #{updateBy},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
-            <if test="status != null">status = #{status},</if>
-            <if test="remark != null">remark = #{remark},</if>
-            <if test="delFlag != null">del_flag = #{delFlag},</if>
-            <if test="tenantId != null">tenant_id = #{tenantId},</if>
+            <if test="gradeScore != null">grade_score = #{gradeScore},</if>
         </trim>
         where submission_id = #{submissionId}
     </update>
@@ -137,4 +117,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{submissionId}
         </foreach>
     </delete>
+
+    <!-- 根据学习记录ID和任务ID查询提交记录 -->
+    <select id="selectByRecordAndTaskId" resultMap="TaskSubmissionResult">
+        <include refid="selectTaskSubmissionVo"/>
+        where ts.record_id = #{recordId} and ts.task_id = #{taskId}
+    </select>
 </mapper>

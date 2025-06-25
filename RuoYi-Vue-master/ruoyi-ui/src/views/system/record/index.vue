@@ -59,130 +59,130 @@
         <el-row :gutter="20">
           <el-col :span="8">
             <el-form-item label="用户ID" prop="userId">
-        <el-input
-          v-model="queryParams.userId"
+              <el-input
+                v-model="queryParams.userId"
                 placeholder="请输入用户ID"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="课程ID" prop="courseId">
-        <el-input
-          v-model="queryParams.courseId"
+              <el-input
+                v-model="queryParams.courseId"
                 placeholder="请输入课程ID"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
           </el-col>
           <el-col :span="8">
-      <el-form-item label="选课时间" prop="joinTime">
-        <el-date-picker clearable
-          v-model="queryParams.joinTime"
-          type="date"
-          value-format="yyyy-MM-dd"
+            <el-form-item label="选课时间" prop="joinTime">
+              <el-date-picker clearable
+                v-model="queryParams.joinTime"
+                type="date"
+                value-format="yyyy-MM-dd"
                 placeholder="请选择选课时间"
                 style="width: 100%"
               />
-      </el-form-item>
+            </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="20">
           <el-col :span="8">
-      <el-form-item label="课程进度" prop="courseProgress">
-        <el-input
-          v-model="queryParams.courseProgress"
-          placeholder="请输入课程进度"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+            <el-form-item label="课程进度" prop="courseProgress">
+              <el-input
+                v-model="queryParams.courseProgress"
+                placeholder="请输入课程进度"
+                clearable
+                @keyup.enter.native="handleQuery"
+              />
+            </el-form-item>
           </el-col>
           <el-col :span="16">
-      <el-form-item>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-      </el-form-item>
+            <el-form-item>
+              <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+            </el-form-item>
           </el-col>
         </el-row>
-    </el-form>
+      </el-form>
     </el-card>
 
     <!-- 操作按钮区域 -->
     <el-card class="operation-card" shadow="never">
-    <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="el-icon-plus"
-          size="mini"
-          @click="handleAdd"
-          v-hasPermi="['system:learningRecord:add']"
-        >新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="el-icon-edit"
-          size="mini"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['system:learningRecord:edit']"
-        >修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="el-icon-delete"
-          size="mini"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['system:learningRecord:remove']"
-        >删除</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="el-icon-download"
-          size="mini"
-          @click="handleExport"
-          v-hasPermi="['system:learningRecord:export']"
-        >导出</el-button>
-      </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
-    </el-row>
+      <el-row :gutter="10" class="mb8">
+        <el-col :span="1.5">
+          <el-button
+            type="primary"
+            plain
+            icon="el-icon-plus"
+            size="mini"
+            @click="handleAdd"
+            v-hasPermi="['system:learningRecord:add']"
+          >新增</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button
+            type="success"
+            plain
+            icon="el-icon-edit"
+            size="mini"
+            :disabled="single"
+            @click="handleUpdate"
+            v-hasPermi="['system:learningRecord:edit']"
+          >修改</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button
+            type="danger"
+            plain
+            icon="el-icon-delete"
+            size="mini"
+            :disabled="multiple"
+            @click="handleDelete"
+            v-hasPermi="['system:learningRecord:remove']"
+          >删除</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button
+            type="warning"
+            plain
+            icon="el-icon-download"
+            size="mini"
+            @click="handleExport"
+            v-hasPermi="['system:learningRecord:export']"
+          >导出</el-button>
+        </el-col>
+        <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+      </el-row>
     </el-card>
 
     <!-- 数据表格区域 -->
     <el-card class="table-card" shadow="never">
-      <el-table 
-        v-loading="loading" 
-        :data="learningRecordList" 
+      <el-table
+        v-loading="loading"
+        :data="learningRecordList"
         @selection-change="handleSelectionChange"
         stripe
         border
         highlight-current-row
         class="learning-record-table"
       >
-      <el-table-column type="selection" width="55" align="center" />
+        <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="记录ID" align="center" prop="recordId" width="80" />
         <el-table-column label="用户ID" align="center" prop="userId" width="100" />
         <el-table-column label="课程ID" align="center" prop="courseId" width="100" />
         <el-table-column label="选课时间" align="center" prop="joinTime" width="120">
-        <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.joinTime, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
+          <template slot-scope="scope">
+            <span>{{ parseTime(scope.row.joinTime, '{y}-{m}-{d}') }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="课程进度" align="center" prop="courseProgress" width="100" />
         <el-table-column label="总成绩" align="center" prop="totalScore" width="100" />
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="320">
-        <template slot-scope="scope">
+          <template slot-scope="scope">
             <el-button
               size="mini"
               type="info"
@@ -201,30 +201,30 @@
               icon="el-icon-document"
               @click="goToSubmissionRecord(scope.row)"
             >任务提交详情</el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-edit"
-            @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:learningRecord:edit']"
-          >修改</el-button>
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
-            v-hasPermi="['system:learningRecord:remove']"
-          >删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <pagination
-      v-show="total>0"
-      :total="total"
-      :page.sync="queryParams.pageNum"
-      :limit.sync="queryParams.pageSize"
-      @pagination="getList"
-    />
+            <el-button
+              size="mini"
+              type="text"
+              icon="el-icon-edit"
+              @click="handleUpdate(scope.row)"
+              v-hasPermi="['system:learningRecord:edit']"
+            >修改</el-button>
+            <el-button
+              size="mini"
+              type="text"
+              icon="el-icon-delete"
+              @click="handleDelete(scope.row)"
+              v-hasPermi="['system:learningRecord:remove']"
+            >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <pagination
+        v-show="total>0"
+        :total="total"
+        :page.sync="queryParams.pageNum"
+        :limit.sync="queryParams.pageSize"
+        @pagination="getList"
+      />
     </el-card>
 
     <!-- 添加或修改学习记录对话框 -->
@@ -343,21 +343,21 @@ export default {
     goToVideoLearningRecord(row) {
       this.$router.push({
         path: '/user/videos',
-        query: { learningRecordId: row.recordId }
+        query: { userId: row.userId, learningRecordId: row.recordId }
       })
     },
     // 跳转到成绩记录页面
     goToScoreRecord(row) {
       this.$router.push({
         path: '/user/scores',
-        query: { learningRecordId: row.recordId }
+        query: { userId: row.userId, learningRecordId: row.recordId }
       })
     },
     // 跳转到任务提交记录页面
     goToSubmissionRecord(row) {
       this.$router.push({
         path: '/user/tasks',
-        query: { recordId: row.recordId }
+        query: { userId: row.userId, recordId: row.recordId }
       })
     },
     // 取消按钮
@@ -443,133 +443,7 @@ export default {
       this.download('system/learningRecord/export', {
         ...this.queryParams
       }, `learningRecord_${new Date().getTime()}.xlsx`)
-    },
-    handleSwitchTab() {
-      // 预留 tab 切换回调，后续需要时再实现
     }
   }
 }
 </script>
-
-<style lang="scss" scoped>
-.app-container {
-  padding: 20px;
-  background-color: #f5f7fa;
-  min-height: calc(100vh - 84px);
-}
-
-.mb20 {
-  margin-bottom: 20px;
-}
-
-.mb8 {
-  margin-bottom: 8px;
-}
-
-// 统计卡片样式
-.stat-card {
-  .stat-content {
-    display: flex;
-    align-items: center;
-    padding: 10px 0;
-    
-    .stat-icon {
-      font-size: 48px;
-      margin-right: 20px;
-      width: 60px;
-      text-align: center;
-    }
-    
-    .stat-info {
-      flex: 1;
-      
-      .stat-number {
-        font-size: 28px;
-        font-weight: bold;
-        color: #303133;
-        line-height: 1;
-        margin-bottom: 5px;
-      }
-      
-      .stat-label {
-        font-size: 14px;
-        color: #909399;
-      }
-    }
-  }
-}
-
-// 搜索卡片样式
-.search-card {
-  margin-bottom: 20px;
-  
-  .search-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    
-    .search-title {
-      font-size: 16px;
-      font-weight: 500;
-      color: #303133;
-      
-      i {
-        margin-right: 8px;
-        color: #409EFF;
-      }
-    }
-  }
-  
-  .search-form {
-    .el-form-item {
-      margin-bottom: 18px;
-    }
-  }
-}
-
-// 操作卡片样式
-.operation-card {
-  margin-bottom: 20px;
-  padding: 15px 20px;
-}
-
-// 表格卡片样式
-.table-card {
-  .learning-record-table {
-    .el-table__header-wrapper {
-      th {
-        background-color: #fafafa;
-        color: #606266;
-        font-weight: 500;
-      }
-    }
-    
-    .el-table__body-wrapper {
-      tr:hover {
-        background-color: #f5f7fa;
-      }
-    }
-  }
-}
-
-// 响应式设计
-@media (max-width: 768px) {
-  .app-container {
-    padding: 10px;
-  }
-  
-  .stat-card .stat-content {
-    flex-direction: column;
-    text-align: center;
-    
-    .stat-icon {
-      margin-right: 0;
-      margin-bottom: 10px;
-    }
-  }
-  
-  .search-form .el-col {
-    margin-bottom: 10px;
-  }
-}
-</style>

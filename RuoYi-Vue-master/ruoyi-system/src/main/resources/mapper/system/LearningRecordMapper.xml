@@ -8,12 +8,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="recordId"    column="record_id"    />
         <result property="userId"    column="user_id"    />
         <result property="courseId"    column="course_id"    />
+        <result property="recordType"    column="record_type"    />
         <result property="joinTime"    column="join_time"    />
+        <result property="endTime"    column="end_time"    />
         <result property="courseProgress"    column="course_progress"    />
+        <result property="videoProgress"    column="video_progress"    />
+        <result property="taskProgress"    column="task_progress"    />
+        <result property="examProgress"    column="exam_progress"    />
+        <result property="totalScore"    column="total_score"    />
+        <result property="courseStatus"    column="course_status"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
     </resultMap>
 
     <sql id="selectLearningRecordVo">
-        select record_id, user_id, course_id, join_time, course_progress from learning_record
+        select record_id, user_id, course_id, record_type, join_time, end_time, course_progress, video_progress, task_progress, exam_progress, total_score, course_status, create_time, update_time from learning_record
     </sql>
 
     <select id="selectLearningRecordList" parameterType="LearningRecord" resultMap="LearningRecordResult">
@@ -21,8 +30,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <where>  
             <if test="userId != null "> and user_id = #{userId}</if>
             <if test="courseId != null "> and course_id = #{courseId}</if>
+            <if test="recordType != null "> and record_type = #{recordType}</if>
             <if test="joinTime != null "> and join_time = #{joinTime}</if>
+            <if test="endTime != null "> and end_time = #{endTime}</if>
             <if test="courseProgress != null "> and course_progress = #{courseProgress}</if>
+            <if test="videoProgress != null "> and video_progress = #{videoProgress}</if>
+            <if test="taskProgress != null "> and task_progress = #{taskProgress}</if>
+            <if test="examProgress != null "> and exam_progress = #{examProgress}</if>
+            <if test="totalScore != null "> and total_score = #{totalScore}</if>
+            <if test="courseStatus != null "> and course_status = #{courseStatus}</if>
         </where>
     </select>
     
@@ -31,19 +47,42 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where record_id = #{recordId}
     </select>
 
+    <select id="selectLearningRecordByUserIdAndCourseId" resultMap="LearningRecordResult">
+        <include refid="selectLearningRecordVo"/>
+        where user_id = #{userId} and course_id = #{courseId} limit 1
+    </select>
+
     <insert id="insertLearningRecord" parameterType="LearningRecord" useGeneratedKeys="true" keyProperty="recordId">
         insert into learning_record
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="userId != null">user_id,</if>
             <if test="courseId != null">course_id,</if>
+            <if test="recordType != null">record_type,</if>
             <if test="joinTime != null">join_time,</if>
+            <if test="endTime != null">end_time,</if>
             <if test="courseProgress != null">course_progress,</if>
+            <if test="videoProgress != null">video_progress,</if>
+            <if test="taskProgress != null">task_progress,</if>
+            <if test="examProgress != null">exam_progress,</if>
+            <if test="totalScore != null">total_score,</if>
+            <if test="courseStatus != null">course_status,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="userId != null">#{userId},</if>
             <if test="courseId != null">#{courseId},</if>
+            <if test="recordType != null">#{recordType},</if>
             <if test="joinTime != null">#{joinTime},</if>
+            <if test="endTime != null">#{endTime},</if>
             <if test="courseProgress != null">#{courseProgress},</if>
+            <if test="videoProgress != null">#{videoProgress},</if>
+            <if test="taskProgress != null">#{taskProgress},</if>
+            <if test="examProgress != null">#{examProgress},</if>
+            <if test="totalScore != null">#{totalScore},</if>
+            <if test="courseStatus != null">#{courseStatus},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
          </trim>
     </insert>
 
@@ -52,8 +91,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="SET" suffixOverrides=",">
             <if test="userId != null">user_id = #{userId},</if>
             <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="recordType != null">record_type = #{recordType},</if>
             <if test="joinTime != null">join_time = #{joinTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
             <if test="courseProgress != null">course_progress = #{courseProgress},</if>
+            <if test="videoProgress != null">video_progress = #{videoProgress},</if>
+            <if test="taskProgress != null">task_progress = #{taskProgress},</if>
+            <if test="examProgress != null">exam_progress = #{examProgress},</if>
+            <if test="totalScore != null">total_score = #{totalScore},</if>
+            <if test="courseStatus != null">course_status = #{courseStatus},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
         </trim>
         where record_id = #{recordId}
     </update>

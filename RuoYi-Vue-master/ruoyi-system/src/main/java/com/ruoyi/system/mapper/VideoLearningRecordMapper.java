@@ -7,7 +7,7 @@ import com.ruoyi.system.domain.VideoLearningRecord;
  * 视频学习记录，记录学生观看视频的行为数据Mapper接口
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-24
  */
 public interface VideoLearningRecordMapper 
 {
@@ -58,4 +58,13 @@ public interface VideoLearningRecordMapper
      * @return 结果
      */
     public int deleteVideoLearningRecordByRecordIds(Long[] recordIds);
+
+    /**
+     * 根据学习记录ID和资源ID查询记录，用于同步更新
+     * @param learningRecordId 学习记录ID
+     * @param resourceId 资源ID
+     * @return 已存在的学习记录，若不存在返回null
+     */
+    public VideoLearningRecord selectByLearningAndResourceId(@org.apache.ibatis.annotations.Param("learningRecordId") Long learningRecordId,
+                                                             @org.apache.ibatis.annotations.Param("resourceId") Long resourceId);
 }

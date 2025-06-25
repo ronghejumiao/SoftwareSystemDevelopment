@@ -25,7 +25,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
  * 视频学习记录，记录学生观看视频的行为数据Controller
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-24
  */
 @RestController
 @RequestMapping("/system/videoLearningRecord")
@@ -77,7 +77,8 @@ public class VideoLearningRecordController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody VideoLearningRecord videoLearningRecord)
     {
-        return toAjax(videoLearningRecordService.insertVideoLearningRecord(videoLearningRecord));
+        videoLearningRecordService.saveOrUpdate(videoLearningRecord);
+        return success(videoLearningRecord);
     }
 
     /**

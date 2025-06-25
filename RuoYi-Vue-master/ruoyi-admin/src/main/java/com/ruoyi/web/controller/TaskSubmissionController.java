@@ -22,10 +22,10 @@ import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
- * 任务提交记录，记录学生提交任务的信息Controller
+ * 任务提交记录Controller
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-24
  */
 @RestController
 @RequestMapping("/system/submission")
@@ -35,7 +35,7 @@ public class TaskSubmissionController extends BaseController
     private ITaskSubmissionService taskSubmissionService;
 
     /**
-     * 查询任务提交记录，记录学生提交任务的信息列表
+     * 查询任务提交记录列表
      */
     @PreAuthorize("@ss.hasPermi('system:submission:list')")
     @GetMapping("/list")
@@ -47,20 +47,20 @@ public class TaskSubmissionController extends BaseController
     }
 
     /**
-     * 导出任务提交记录，记录学生提交任务的信息列表
+     * 导出任务提交记录列表
      */
     @PreAuthorize("@ss.hasPermi('system:submission:export')")
-    @Log(title = "任务提交记录，记录学生提交任务的信息", businessType = BusinessType.EXPORT)
+    @Log(title = "任务提交记录", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, TaskSubmission taskSubmission)
     {
         List<TaskSubmission> list = taskSubmissionService.selectTaskSubmissionList(taskSubmission);
         ExcelUtil<TaskSubmission> util = new ExcelUtil<TaskSubmission>(TaskSubmission.class);
-        util.exportExcel(response, list, "任务提交记录，记录学生提交任务的信息数据");
+        util.exportExcel(response, list, "任务提交记录数据");
     }
 
     /**
-     * 获取任务提交记录，记录学生提交任务的信息详细信息
+     * 获取任务提交记录详细信息
      */
     @PreAuthorize("@ss.hasPermi('system:submission:query')")
     @GetMapping(value = "/{submissionId}")
@@ -70,10 +70,10 @@ public class TaskSubmissionController extends BaseController
     }
 
     /**
-     * 新增任务提交记录，记录学生提交任务的信息
+     * 新增任务提交记录
      */
     @PreAuthorize("@ss.hasPermi('system:submission:add')")
-    @Log(title = "任务提交记录，记录学生提交任务的信息", businessType = BusinessType.INSERT)
+    @Log(title = "任务提交记录", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody TaskSubmission taskSubmission)
     {
@@ -81,10 +81,10 @@ public class TaskSubmissionController extends BaseController
     }
 
     /**
-     * 修改任务提交记录，记录学生提交任务的信息
+     * 修改任务提交记录
      */
     @PreAuthorize("@ss.hasPermi('system:submission:edit')")
-    @Log(title = "任务提交记录，记录学生提交任务的信息", businessType = BusinessType.UPDATE)
+    @Log(title = "任务提交记录", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody TaskSubmission taskSubmission)
     {
@@ -92,10 +92,10 @@ public class TaskSubmissionController extends BaseController
     }
 
     /**
-     * 删除任务提交记录，记录学生提交任务的信息
+     * 删除任务提交记录
      */
     @PreAuthorize("@ss.hasPermi('system:submission:remove')")
-    @Log(title = "任务提交记录，记录学生提交任务的信息", businessType = BusinessType.DELETE)
+    @Log(title = "任务提交记录", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{submissionIds}")
     public AjaxResult remove(@PathVariable Long[] submissionIds)
     {

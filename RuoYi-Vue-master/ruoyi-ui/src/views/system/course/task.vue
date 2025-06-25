@@ -352,7 +352,7 @@ export default {
       if (!this.courseId || !this.userId) return;
       // 获取学习记录
       let rec = await getLearningRecordByUserAndCourse(this.userId, this.courseId);
-      if (!rec || !rec.data) {
+      if (!rec) {
         // 自动注册学习记录
         await addLearningRecord({
           userId: this.userId,
@@ -362,8 +362,8 @@ export default {
         });
         rec = await getLearningRecordByUserAndCourse(this.userId, this.courseId);
       }
-      if (rec && rec.data) {
-        this.recordId = rec.data.recordId;
+      if (rec) {
+        this.recordId = rec.recordId;
         await this.getTaskList();
         await this.getSubmissionList();
       }

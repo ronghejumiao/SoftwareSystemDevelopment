@@ -16,29 +16,50 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="lastWatchTime"    column="last_watch_time"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateTime"    column="update_time"    />
+        <result property="studentName"    column="student_name"    />
+        <result property="studentAvatar"    column="student_avatar"    />
+        <result property="resourceName"    column="resource_name"    />
+        <result property="resourceCategory"    column="resource_category"    />
+        <result property="courseName"    column="course_name"    />
     </resultMap>
 
     <sql id="selectVideoLearningRecordVo">
-        select record_id, learning_record_id, resource_id, total_duration, watched_duration, skip_segments, repeat_segments, completion_rate, last_watch_time, create_time, update_time from video_learning_record
+        select vlr.*, su.user_name as student_name, su.avatar as student_avatar, lr2.resource_name as resource_name, lr2.resource_type as resource_category, c.course_name
+        from video_learning_record vlr
+        left join learning_record lr on lr.record_id = vlr.learning_record_id
+        left join sys_user su on su.user_id = lr.user_id
+        left join learning_resource lr2 on lr2.resource_id = vlr.resource_id
+        left join course c on c.course_id = lr2.course_id
     </sql>
 
     <select id="selectVideoLearningRecordList" parameterType="VideoLearningRecord" resultMap="VideoLearningRecordResult">
         <include refid="selectVideoLearningRecordVo"/>
         <where>  
-            <if test="learningRecordId != null "> and learning_record_id = #{learningRecordId}</if>
-            <if test="resourceId != null "> and resource_id = #{resourceId}</if>
-            <if test="totalDuration != null "> and total_duration = #{totalDuration}</if>
-            <if test="watchedDuration != null "> and watched_duration = #{watchedDuration}</if>
-            <if test="skipSegments != null  and skipSegments != ''"> and skip_segments = #{skipSegments}</if>
-            <if test="repeatSegments != null  and repeatSegments != ''"> and repeat_segments = #{repeatSegments}</if>
-            <if test="completionRate != null "> and completion_rate = #{completionRate}</if>
-            <if test="lastWatchTime != null "> and last_watch_time = #{lastWatchTime}</if>
+            <if test="learningRecordId != null "> and vlr.learning_record_id = #{learningRecordId}</if>
+            <if test="resourceId != null "> and vlr.resource_id = #{resourceId}</if>
+            <if test="totalDuration != null "> and vlr.total_duration = #{totalDuration}</if>
+            <if test="watchedDuration != null "> and vlr.watched_duration = #{watchedDuration}</if>
+            <if test="skipSegments != null  and skipSegments != ''"> and vlr.skip_segments = #{skipSegments}</if>
+            <if test="repeatSegments != null  and repeatSegments != ''"> and vlr.repeat_segments = #{repeatSegments}</if>
+            <if test="completionRate != null "> and vlr.completion_rate = #{completionRate}</if>
+            <if test="lastWatchTime != null "> and vlr.last_watch_time = #{lastWatchTime}</if>
+            <if test="userId != null "> and exists (select 1 from learning_record lr_sub where lr_sub.record_id = vlr.learning_record_id and lr_sub.user_id = #{userId})</if>
+            <!-- 按学生姓名模糊查询 -->
+            <if test="studentName != null and studentName != ''"> and su.user_name like concat('%', #{studentName}, '%')</if>
+            <!-- 按资源名称模糊查询 -->
+            <if test="resourceName != null and resourceName != ''"> and lr2.resource_name like concat('%', #{resourceName}, '%')</if>
+            <!-- 完成率区间查询 -->
+            <if test="completionRateStart != null"> and vlr.completion_rate &gt;= #{completionRateStart}</if>
+            <if test="completionRateEnd != null"> and vlr.completion_rate &lt;= #{completionRateEnd}</if>
+            <!-- 观看时间范围(使用 BaseEntity params) -->
+            <if test="params != null and params.beginTime != null and params.beginTime != ''"> and DATE(vlr.last_watch_time) &gt;= #{params.beginTime}</if>
+            <if test="params != null and params.endTime != null and params.endTime != ''"> and DATE(vlr.last_watch_time) &lt;= #{params.endTime}</if>
         </where>
     </select>
     
     <select id="selectVideoLearningRecordByRecordId" parameterType="Long" resultMap="VideoLearningRecordResult">
         <include refid="selectVideoLearningRecordVo"/>
-        where record_id = #{recordId}
+        where vlr.record_id = #{recordId}
     </select>
 
     <insert id="insertVideoLearningRecord" parameterType="VideoLearningRecord" useGeneratedKeys="true" keyProperty="recordId">
@@ -79,9 +100,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="skipSegments != null">skip_segments = #{skipSegments},</if>
             <if test="repeatSegments != null">repeat_segments = #{repeatSegments},</if>
             <if test="completionRate != null">completion_rate = #{completionRate},</if>
-            <if test="lastWatchTime != null">last_watch_time = #{lastWatchTime},</if>
-            <if test="createTime != null">create_time = #{createTime},</if>
-            <if test="updateTime != null">update_time = #{updateTime},</if>
+            last_watch_time = #{lastWatchTime},
+            update_time = sysdate()
         </trim>
         where record_id = #{recordId}
     </update>
@@ -96,4 +116,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{recordId}
         </foreach>
     </delete>
+
+    <!-- 根据学习记录ID和资源ID查询 -->
+    <select id="selectByLearningAndResourceId" resultMap="VideoLearningRecordResult">
+        <include refid="selectVideoLearningRecordVo"/>
+        where vlr.learning_record_id = #{learningRecordId} and vlr.resource_id = #{resourceId}
+    </select>
 </mapper>

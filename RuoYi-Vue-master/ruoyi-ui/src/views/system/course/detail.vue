@@ -50,8 +50,8 @@
         </div>
         <el-dialog :title="requirementDialogTitle" :visible.sync="requirementDialogVisible" width="500px" append-to-body>
           <el-form ref="requirementForm" :model="requirementForm" :rules="requirementRules" label-width="100px">
-            <el-form-item label="课程编号" prop="courseCode">
-              <el-input v-model="requirementForm.courseCode" :disabled="true" />
+            <el-form-item label="课程ID" prop="courseId">
+              <el-input v-model="requirementForm.courseId" :disabled="true" />
             </el-form-item>
             <el-form-item label="能力名称" prop="skillName">
               <el-input v-model="requirementForm.skillName" placeholder="请输入能力名称" />
@@ -69,7 +69,7 @@
           </div>
         </el-dialog>
       </el-tab-pane>
-        <el-tab-pane label="学习资源" name="resources">
+      <el-tab-pane label="学习资源" name="resources">
         <div class="block-title"><i class="el-icon-folder"></i> 学习资源</div>
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
@@ -177,87 +177,6 @@
         </el-card>
       </el-tab-pane>
     </el-tabs>
-
-
-
-
-
-    <!-- 添加或修改学习资源对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="资源名称" prop="resourceName">
-          <el-input v-model="form.resourceName" placeholder="请输入资源名称 (作为分组依据)" />
-        </el-form-item>
-        <el-form-item label="上传资源" prop="resourcePath">
-          <file-upload v-model="form.resourcePath" :action="uploadUrl" :headers="uploadHeaders" :file-size="3072" :limit="isUpdate ? 1 : 10" @upload-completed="handleResourceUploadSuccess" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
-    </el-dialog>
-
-        </el-tab-pane>
-        <el-tab-pane label="学习任务" name="tasks">
-        <div class="block-title"><i class="el-icon-s-operation"></i> 学习任务</div>
-          <p>这里是学习任务内容区域。</p>
-        </el-tab-pane>
-        <el-tab-pane label="答题" name="quiz">
-        <div class="block-title"><i class="el-icon-edit-outline"></i> 答题</div>
-          <p>这里是答题内容区域。</p>
-        </el-tab-pane>
-        <el-tab-pane label="视频学习" name="videos">
-          <div class="block-title"><i class="el-icon-video-camera"></i> 视频学习</div>
-          <el-row :gutter="10" class="mb8">
-            <el-col :span="1.5">
-              <el-button
-                type="primary"
-                plain
-                icon="el-icon-plus"
-                size="mini"
-                @click="handleAddVideo"
-              >新增视频</el-button>
-            </el-col>
-            <el-col :span="1.5">
-              <el-button
-                type="info"
-                plain
-                icon="el-icon-view"
-                size="mini"
-                @click="goToVideoList"
-              >查看全部</el-button>
-            </el-col>
-          </el-row>
-          <div v-if="Object.keys(groupedVideos).length === 0" style="text-align: center; color: #909399;">
-            暂无视频资源
-          </div>
-          <el-card class="box-card" v-for="(videos, chapterName) in groupedVideos" :key="chapterName" style="margin-bottom: 20px;">
-            <div slot="header" class="clearfix">
-              <span>{{ chapterName }}</span>
-            </div>
-            <div v-for="video in videos" :key="video.videoId" class="video-item">
-              <div class="video-info" @click="handleVideoPreview(video)">
-                <div class="video-thumbnail">
-                  <img v-if="video.thumbnail" :src="baseUrl + video.thumbnail" alt="视频封面">
-                  <i v-else class="el-icon-video-camera"></i>
-                </div>
-                <div class="video-details">
-                  <div class="video-name">{{ video.description }}</div>
-                  <div class="video-meta">
-                    <span>章节：{{ video.videoName }}</span>
-                    <span>大小：{{ video.fileSize }}MB</span>
-                  </div>
-                </div>
-              </div>
-              <div class="video-actions">
-                <el-button size="mini" type="text" icon="el-icon-edit" @click.stop="handleEditVideo(video)">修改</el-button>
-                <el-button size="mini" type="text" icon="el-icon-delete" @click.stop="handleDeleteVideo(video)">删除</el-button>
-              </div>
-            </div>
-          </el-card>
-        </el-tab-pane>
-      </el-tabs>
   </div>
 </template>
 
@@ -267,19 +186,19 @@ import { listResource, getResource, delResource, addResource, updateResource } f
 import { getToken } from "@/utils/auth";
 import FileUpload from '@/components/FileUpload';
 import { listRequirement, addRequirement, updateRequirement, delRequirement } from '@/api/system/requirement';
-import { listCourse } from '@/api/system/course';
 import CourseQuiz from './quiz.vue';
 import CourseTask from './task.vue';
-import { listVideoresource, getVideoresource, delVideoresource } from "@/api/system/videoresource";
+import { listVideoresource, getVideoresource, delVideoresource, addVideoresource, updateVideoresource } from "@/api/system/videoresource";
 
 export default {
-  name: "CourseDetail",
+  name: "CourseDetailPage",
   components: { FileUpload, CourseQuiz, CourseTask },
   data() {
     return {
       activeTab: 'requirements',
       course: {},
       baseUrl: process.env.VUE_APP_BASE_API,
+      loading: false,
       // 课程图片背景样式
       get courseHeroStyle() {
         if (this.course.courseImg) {
@@ -324,8 +243,8 @@ export default {
       requirementDialogTitle: '',
       requirementForm: {},
       requirementRules: {
-        courseCode: [
-          { required: true, message: '课程编号不能为空', trigger: 'blur' }
+        courseId: [
+          { required: true, message: '课程ID不能为空', trigger: 'blur' }
         ],
         skillName: [
           { required: true, message: '能力名称不能为空', trigger: 'blur' }
@@ -367,18 +286,36 @@ export default {
     }
   },
   created() {
-    const courseId = this.$route.params.courseId;
+    const courseId = this.$route.params.courseId || this.$route.query.courseId;
     if (courseId) {
       this.getCourseDetails(courseId);
       this.getResourceList(courseId);
       this.getRequirementList();
       this.getVideoList(courseId);
+    } else {
+      this.$message.error('未找到课程ID参数');
+    }
+    
+    // 检查是否有tab参数，如果有则切换到相应的选项卡
+    const tab = this.$route.query.tab;
+    if (tab && ['requirements', 'resources', 'tasks', 'quiz', 'videos'].includes(tab)) {
+      this.activeTab = tab;
     }
   },
   methods: {
     getCourseDetails(courseId) {
+      if (!courseId) {
+        this.$message.error('未找到课程ID参数');
+        return;
+      }
+      this.loading = true;
       getCourse(courseId).then(response => {
-        this.course = response.data;
+        this.course = response.data || {};
+        this.loading = false;
+      }).catch(error => {
+        console.error('获取课程详情失败', error);
+        this.$message.error('获取课程详情失败，请刷新页面重试');
+        this.loading = false;
       });
     },
     getResourceList(courseId) {
@@ -504,65 +441,52 @@ export default {
 
     // 课程能力要求相关
     getRequirementList() {
-      if (!this.course.courseId) return;
-      listRequirement({ courseId: this.course.courseId, pageNum: 1, pageSize: 999 }).then(async res => {
-        const list = res.rows || [];
-        // 批量查找所有courseId对应的courseCode
-        const idSet = Array.from(new Set(list.map(item => item.courseId).filter(Boolean)));
-        let idToCode = {};
-        if (idSet.length > 0) {
-          const courseRes = await listCourse({ pageNum: 1, pageSize: 9999 });
-          if (courseRes.rows) {
-            courseRes.rows.forEach(c => {
-              idToCode[c.courseId] = c.courseCode;
-            });
-          }
-        }
-        list.forEach(item => {
-          item.courseCode = idToCode[item.courseId] || '';
-        });
-        this.requirementList = list;
+      const cid = this.course.courseId;
+      if (!cid) return;
+      
+      listRequirement({ courseId: cid, pageSize: 999 }).then(response => {
+        this.requirementList = response.rows || [];
+      }).catch(() => {
+        this.requirementList = [];
       });
     },
     handleAddRequirement() {
       this.requirementForm = {
-        requirementId: null,
-        courseCode: this.course.courseCode,
+        courseId: this.course.courseId,
         skillName: '',
         description: '',
         requiredText: ''
       };
-      this.requirementDialogTitle = '新增课程能力要求';
+      this.requirementDialogTitle = '新增能力要求';
       this.requirementDialogVisible = true;
     },
-    handleEditRequirement(item) {
-      this.requirementForm = { ...item };
-      this.requirementDialogTitle = '编辑课程能力要求';
+    handleEditRequirement(requirement) {
+      this.requirementForm = { ...requirement };
+      this.requirementDialogTitle = '修改能力要求';
       this.requirementDialogVisible = true;
     },
-    async submitRequirementForm() {
-      this.$refs.requirementForm.validate(async valid => {
+    handleDeleteRequirement(requirement) {
+      const requirementId = requirement.requirementId;
+      this.$modal.confirm('是否确认删除该能力要求？').then(function() {
+        return delRequirement(requirementId);
+      }).then(() => {
+        this.getRequirementList();
+        this.$modal.msgSuccess("删除成功");
+      }).catch(() => {});
+    },
+    submitRequirementForm() {
+      this.requirementForm.courseId = this.course.courseId;
+      this.$refs.requirementForm.validate(valid => {
         if (valid) {
-          // 通过courseCode查ID
-          let courseId = null;
-          if (this.requirementForm.courseCode) {
-            const res = await listCourse({ courseCode: this.requirementForm.courseCode, pageNum: 1, pageSize: 1 });
-            if (res.rows && res.rows.length > 0) {
-              courseId = res.rows[0].courseId;
-            }
-          }
-          if (courseId) {
-            this.requirementForm.courseId = courseId;
-          }
           if (this.requirementForm.requirementId) {
             updateRequirement(this.requirementForm).then(() => {
-              this.$modal.msgSuccess('修改成功');
+              this.$modal.msgSuccess("修改成功");
               this.requirementDialogVisible = false;
               this.getRequirementList();
             });
           } else {
             addRequirement(this.requirementForm).then(() => {
-              this.$modal.msgSuccess('新增成功');
+              this.$modal.msgSuccess("新增成功");
               this.requirementDialogVisible = false;
               this.getRequirementList();
             });
@@ -570,19 +494,12 @@ export default {
         }
       });
     },
-    handleDeleteRequirement(item) {
-      this.$modal.confirm('是否确认删除该能力要求？').then(() => {
-        delRequirement(item.requirementId).then(() => {
-          this.$modal.msgSuccess('删除成功');
-          this.getRequirementList();
-        });
-      });
-    },
     // 视频相关方法
     getVideoList(courseId) {
       listVideoresource({ courseId: courseId, pageSize: 999 }).then(response => {
-        this.videoList = response.rows;
-        // 按章节分组
+        this.videoList = response.rows || [];
+        
+        // 按章节分组视频
         this.groupedVideos = {};
         this.videoList.forEach(video => {
           const chapter = video.videoName || '未分类';
@@ -591,39 +508,28 @@ export default {
           }
           this.groupedVideos[chapter].push(video);
         });
+      }).catch(() => {
+        this.videoList = [];
+        this.groupedVideos = {};
       });
     },
     handleAddVideo() {
-      this.$router.push({ 
-        name: 'VideoAdd',
-        query: { 
+      this.$router.push({
+        path: '/system/videoresource/add',
+        query: {
           courseId: this.course.courseId,
-          courseCode: this.course.courseCode
+          courseCode: this.course.courseCode,
+          returnPath: this.$route.fullPath
         }
-      });
-    },
-    goToVideoList() {
-      this.$router.push({ 
-        name: 'VideoList',
-        query: { 
-          courseId: this.course.courseId,
-          courseCode: this.course.courseCode
-        }
-      });
-    },
-    handleVideoPreview(video) {
-      // 推荐跳转到大屏播放页
-      this.$router.push({ 
-        name: 'VideoPlay',
-        params: { videoId: video.videoId }
       });
     },
     handleEditVideo(video) {
-      this.$router.push({ 
-        name: 'VideoEdit',
-        query: { 
+      this.$router.push({
+        path: '/system/videoresource/edit',
+        query: {
           videoId: video.videoId,
-          courseId: this.course.courseId
+          courseId: this.course.courseId,
+          returnPath: this.$route.fullPath
         }
       });
     },
@@ -636,17 +542,24 @@ export default {
         this.$modal.msgSuccess("删除成功");
       }).catch(() => {});
     },
-  },
-  watch: {
-    'course.courseId'(val) {
-      if (val) this.getRequirementList();
+    handleVideoPreview(video) {
+      this.$router.push({ 
+        name: 'VideoPlay', 
+        params: { videoId: video.videoId },
+        query: { courseId: this.course.courseId }
+      });
     },
-
+    goToVideoList() {
+      this.$router.push({
+        name: 'VideoList',
+        query: { courseId: this.course.courseId }
+      });
+    },
     handleSwitchTab(tabName) {
+      if (tabName && ['requirements', 'resources', 'tasks', 'quiz', 'videos'].includes(tabName)) {
       this.activeTab = tabName;
+      }
     },
-
-
   }
 };
 </script>

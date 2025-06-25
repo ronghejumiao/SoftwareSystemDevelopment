@@ -5,55 +5,55 @@ import org.apache.ibatis.annotations.Param;
 import com.ruoyi.system.domain.Score;
 
 /**
- * 成绩，记录学生的学习成绩信息Mapper接口
+ * 成绩管理Mapper接口
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-22
  */
 public interface ScoreMapper 
 {
     /**
-     * 查询成绩，记录学生的学习成绩信息
+     * 查询成绩管理
      * 
-     * @param scoreId 成绩，记录学生的学习成绩信息主键
-     * @return 成绩，记录学生的学习成绩信息
+     * @param scoreId 成绩管理主键
+     * @return 成绩管理
      */
     public Score selectScoreByScoreId(Long scoreId);
 
     /**
-     * 查询成绩，记录学生的学习成绩信息列表
+     * 查询成绩管理列表
      * 
-     * @param score 成绩，记录学生的学习成绩信息
-     * @return 成绩，记录学生的学习成绩信息集合
+     * @param score 成绩管理
+     * @return 成绩管理集合
      */
     public List<Score> selectScoreList(Score score);
 
     /**
-     * 新增成绩，记录学生的学习成绩信息
+     * 新增成绩管理
      * 
-     * @param score 成绩，记录学生的学习成绩信息
+     * @param score 成绩管理
      * @return 结果
      */
     public int insertScore(Score score);
 
     /**
-     * 修改成绩，记录学生的学习成绩信息
+     * 修改成绩管理
      * 
-     * @param score 成绩，记录学生的学习成绩信息
+     * @param score 成绩管理
      * @return 结果
      */
     public int updateScore(Score score);
 
     /**
-     * 删除成绩，记录学生的学习成绩信息
+     * 删除成绩管理
      * 
-     * @param scoreId 成绩，记录学生的学习成绩信息主键
+     * @param scoreId 成绩管理主键
      * @return 结果
      */
     public int deleteScoreByScoreId(Long scoreId);
 
     /**
-     * 批量删除成绩，记录学生的学习成绩信息
+     * 批量删除成绩管理
      * 
      * @param scoreIds 需要删除的数据主键集合
      * @return 结果
@@ -76,4 +76,12 @@ public interface ScoreMapper
      * @return 成绩列表
      */
     public List<Score> selectScoreByUserId(@Param("userId") Long userId);
+
+    /**
+     * 根据学习记录ID批量删除成绩
+     *
+     * @param recordIds 学习记录ID数组
+     * @return 影响行数
+     */
+    public int deleteScoreByLearningRecordIds(Long[] recordIds);
 }

@@ -9,10 +9,10 @@ import com.ruoyi.system.domain.Score;
 import com.ruoyi.system.service.IScoreService;
 
 /**
- * 成绩，记录学生的学习成绩信息Service业务层处理
+ * 成绩管理Service业务层处理
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-22
  */
 @Service
 public class ScoreServiceImpl implements IScoreService 
@@ -21,10 +21,10 @@ public class ScoreServiceImpl implements IScoreService
     private ScoreMapper scoreMapper;
 
     /**
-     * 查询成绩，记录学生的学习成绩信息
+     * 查询成绩管理
      * 
-     * @param scoreId 成绩，记录学生的学习成绩信息主键
-     * @return 成绩，记录学生的学习成绩信息
+     * @param scoreId 成绩管理主键
+     * @return 成绩管理
      */
     @Override
     public Score selectScoreByScoreId(Long scoreId)
@@ -33,10 +33,10 @@ public class ScoreServiceImpl implements IScoreService
     }
 
     /**
-     * 查询成绩，记录学生的学习成绩信息列表
+     * 查询成绩管理列表
      * 
-     * @param score 成绩，记录学生的学习成绩信息
-     * @return 成绩，记录学生的学习成绩信息
+     * @param score 成绩管理
+     * @return 成绩管理
      */
     @Override
     public List<Score> selectScoreList(Score score)
@@ -45,9 +45,9 @@ public class ScoreServiceImpl implements IScoreService
     }
 
     /**
-     * 新增成绩，记录学生的学习成绩信息
+     * 新增成绩管理
      * 
-     * @param score 成绩，记录学生的学习成绩信息
+     * @param score 成绩管理
      * @return 结果
      */
     @Override
@@ -58,9 +58,9 @@ public class ScoreServiceImpl implements IScoreService
     }
 
     /**
-     * 修改成绩，记录学生的学习成绩信息
+     * 修改成绩管理
      * 
-     * @param score 成绩，记录学生的学习成绩信息
+     * @param score 成绩管理
      * @return 结果
      */
     @Override
@@ -71,9 +71,9 @@ public class ScoreServiceImpl implements IScoreService
     }
 
     /**
-     * 批量删除成绩，记录学生的学习成绩信息
+     * 批量删除成绩管理
      * 
-     * @param scoreIds 需要删除的成绩，记录学生的学习成绩信息主键
+     * @param scoreIds 需要删除的成绩管理主键
      * @return 结果
      */
     @Override
@@ -83,9 +83,9 @@ public class ScoreServiceImpl implements IScoreService
     }
 
     /**
-     * 删除成绩，记录学生的学习成绩信息信息
+     * 删除成绩管理信息
      * 
-     * @param scoreId 成绩，记录学生的学习成绩信息主键
+     * @param scoreId 成绩管理主键
      * @return 结果
      */
     @Override

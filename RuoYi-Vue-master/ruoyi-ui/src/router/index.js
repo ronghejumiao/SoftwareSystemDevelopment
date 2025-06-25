@@ -89,32 +89,117 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/system/course',
+    path: '/system/question/index',
     component: Layout,
+    hidden: true,
     children: [
       {
-        path: 'detail/:courseId',
-        name: 'CourseDetail',
-        component: () => import('@/views/system/course/detail.vue'),
-        meta: { title: '课程详情', noCache: true },
-        hidden: true
-      },
-      {
-        path: 'video-list',
-        name: 'VideoList',
-        component: () => import('@/views/system/course/video-list.vue'),
-        meta: { title: '视频列表', noCache: true },
-        hidden: true
-      },
-      {
-        path: 'video-play/:videoId',
-        name: 'VideoPlay',
-        component: () => import('@/views/system/course/video-play.vue'),
-        meta: { title: '视频播放', noCache: true },
-        hidden: true
+        path: '',
+        component: () => import('@/views/system/question/index'),
+        name: 'QuestionBankPage',
+        meta: { title: '题库', noCache: true }
       }
     ]
-  }
+  },
+  {
+    path: '/system/library/index',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/system/library/index'),
+        name: 'PaperLibraryPage',
+        meta: { title: '试卷库', noCache: true }
+      }
+    ]
+  },
+  {
+    path: '/system/paper',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/system/paper/index'),
+        name: 'PaperPage',
+        meta: { title: '试卷', noCache: true }
+      }
+    ]
+  },
+  {
+    path: '/system/course/video-list',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/system/course/video-list'),
+        name: 'VideoList',
+        meta: { title: '视频列表', noCache: true }
+      }
+    ]
+  },
+  {
+    path: '/system/course/video-play/:videoId(\\d+)',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/system/course/video-play'),
+        name: 'VideoPlay',
+        meta: { title: '视频播放', noCache: true }
+      }
+    ]
+  },
+  // 个人学习记录相关页面
+  {
+    path: '/user/videos',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/system/user/videoRecord'),
+        name: 'UserVideoRecord',
+        meta: { title: '我的视频记录', noCache: true }
+      }
+    ]
+  },
+  {
+    path: '/user/scores',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/system/user/scoreRecord'),
+        name: 'UserScoreRecord',
+        meta: { title: '我的成绩', noCache: true }
+      }
+    ]
+  },
+  {
+    path: '/user/tasks',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/system/user/submissionRecord'),
+        name: 'UserSubmissionRecord',
+        meta: { title: '我的任务提交', noCache: true }
+      }
+    ]
+  },
+  // 兼容旧别名
+  {
+    path: '/user/records',
+    redirect: '/user/videos',
+    hidden: true
+  },
+
 ]
 
 // 动态路由，基于用户权限动态去加载
@@ -148,7 +233,7 @@ export const dynamicRoutes = [
     ]
   },
   {
-    path: '/system/course-detail/:courseId(\\d+)',
+    path: '/system/course/detail/:courseId(\\d+)',
     component: Layout,
     hidden: true,
     permissions: ['system:course:list'],
@@ -156,8 +241,8 @@ export const dynamicRoutes = [
       {
         path: '',
         component: () => import('@/views/system/course/detail'),
-        name: 'CourseDetail',
-        meta: { title: '课程详情', activeMenu: '/system/course' }
+        name: 'CourseDetailDyn',
+        meta: { title: '课程详情', activeMenu: '/system/course', noCache: true }
       }
     ]
   },
@@ -200,6 +285,32 @@ export const dynamicRoutes = [
         component: () => import('@/views/tool/gen/editTable'),
         name: 'GenEdit',
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
+      }
+    ]
+  },
+  {
+    path: '/system/question',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/views/system/question/index'),
+        name: 'QuestionBankDyn',
+        meta: { title: '题库', activeMenu: '/system/course', noCache: true }
+      }
+    ]
+  },
+  {
+    path: '/system/library',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/views/system/library/index'),
+        name: 'PaperLibraryDyn',
+        meta: { title: '试卷库', activeMenu: '/system/course', noCache: true }
       }
     ]
   }

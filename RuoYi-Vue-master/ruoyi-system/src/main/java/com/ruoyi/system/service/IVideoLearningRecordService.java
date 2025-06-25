@@ -7,7 +7,7 @@ import com.ruoyi.system.domain.VideoLearningRecord;
  * 视频学习记录，记录学生观看视频的行为数据Service接口
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-24
  */
 public interface IVideoLearningRecordService 
 {
@@ -58,4 +58,11 @@ public interface IVideoLearningRecordService
      * @return 结果
      */
     public int deleteVideoLearningRecordByRecordId(Long recordId);
+
+    /**
+     * 保存观看记录：如果同(learningRecordId, resourceId)记录已存在，则更新；否则新增
+     * @param videoLearningRecord 观看记录
+     * @return 影响行数
+     */
+    int saveOrUpdate(VideoLearningRecord videoLearningRecord);
 }

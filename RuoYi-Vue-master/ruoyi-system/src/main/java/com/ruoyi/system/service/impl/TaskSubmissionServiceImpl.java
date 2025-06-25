@@ -9,10 +9,10 @@ import com.ruoyi.system.domain.TaskSubmission;
 import com.ruoyi.system.service.ITaskSubmissionService;
 
 /**
- * 任务提交记录，记录学生提交任务的信息Service业务层处理
+ * 任务提交记录Service业务层处理
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-24
  */
 @Service
 public class TaskSubmissionServiceImpl implements ITaskSubmissionService 
@@ -21,10 +21,10 @@ public class TaskSubmissionServiceImpl implements ITaskSubmissionService
     private TaskSubmissionMapper taskSubmissionMapper;
 
     /**
-     * 查询任务提交记录，记录学生提交任务的信息
+     * 查询任务提交记录
      * 
-     * @param submissionId 任务提交记录，记录学生提交任务的信息主键
-     * @return 任务提交记录，记录学生提交任务的信息
+     * @param submissionId 任务提交记录主键
+     * @return 任务提交记录
      */
     @Override
     public TaskSubmission selectTaskSubmissionBySubmissionId(Long submissionId)
@@ -33,10 +33,10 @@ public class TaskSubmissionServiceImpl implements ITaskSubmissionService
     }
 
     /**
-     * 查询任务提交记录，记录学生提交任务的信息列表
+     * 查询任务提交记录列表
      * 
-     * @param taskSubmission 任务提交记录，记录学生提交任务的信息
-     * @return 任务提交记录，记录学生提交任务的信息
+     * @param taskSubmission 任务提交记录
+     * @return 任务提交记录
      */
     @Override
     public List<TaskSubmission> selectTaskSubmissionList(TaskSubmission taskSubmission)
@@ -45,35 +45,59 @@ public class TaskSubmissionServiceImpl implements ITaskSubmissionService
     }
 
     /**
-     * 新增任务提交记录，记录学生提交任务的信息
+     * 新增任务提交记录
      * 
-     * @param taskSubmission 任务提交记录，记录学生提交任务的信息
+     * @param taskSubmission 任务提交记录
      * @return 结果
      */
     @Override
     public int insertTaskSubmission(TaskSubmission taskSubmission)
     {
-        taskSubmission.setCreateTime(DateUtils.getNowDate());
+        // 检查是否已存在相同(recordId, taskId)的记录，如果存在则执行更新操作
+        TaskSubmission existing = taskSubmissionMapper.selectByRecordAndTaskId(
+            taskSubmission.getRecordId(), taskSubmission.getTaskId());
+        
+        if (existing != null) {
+            // 设置提交ID，进行更新操作
+            taskSubmission.setSubmissionId(existing.getSubmissionId());
+            return updateTaskSubmission(taskSubmission);
+        }
+        
+        // 设置默认值
+        if (taskSubmission.getScore() != null) {
+            taskSubmission.setGradeScore(taskSubmission.getScore());
+        }
+        if (taskSubmission.getSubmissionTime() == null) {
+            taskSubmission.setSubmissionTime(new java.util.Date());
+        }
+        // 确保 submissionTime 与 createTime 保持一致
+        taskSubmission.setCreateTime(taskSubmission.getSubmissionTime());
+        if (taskSubmission.getIsGraded() == null) {
+            taskSubmission.setIsGraded("0"); // 默认未评分
+        }
+        
         return taskSubmissionMapper.insertTaskSubmission(taskSubmission);
     }
 
     /**
-     * 修改任务提交记录，记录学生提交任务的信息
+     * 修改任务提交记录
      * 
-     * @param taskSubmission 任务提交记录，记录学生提交任务的信息
+     * @param taskSubmission 任务提交记录
      * @return 结果
      */
     @Override
     public int updateTaskSubmission(TaskSubmission taskSubmission)
     {
-        taskSubmission.setUpdateTime(DateUtils.getNowDate());
+        if (taskSubmission.getScore() != null) {
+            taskSubmission.setGradeScore(taskSubmission.getScore());
+        }
         return taskSubmissionMapper.updateTaskSubmission(taskSubmission);
     }
 
     /**
-     * 批量删除任务提交记录，记录学生提交任务的信息
+     * 批量删除任务提交记录
      * 
-     * @param submissionIds 需要删除的任务提交记录，记录学生提交任务的信息主键
+     * @param submissionIds 需要删除的任务提交记录主键
      * @return 结果
      */
     @Override
@@ -83,9 +107,9 @@ public class TaskSubmissionServiceImpl implements ITaskSubmissionService
     }
 
     /**
-     * 删除任务提交记录，记录学生提交任务的信息信息
+     * 删除任务提交记录信息
      * 
-     * @param submissionId 任务提交记录，记录学生提交任务的信息主键
+     * @param submissionId 任务提交记录主键
      * @return 结果
      */
     @Override

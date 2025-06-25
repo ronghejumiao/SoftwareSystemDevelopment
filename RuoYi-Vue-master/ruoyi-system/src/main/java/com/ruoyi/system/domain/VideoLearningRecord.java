@@ -12,7 +12,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * 视频学习记录，记录学生观看视频的行为数据对象 video_learning_record
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-24
  */
 public class VideoLearningRecord extends BaseEntity
 {
@@ -37,8 +37,8 @@ public class VideoLearningRecord extends BaseEntity
     @Excel(name = "观看时长", readConverterExp = "秒=")
     private Long watchedDuration;
 
-    /** 跳过片段（时间戳，如“0-10,20-30”） */
-    @Excel(name = "跳过片段", readConverterExp = "时=间戳，如“0-10,20-30”")
+    /** 跳过片段（时间戳，如 0-10,20-30 ） */
+    @Excel(name = "跳过片段", readConverterExp = "时=间戳")
     private String skipSegments;
 
     /** 重复观看片段（时间戳） */
@@ -50,9 +50,33 @@ public class VideoLearningRecord extends BaseEntity
     private BigDecimal completionRate;
 
     /** 最后观看时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "最后观看时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "GMT+8")
+    @Excel(name = "最后观看时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date lastWatchTime;
+
+    /** 查询辅助字段：用户ID（通过 learning_record 关联） */
+    private Long userId;
+
+    /** 学生姓名（关联sys_user） */
+    private String studentName;
+
+    /** 学生头像 */
+    private String studentAvatar;
+
+    /** 资源名称（视频名） */
+    private String resourceName;
+
+    /** 资源分类/类型 */
+    private String resourceCategory;
+
+    /** 课程名称 */
+    private String courseName;
+
+    /** 完成率范围（开始） */
+    private Integer completionRateStart;
+
+    /** 完成率范围（结束） */
+    private Integer completionRateEnd;
 
     public void setRecordId(Long recordId) 
     {
@@ -144,6 +168,30 @@ public class VideoLearningRecord extends BaseEntity
         return lastWatchTime;
     }
 
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getStudentName() { return studentName; }
+    public void setStudentName(String studentName) { this.studentName = studentName; }
+    public String getStudentAvatar() { return studentAvatar; }
+    public void setStudentAvatar(String studentAvatar) { this.studentAvatar = studentAvatar; }
+    public String getResourceName() { return resourceName; }
+    public void setResourceName(String resourceName) { this.resourceName = resourceName; }
+    public String getResourceCategory() { return resourceCategory; }
+    public void setResourceCategory(String resourceCategory) { this.resourceCategory = resourceCategory; }
+    public String getCourseName() { return courseName; }
+    public void setCourseName(String courseName) { this.courseName = courseName; }
+
+    public Integer getCompletionRateStart() { return completionRateStart; }
+    public void setCompletionRateStart(Integer completionRateStart) { this.completionRateStart = completionRateStart; }
+    public Integer getCompletionRateEnd() { return completionRateEnd; }
+    public void setCompletionRateEnd(Integer completionRateEnd) { this.completionRateEnd = completionRateEnd; }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -158,6 +206,8 @@ public class VideoLearningRecord extends BaseEntity
             .append("lastWatchTime", getLastWatchTime())
             .append("createTime", getCreateTime())
             .append("updateTime", getUpdateTime())
+            .append("resourceCategory", getResourceCategory())
+            .append("courseName", getCourseName())
             .toString();
     }
 }

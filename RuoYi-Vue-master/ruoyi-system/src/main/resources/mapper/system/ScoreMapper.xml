@@ -11,23 +11,26 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="paperId"    column="paper_id"    />
         <result property="score"    column="score"    />
         <result property="scoreDesc"    column="score_desc"    />
+        <result property="scoreStatus"    column="score_status"    />
         <result property="submitTime"    column="submit_time"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateTime"    column="update_time"    />
     </resultMap>
 
     <sql id="selectScoreVo">
-        select score_id, learning_record_id, task_id, paper_id, score, score_desc, submit_time, create_time, update_time from score
+        select score_id, learning_record_id, task_id, paper_id, score, score_desc, score_status, submit_time, create_time, update_time from score
     </sql>
 
     <select id="selectScoreList" parameterType="Score" resultMap="ScoreResult">
         <include refid="selectScoreVo"/>
         <where>  
+            <if test="scoreId != null "> and score_id = #{scoreId}</if>
             <if test="learningRecordId != null "> and learning_record_id = #{learningRecordId}</if>
             <if test="taskId != null "> and task_id = #{taskId}</if>
             <if test="paperId != null "> and paper_id = #{paperId}</if>
             <if test="score != null "> and score = #{score}</if>
-            <if test="scoreDesc != null  and scoreDesc != ''"> and score_desc = #{scoreDesc}</if>
+            <if test="scoreDesc != null  and scoreDesc != ''"> and score_desc like concat('%', #{scoreDesc}, '%')</if>
+            <if test="scoreStatus != null "> and score_status = #{scoreStatus}</if>
             <if test="submitTime != null "> and submit_time = #{submitTime}</if>
         </where>
     </select>
@@ -44,7 +47,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="taskId != null">task_id,</if>
             <if test="paperId != null">paper_id,</if>
             <if test="score != null">score,</if>
-            <if test="scoreDesc != null">score_desc,</if>
+            <if test="scoreDesc != null and scoreDesc != ''">score_desc,</if>
+            <if test="scoreStatus != null">score_status,</if>
             <if test="submitTime != null">submit_time,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateTime != null">update_time,</if>
@@ -54,7 +58,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="taskId != null">#{taskId},</if>
             <if test="paperId != null">#{paperId},</if>
             <if test="score != null">#{score},</if>
-            <if test="scoreDesc != null">#{scoreDesc},</if>
+            <if test="scoreDesc != null and scoreDesc != ''">#{scoreDesc},</if>
+            <if test="scoreStatus != null">#{scoreStatus},</if>
             <if test="submitTime != null">#{submitTime},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateTime != null">#{updateTime},</if>
@@ -68,7 +73,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="taskId != null">task_id = #{taskId},</if>
             <if test="paperId != null">paper_id = #{paperId},</if>
             <if test="score != null">score = #{score},</if>
-            <if test="scoreDesc != null">score_desc = #{scoreDesc},</if>
+            <if test="scoreDesc != null and scoreDesc != ''">score_desc = #{scoreDesc},</if>
+            <if test="scoreStatus != null">score_status = #{scoreStatus},</if>
             <if test="submitTime != null">submit_time = #{submitTime},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
@@ -84,6 +90,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         delete from score where score_id in 
         <foreach item="scoreId" collection="array" open="(" separator="," close=")">
             #{scoreId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteScoreByLearningRecordIds" parameterType="String">
+        delete from score where learning_record_id in 
+        <foreach item="rid" collection="array" open="(" separator="," close=")">
+            #{rid}
         </foreach>
     </delete>
 

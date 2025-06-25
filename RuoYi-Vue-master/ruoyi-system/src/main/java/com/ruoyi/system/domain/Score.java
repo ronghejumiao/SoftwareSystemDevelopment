@@ -9,16 +9,17 @@ import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
- * 成绩，记录学生的学习成绩信息对象 score
+ * 成绩管理对象 score
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-22
  */
 public class Score extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
     /** 成绩ID，主键，自增 */
+    @Excel(name = "成绩ID，主键，自增")
     private Long scoreId;
 
     /** 学习记录ID，关联learning_record表 */
@@ -33,17 +34,21 @@ public class Score extends BaseEntity
     @Excel(name = "试卷ID，关联test_paper表")
     private Long paperId;
 
-    /** 得分 */
-    @Excel(name = "得分")
+    /** 得分(0-100) */
+    @Excel(name = "得分(0-100)")
     private BigDecimal score;
 
-    /** 成绩描述 */
-    @Excel(name = "成绩描述")
+    /** 成绩描述，支持模糊查询 */
+    @Excel(name = "成绩描述，支持模糊查询")
     private String scoreDesc;
 
-    /** 提交时间 */
+    /** 成绩状态(0-无效 1-有效) */
+    @Excel(name = "成绩状态(0-无效 1-有效)")
+    private Long scoreStatus;
+
+    /** 提交时间，默认当前时间 */
     @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "提交时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @Excel(name = "提交时间，默认当前时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date submitTime;
 
     public void setScoreId(Long scoreId) 
@@ -106,6 +111,16 @@ public class Score extends BaseEntity
         return scoreDesc;
     }
 
+    public void setScoreStatus(Long scoreStatus) 
+    {
+        this.scoreStatus = scoreStatus;
+    }
+
+    public Long getScoreStatus() 
+    {
+        return scoreStatus;
+    }
+
     public void setSubmitTime(Date submitTime) 
     {
         this.submitTime = submitTime;
@@ -125,6 +140,7 @@ public class Score extends BaseEntity
             .append("paperId", getPaperId())
             .append("score", getScore())
             .append("scoreDesc", getScoreDesc())
+            .append("scoreStatus", getScoreStatus())
             .append("submitTime", getSubmitTime())
             .append("createTime", getCreateTime())
             .append("updateTime", getUpdateTime())

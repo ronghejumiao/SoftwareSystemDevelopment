@@ -393,6 +393,9 @@ import { listPaperByCourseId, listPaper } from "@/api/system/paper";
 import { getScoreByUserAndCourse, addScore } from "@/api/system/score";
 import { getLearningRecordByUserAndCourse } from "@/api/system/learningRecord";
 import { addTask } from "@/api/system/task";
+import { addLearningRecord } from "@/api/system/learningRecord";
+import { addSubmission } from "@/api/system/submission";
+import * as echarts from 'echarts';
 
 export default {
   name: "Quiz",
@@ -594,7 +597,7 @@ export default {
     // 跳转到题库
     goToQuestionBank() {
       this.$router.push({
-        path: '/system/question',
+        path: '/system/question/index',
         query: { courseId: this.courseId }
       });
     },
@@ -692,28 +695,52 @@ export default {
       // 计算得分
       this.finalScore = this.calculateScore();
       
-      // 获取或创建学习记录
       const userId = this.id;
-      getLearningRecordByUserAndCourse(userId, this.courseId).then(response => {
-        const learningRecord = response.data;
-        
+      let currentRecordId = null; // 保存学习记录ID，供后续Promise链使用
+      
+      // 获取或创建学习记录
+      getLearningRecordByUserAndCourse(userId, this.courseId).then(async learningRecord => {
+        let record = learningRecord;
+        if (!record) {
+          await addLearningRecord({ userId, courseId: this.courseId, joinTime: new Date(), courseProgress: 0 });
+          record = await getLearningRecordByUserAndCourse(userId, this.courseId);
+        }
+        if (!record) throw new Error('获取学习记录失败');
+
+        currentRecordId = record.recordId;
+
         // 创建成绩记录
         const scoreData = {
-          learningRecordId: learningRecord.recordId,
+          learningRecordId: currentRecordId,
           paperId: this.currentPaper.paperId,
           score: this.finalScore,
           scoreDesc: `得分：${this.finalScore}/${this.currentPaper.totalScore}`,
           submitTime: new Date()
         };
-        
         return addScore(scoreData);
       }).then(() => {
+        // 创建任务提交记录，便于任务提交管理界面展示
+        const submissionPayload = {
+          recordId: currentRecordId,
+          taskId: this.currentPaper.paperId, // 使用试卷ID作为任务ID关联
+          submissionContent: `完成试卷 ${this.currentPaper.paperName}`,
+          submissionTime: this.formatDateTime(new Date()),
+          isGraded: '1',
+          score: this.finalScore,
+          gradeComment: '系统自动评分',
+          userId: userId,
+          createTime: this.formatDateTime(new Date())
+        };
+        return addSubmission(submissionPayload);
+      }).then(()=>{
         this.isSubmitted = true;
         this.isSubmitting = false;
         if (this.timer) {
           clearInterval(this.timer);
         }
         this.$modal.msgSuccess('答题完成！');
+        // 通知任务提交记录界面刷新
+        this.$root.$emit('submissionRecordUpdated');
       }).catch(error => {
         console.error('提交答案失败:', error);
         this.$modal.msgError('提交答案失败，请重试');
@@ -806,6 +833,14 @@ export default {
         this.$message.success('添加成功');
         this.initData();
       });
+    },
+    // 工具函数：格式化日期为yyyy-MM-dd HH:mm:ss
+    formatDateTime(date) {
+      if (!date) return '';
+      const d = new Date(date);
+      const pad = n => n < 10 ? '0' + n : n;
+      return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' '
+        + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
     }
   }
 };

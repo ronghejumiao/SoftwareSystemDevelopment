@@ -45,7 +45,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         insert into question
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="bankId != null">bank_id,</if>
-            <if test="knowledgeNodeId != null">knowledge_node_id,</if>
+            <if test="knowledgeNodeId != null and knowledgeNodeId > 0">knowledge_node_id,</if>
             <if test="questionType != null and questionType != ''">question_type,</if>
             <if test="questionContent != null and questionContent != ''">question_content,</if>
             <if test="options != null">options,</if>
@@ -57,7 +57,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="bankId != null">#{bankId},</if>
-            <if test="knowledgeNodeId != null">#{knowledgeNodeId},</if>
+            <if test="knowledgeNodeId != null and knowledgeNodeId > 0">#{knowledgeNodeId},</if>
             <if test="questionType != null and questionType != ''">#{questionType},</if>
             <if test="questionContent != null and questionContent != ''">#{questionContent},</if>
             <if test="options != null">#{options},</if>
@@ -73,7 +73,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update question
         <trim prefix="SET" suffixOverrides=",">
             <if test="bankId != null">bank_id = #{bankId},</if>
-            <if test="knowledgeNodeId != null">knowledge_node_id = #{knowledgeNodeId},</if>
+            <if test="knowledgeNodeId != null and knowledgeNodeId > 0">knowledge_node_id = #{knowledgeNodeId},</if>
             <if test="questionType != null and questionType != ''">question_type = #{questionType},</if>
             <if test="questionContent != null and questionContent != ''">question_content = #{questionContent},</if>
             <if test="options != null">options = #{options},</if>

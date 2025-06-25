@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import com.ruoyi.system.mapper.QuestionMapper;
 import com.ruoyi.system.domain.Question;
 import com.ruoyi.system.service.IQuestionService;
+import com.ruoyi.system.mapper.KnowledgeNodeMapper;
+import com.ruoyi.system.domain.KnowledgeNode;
 
 /**
  * 题目，存储题库中的题目信息Service业务层处理
@@ -19,6 +21,12 @@ public class QuestionServiceImpl implements IQuestionService
 {
     @Autowired
     private QuestionMapper questionMapper;
+
+    /**
+     * 新增依赖，用于验证 knowledgeNodeId 是否存在
+     */
+    @Autowired
+    private KnowledgeNodeMapper knowledgeNodeMapper;
 
     /**
      * 查询题目，存储题库中的题目信息
@@ -54,6 +62,15 @@ public class QuestionServiceImpl implements IQuestionService
     public int insertQuestion(Question question)
     {
         question.setCreateTime(DateUtils.getNowDate());
+
+        // 如果 knowledgeNodeId 不为空，先检查知识节点在数据库中是否存在，若不存在则置空，避免外键约束异常
+        if (question.getKnowledgeNodeId() != null) {
+            KnowledgeNode node = knowledgeNodeMapper.selectKnowledgeNodeByNodeId(question.getKnowledgeNodeId());
+            if (node == null) {
+                question.setKnowledgeNodeId(null);
+            }
+        }
+
         return questionMapper.insertQuestion(question);
     }
 
@@ -67,6 +84,15 @@ public class QuestionServiceImpl implements IQuestionService
     public int updateQuestion(Question question)
     {
         question.setUpdateTime(DateUtils.getNowDate());
+
+        // 更新时也进行一次知识节点存在性校验
+        if (question.getKnowledgeNodeId() != null) {
+            KnowledgeNode node = knowledgeNodeMapper.selectKnowledgeNodeByNodeId(question.getKnowledgeNodeId());
+            if (node == null) {
+                question.setKnowledgeNodeId(null);
+            }
+        }
+
         return questionMapper.updateQuestion(question);
     }
 

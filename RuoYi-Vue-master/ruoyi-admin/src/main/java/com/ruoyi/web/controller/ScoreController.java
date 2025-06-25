@@ -22,10 +22,10 @@ import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
- * 成绩，记录学生的学习成绩信息Controller
+ * 成绩管理Controller
  * 
  * @author ruoyi
- * @date 2025-06-20
+ * @date 2025-06-22
  */
 @RestController
 @RequestMapping("/system/score")
@@ -35,7 +35,7 @@ public class ScoreController extends BaseController
     private IScoreService scoreService;
 
     /**
-     * 查询成绩，记录学生的学习成绩信息列表
+     * 查询成绩管理列表
      */
     @PreAuthorize("@ss.hasPermi('system:score:list')")
     @GetMapping("/list")
@@ -47,20 +47,20 @@ public class ScoreController extends BaseController
     }
 
     /**
-     * 导出成绩，记录学生的学习成绩信息列表
+     * 导出成绩管理列表
      */
     @PreAuthorize("@ss.hasPermi('system:score:export')")
-    @Log(title = "成绩，记录学生的学习成绩信息", businessType = BusinessType.EXPORT)
+    @Log(title = "成绩管理", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, Score score)
     {
         List<Score> list = scoreService.selectScoreList(score);
         ExcelUtil<Score> util = new ExcelUtil<Score>(Score.class);
-        util.exportExcel(response, list, "成绩，记录学生的学习成绩信息数据");
+        util.exportExcel(response, list, "成绩管理数据");
     }
 
     /**
-     * 获取成绩，记录学生的学习成绩信息详细信息
+     * 获取成绩管理详细信息
      */
     @PreAuthorize("@ss.hasPermi('system:score:query')")
     @GetMapping(value = "/{scoreId}")
@@ -70,10 +70,10 @@ public class ScoreController extends BaseController
     }
 
     /**
-     * 新增成绩，记录学生的学习成绩信息
+     * 新增成绩管理
      */
     @PreAuthorize("@ss.hasPermi('system:score:add')")
-    @Log(title = "成绩，记录学生的学习成绩信息", businessType = BusinessType.INSERT)
+    @Log(title = "成绩管理", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody Score score)
     {
@@ -81,10 +81,10 @@ public class ScoreController extends BaseController
     }
 
     /**
-     * 修改成绩，记录学生的学习成绩信息
+     * 修改成绩管理
      */
     @PreAuthorize("@ss.hasPermi('system:score:edit')")
-    @Log(title = "成绩，记录学生的学习成绩信息", businessType = BusinessType.UPDATE)
+    @Log(title = "成绩管理", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody Score score)
     {
@@ -92,10 +92,10 @@ public class ScoreController extends BaseController
     }
 
     /**
-     * 删除成绩，记录学生的学习成绩信息
+     * 删除成绩管理
      */
     @PreAuthorize("@ss.hasPermi('system:score:remove')")
-    @Log(title = "成绩，记录学生的学习成绩信息", businessType = BusinessType.DELETE)
+    @Log(title = "成绩管理", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{scoreIds}")
     public AjaxResult remove(@PathVariable Long[] scoreIds)
     {

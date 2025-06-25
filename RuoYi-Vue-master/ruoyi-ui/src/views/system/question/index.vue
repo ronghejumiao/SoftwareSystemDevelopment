@@ -13,7 +13,7 @@
           <el-col :span="8">
             <div class="info-item">
               <span class="label">题目总数：</span>
-              <span class="value">{{ allQuestions.length }}题</span>
+              <span class="value">{{ totalQuestions }}题</span>
             </div>
           </el-col>
           <el-col :span="8">
@@ -175,11 +175,20 @@
     <!-- 添加或修改题目，存储题库中的题目信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="题库ID" prop="bankId">
-          <el-input v-model="form.bankId" placeholder="请输入题库ID" />
+        <el-form-item label="题库" prop="bankId">
+          <el-select v-model="form.bankId" placeholder="请选择题库">
+            <el-option v-for="bank in bankOptions" :key="bank.bankId" :label="bank.libraryName ? bank.libraryName + ' (ID:' + bank.bankId + ')' : bank.bankId" :value="bank.bankId" />
+          </el-select>
         </el-form-item>
         <el-form-item label="知识点ID" prop="knowledgeNodeId">
           <el-input v-model="form.knowledgeNodeId" placeholder="请输入知识点ID" />
+        </el-form-item>
+        <el-form-item label="题目类型" prop="questionType">
+          <el-select v-model="form.questionType" placeholder="请选择题目类型">
+            <el-option label="选择" value="选择"></el-option>
+            <el-option label="填空" value="填空"></el-option>
+            <el-option label="简答" value="简答"></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="题目内容">
           <editor v-model="form.questionContent" :min-height="192"/>
@@ -303,7 +312,7 @@
                     <el-col :span="6">
                       <div class="stat-item">
                         <span class="stat-label">总计：</span>
-                        <span class="stat-value">{{ allQuestions.length }}题</span>
+                        <span class="stat-value">{{ totalQuestions }}题</span>
                       </div>
                     </el-col>
                   </el-row>
@@ -564,6 +573,7 @@
 
 <script>
 import { listQuestion, getQuestion, delQuestion, addQuestion, updateQuestion, getQuestionsByCourseId, getLibraryByCourseId, generatePaper } from "@/api/system/question"
+import { listBank } from "@/api/system/bank"
 
 export default {
   name: "Question",
@@ -663,9 +673,14 @@ export default {
         paperName: '',
         paperDesc: '',
       },
+      // 题库下拉
+      bankOptions: [],
     }
   },
   computed: {
+    totalQuestions() {
+      return this.isStudentFromCourse ? this.allQuestions.length : this.total;
+    },
     // 计算已选题目数据
     selectedQuestionsData() {
       return this.selectedQuestions.map(id => this.getQuestionById(id))
@@ -700,6 +715,7 @@ export default {
   },
   created() {
     this.handleRouteChange(this.$route);
+    this.loadBankOptions();
   },
   watch: {
     '$route'(to, from) {
@@ -709,7 +725,7 @@ export default {
   methods: {
     jumpToLibrary() {
       this.$router.push({
-        path: '/system/paper',
+        path: '/system/library/index',
         query: { courseId: this.courseId }
       });
     },
@@ -856,6 +872,10 @@ export default {
     },
     /** 提交按钮 */
     submitForm() {
+      // 空字符串或 0 都不作为有效的知识点 ID 提交，避免外键约束异常
+      if (this.form.knowledgeNodeId === '' || this.form.knowledgeNodeId === 0 || this.form.knowledgeNodeId === '0') {
+        this.$set(this.form, 'knowledgeNodeId', null)
+      }
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.questionId != null) {
@@ -1202,6 +1222,13 @@ export default {
       }
 
       return true
+    },
+
+    // 题库下拉
+    loadBankOptions() {
+      listBank({ pageSize: 999 }).then(res => {
+        this.bankOptions = res.rows || [];
+      });
     },
   }
 }

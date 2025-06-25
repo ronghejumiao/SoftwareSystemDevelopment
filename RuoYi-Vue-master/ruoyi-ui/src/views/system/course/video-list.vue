@@ -167,7 +167,7 @@ export default {
     },
     goBack() {
       this.$router.push({
-        name: 'CourseDetail',
+        name: 'CourseDetailPage',
         params: { courseId: this.course.courseId },
         query: { tab: 'videos' }
       });

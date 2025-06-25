@@ -52,6 +52,20 @@ public class LearningResourceServiceImpl implements ILearningResourceService
     @Override
     public int insertLearningResource(LearningResource learningResource)
     {
+        // 如果前端未显式传递上传者ID，则默认使用当前登录人
+        if (learningResource.getUploaderId() == null || learningResource.getUploaderId() <= 0)
+        {
+            try
+            {
+                Long currentUserId = com.ruoyi.common.utils.SecurityUtils.getUserId();
+                learningResource.setUploaderId(currentUserId);
+            }
+            catch (Exception e)
+            {
+                // 如果获取不到登陆人（如匿名环境），避免空值插入导致数据库异常
+                learningResource.setUploaderId(0L);
+            }
+        }
         return learningResourceMapper.insertLearningResource(learningResource);
     }
 
