@@ -134,4 +134,9 @@ public class LearningRecordServiceImpl implements ILearningRecordService
     {
         return learningRecordMapper.deleteLearningRecordByRecordId(recordId);
     }
+
+    @Override
+    public com.ruoyi.system.domain.LearningRecord selectByUserIdAndCourseId(Long userId, Long courseId) {
+        return learningRecordMapper.selectLearningRecordByUserIdAndCourseId(userId, courseId);
+    }
 }

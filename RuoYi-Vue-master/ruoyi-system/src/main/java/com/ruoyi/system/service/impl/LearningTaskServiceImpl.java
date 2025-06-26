@@ -93,4 +93,13 @@ public class LearningTaskServiceImpl implements ILearningTaskService
     {
         return learningTaskMapper.deleteLearningTaskByTaskId(taskId);
     }
+
+    @Override
+    public List<LearningTask> selectLearningTaskListByCourseIdAndSubmitMethod(Long courseId, String submitMethod) {
+        LearningTask query = new LearningTask();
+        query.setCourseId(courseId);
+        query.setSubmitMethod(submitMethod);
+        query.setStatus("1"); // 只查启用
+        return learningTaskMapper.selectLearningTaskList(query);
+    }
 }

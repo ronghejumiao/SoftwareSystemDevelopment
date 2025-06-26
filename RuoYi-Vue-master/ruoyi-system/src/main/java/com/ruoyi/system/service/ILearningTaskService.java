@@ -58,4 +58,12 @@ public interface ILearningTaskService
      * @return 结果
      */
     public int deleteLearningTaskByTaskId(Long taskId);
+
+    /**
+     * 根据课程ID和提交方式查询学习任务列表
+     * @param courseId 课程ID
+     * @param submitMethod 提交方式
+     * @return 学习任务集合
+     */
+    public List<LearningTask> selectLearningTaskListByCourseIdAndSubmitMethod(Long courseId, String submitMethod);
 }

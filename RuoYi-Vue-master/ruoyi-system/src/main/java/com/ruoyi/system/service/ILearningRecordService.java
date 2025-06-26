@@ -58,4 +58,12 @@ public interface ILearningRecordService
      * @return 结果
      */
     public int deleteLearningRecordByRecordId(Long recordId);
+
+    /**
+     * 根据用户ID和课程ID查询学习记录
+     * @param userId 用户ID
+     * @param courseId 课程ID
+     * @return 学习记录
+     */
+    public com.ruoyi.system.domain.LearningRecord selectByUserIdAndCourseId(Long userId, Long courseId);
 }

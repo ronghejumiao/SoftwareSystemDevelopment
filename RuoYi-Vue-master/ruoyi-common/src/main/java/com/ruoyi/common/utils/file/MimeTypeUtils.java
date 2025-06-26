@@ -1,5 +1,8 @@
 package com.ruoyi.common.utils.file;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 媒体类型工具类
  * 
@@ -37,6 +40,9 @@ public class MimeTypeUtils
             "mp4", "avi", "rmvb",
             // pdf
             "pdf" };
+
+    // 作业文件允许的扩展名
+    public static final List<String> ALLOWED_EXTENSION = Arrays.asList("pdf", "doc", "docx", "txt");
 
     public static String getExtension(String prefix)
     {

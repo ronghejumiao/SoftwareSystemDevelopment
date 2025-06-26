@@ -1,21 +1,279 @@
 <template>
   <div class="quiz-container">
-    <!-- 题库跳转按钮 -->
-    <el-card class="quiz-header">
+    <!-- 菜单栏切换 -->
+    <el-card class="menu-header">
       <div slot="header" class="clearfix">
-        <span>课程试卷</span>
+        <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+          <el-tab-pane label="作业" name="homework">
+            <span slot="label">
+              <i class="el-icon-edit-outline"></i>
+              作业
+            </span>
+          </el-tab-pane>
+          <el-tab-pane label="试卷" name="quiz">
+            <span slot="label">
+              <i class="el-icon-document"></i>
+              试卷
+            </span>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </el-card>
+
+    <!-- 作业功能 -->
+    <div v-if="activeTab === 'homework'" class="homework-content">
+      <!-- 作业管理区域 -->
+    <el-card class="homework-section">
+      <div slot="header" class="clearfix">
+        <span class="section-title">作业管理</span>
         <el-button
           style="float: right;"
           type="primary"
           plain
           size="mini"
-          icon="el-icon-s-management"
-          @click="goToQuestionBank"
+          icon="el-icon-plus"
+          @click="openAddHomeworkDialog"
         >
-          查看题库
+            添加作业
+        </el-button>
+        <el-button
+          style="float: right; margin-right: 8px;"
+          type="danger"
+          plain
+          size="mini"
+          icon="el-icon-delete"
+          :disabled="selectedHomeworkIds.length === 0"
+          @click="deleteSelectedHomework"
+        >
+            批量删除
         </el-button>
       </div>
+        <el-table 
+          :data="homeworkList" 
+          border 
+          style="width: 100%"
+          @selection-change="handleHomeworkSelectionChange"
+        >
+          <el-table-column type="selection" width="55"></el-table-column>
+          <el-table-column prop="homeworkName" label="作业名称" />
+          <el-table-column prop="homeworkDesc" label="作业描述" show-overflow-tooltip />
+        <el-table-column prop="dueDate" label="截止时间" />
+          <el-table-column prop="createTime" label="创建时间" />
+          <el-table-column label="附件" width="180">
+            <template #default="scope">
+              <div v-if="getFilePaths(scope.row.filePaths).length > 0">
+                <el-link
+                  v-for="(file, idx) in getFilePaths(scope.row.filePaths)"
+                  :key="idx"
+                  :underline="false"
+                  type="primary"
+                  @click="downloadFile(file)"
+                  style="margin-right: 8px;"
+                >
+                  {{ getFileName(file) }}
+                </el-link>
+              </div>
+              <span v-else style="color: #bbb">无</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="200">
+          <template #default="scope">
+            <el-button type="primary" size="small" @click="viewHomeworkDetail(scope.row)">查看详情</el-button>
+              <el-button type="danger" size="small" @click="deleteHomework(scope.row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
     </el-card>
+
+      <!-- 已完成作业区域 -->
+      <el-card class="homework-section">
+        <div slot="header" class="clearfix">
+          <span class="section-title">已完成作业</span>
+          <span class="section-count">({{ completedHomework.length }}份)</span>
+        </div>
+        
+        <div v-if="completedHomework.length === 0" class="empty-state">
+          <i class="el-icon-document-checked"></i>
+          <p>暂无已完成的作业</p>
+        </div>
+        
+        <div v-else class="homework-list">
+          <div 
+            v-for="homework in completedHomework" 
+            :key="homework.homeworkId"
+            class="homework-item completed"
+          >
+            <div class="homework-info">
+              <div class="homework-name">{{ homework.homeworkName }}</div>
+              <div class="homework-details">
+                <span class="detail-item">
+                  <i class="el-icon-time"></i>
+                  截止时间：{{ formatDate(homework.dueDate) }}
+                </span>
+                <span class="detail-item">
+                  <i class="el-icon-date"></i>
+                  完成时间：{{ formatDate(homework.submitTime) }}
+                </span>
+                <span class="detail-item" v-if="homework.gradeScore">
+                  <i class="el-icon-trophy"></i>
+                  得分：{{ homework.gradeScore }}分
+                </span>
+              </div>
+              <div class="homework-desc" v-if="homework.homeworkDesc">
+                {{ homework.homeworkDesc }}
+              </div>
+            </div>
+            <div class="homework-actions">
+              <el-button 
+                type="primary" 
+                size="small" 
+                @click="viewHomeworkDetail(homework)"
+              >
+                查看详情
+              </el-button>
+            </div>
+          </div>
+        </div>
+      </el-card>
+
+      <!-- 未完成作业区域 -->
+      <el-card class="homework-section">
+        <div slot="header" class="clearfix">
+          <span class="section-title">未完成作业</span>
+          <span class="section-count">({{ uncompletedHomework.length }}份)</span>
+        </div>
+        
+        <div v-if="uncompletedHomework.length === 0" class="empty-state">
+          <i class="el-icon-document"></i>
+          <p>暂无未完成的作业</p>
+        </div>
+        
+        <div v-else class="homework-list">
+          <div 
+            v-for="item in uncompletedHomework" 
+            :key="(item.homework && item.homework.homeworkId) || item.homeworkId"
+            class="homework-item uncompleted"
+          >
+            <div class="homework-info">
+              <div class="homework-name">{{ (item.homework && item.homework.homeworkName) || item.homeworkName }}</div>
+              <div class="homework-details">
+                <span class="detail-item">
+                  <i class="el-icon-time"></i>
+                  截止时间：{{ formatDate((item.homework && item.homework.dueDate) || item.dueDate) }}
+                </span>
+                <span class="detail-item">
+                  <i class="el-icon-date"></i>
+                  创建时间：{{ formatDate((item.homework && item.homework.createTime) || item.createTime) }}
+                </span>
+                <span class="detail-item">
+                  <i class="el-icon-warning"></i>
+                  状态：未完成
+                </span>
+              </div>
+              <div class="homework-desc" v-if="(item.homework && item.homework.homeworkDesc) || item.homeworkDesc">
+                {{ (item.homework && item.homework.homeworkDesc) || item.homeworkDesc }}
+              </div>
+              <!-- 附件下载 -->
+              <div v-if="(item.homework && item.homework.filePaths && getFilePaths(item.homework.filePaths).length > 0) || (item.filePaths && getFilePaths(item.filePaths).length > 0)" class="homework-files">
+                <span>附件：</span>
+                <el-link
+                  v-for="(file, idx) in getFilePaths((item.homework && item.homework.filePaths) || item.filePaths)"
+                  :key="idx"
+                  :underline="false"
+                  type="primary"
+                  @click="downloadFile(file)"
+                >
+                  {{ getFileName(file) }}
+                </el-link>
+              </div>
+            </div>
+            <div class="homework-actions">
+              <el-button 
+                type="success" 
+                size="small" 
+                @click="openSubmitHomeworkDialog(item)"
+              >
+                去完成
+              </el-button>
+            </div>
+          </div>
+        </div>
+      </el-card>
+
+      <!-- 添加作业弹窗 -->
+      <el-dialog
+        title="添加作业"
+        :visible.sync="addHomeworkVisible"
+        width="500px"
+        append-to-body
+        :close-on-click-modal="false"
+      >
+        <el-form ref="addHomeworkForm" :model="addHomeworkForm" :rules="addHomeworkRules" label-width="100px">
+          <el-form-item label="作业名称" prop="homeworkName">
+            <el-input v-model="addHomeworkForm.homeworkName" placeholder="请输入作业名称" />
+          </el-form-item>
+          <el-form-item label="作业描述" prop="homeworkDesc">
+            <el-input 
+              v-model="addHomeworkForm.homeworkDesc" 
+              type="textarea" 
+              :rows="4"
+              placeholder="请输入作业描述" 
+            />
+          </el-form-item>
+          <el-form-item label="截止时间" prop="dueDate">
+            <el-date-picker
+              v-model="addHomeworkForm.dueDate"
+              type="datetime"
+              placeholder="选择截止时间"
+              format="yyyy-MM-dd HH:mm:ss"
+              value-format="yyyy-MM-dd HH:mm:ss"
+            />
+          </el-form-item>
+          <el-form-item label="作业附件">
+            <el-upload
+              ref="homeworkUpload"
+              :action="uploadUrl"
+              :headers="uploadHeaders"
+              :file-list="homeworkFileList"
+              :on-success="handleHomeworkUploadSuccess"
+              :on-remove="handleHomeworkFileRemove"
+              :before-upload="beforeHomeworkUpload"
+              :data="uploadHomeworkData"
+              :on-change="handleHomeworkFileChange"
+              multiple
+              :limit="5"
+              accept=".pdf,.doc,.docx,.txt"
+            >
+              <el-button size="small" type="primary">点击上传</el-button>
+              <div slot="tip" class="el-upload__tip">只能上传pdf/doc/docx/txt文件，且不超过10MB</div>
+            </el-upload>
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="addHomeworkVisible = false">取 消</el-button>
+          <el-button type="primary" @click="submitAddHomework" :loading="addHomeworkLoading">确 定</el-button>
+        </div>
+      </el-dialog>
+    </div>
+
+    <!-- 试卷功能 -->
+    <div v-if="activeTab === 'quiz'" class="quiz-content">
+      <!-- 题库跳转按钮 -->
+      <el-card class="quiz-header">
+        <div slot="header" class="clearfix">
+          <span>课程试卷</span>
+          <el-button
+            style="float: right;"
+            type="primary"
+            plain
+            size="mini"
+            icon="el-icon-s-management"
+            @click="goToQuestionBank"
+          >
+            查看题库
+          </el-button>
+        </div>
+      </el-card>
 
     <!-- 已作答试卷区域 -->
     <el-card class="quiz-section">
@@ -118,12 +376,148 @@
         </div>
       </div>
     </el-card>
+    </div>
+
+    <!-- 作业详情弹窗 -->
+    <el-dialog
+      title="作业详情"
+      :visible.sync="homeworkDetailVisible"
+      width="70%"
+      append-to-body
+    >
+      <div v-if="currentHomework" class="homework-detail-container">
+        <!-- 作业信息区 -->
+        <div class="homework-info">
+          <h2>{{ currentHomework.homeworkName }}</h2>
+          <p class="homework-desc">{{ currentHomework.homeworkDesc }}</p>
+          <div class="homework-stats">
+            <span>截止时间：{{ formatDate(currentHomework.dueDate) }}</span>
+            <span>创建时间：{{ formatDate(currentHomework.createTime) }}</span>
+            <span>完成时间：{{ formatDate(currentHomework.submitTime) }}</span>
+          </div>
+          <!-- 附件 -->
+          <div v-if="getFilePaths(currentHomework.filePaths).length > 0" class="homework-files">
+            <h3>作业附件</h3>
+            <div class="file-list">
+              <div 
+                v-for="(file, index) in getFilePaths(currentHomework.filePaths)" 
+                :key="index"
+                class="file-item"
+              >
+                <i class="el-icon-document"></i>
+                <span class="file-name">{{ getFileName(file) }}</span>
+                <el-button type="text" size="small" @click="downloadFile(file)">下载</el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 分数与评分 -->
+        <div class="grade-info" style="margin-bottom: 16px;">
+          <span v-if="currentHomework.gradeScore !== undefined && currentHomework.gradeScore !== null">得分：{{ currentHomework.gradeScore }}分</span>
+          <span v-else style="color: #999;">未评分</span>
+        </div>
+        <!-- 提交内容 -->
+        <div v-if="currentHomework.submissionContent" class="submission-content">
+          <h3>提交内容</h3>
+          <div class="content-text">{{ currentHomework.submissionContent }}</div>
+        </div>
+        <!-- 提交文件 -->
+        <div v-if="currentHomework.submissionFile && getFilePaths(currentHomework.submissionFile).length > 0" class="submission-files">
+          <h3>提交文件</h3>
+          <div class="file-list">
+            <div 
+              v-for="(file, index) in getFilePaths(currentHomework.submissionFile)" 
+              :key="index"
+              class="file-item"
+            >
+              <i class="el-icon-document"></i>
+              <span class="file-name">{{ getFileName(file) }}</span>
+              <el-button type="text" size="small" @click="downloadFile(file)">下载</el-button>
+            </div>
+          </div>
+        </div>
+        <!-- 评分信息 -->
+        <div v-if="currentHomework.gradeComment" class="grade-info">
+          <h3>评分信息</h3>
+          <div class="grade-comment">{{ currentHomework.gradeComment }}</div>
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="homeworkDetailVisible = false">关 闭</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 提交作业弹窗 -->
+    <el-dialog
+      title="提交作业"
+      :visible.sync="submitHomeworkVisible"
+      width="60%"
+      append-to-body
+      :close-on-click-modal="false"
+    >
+      <div v-if="currentSubmitHomework" class="submit-homework-container">
+        <!-- 提交表单区 -->
+        <el-form ref="submitHomeworkForm" :model="submitHomeworkForm" :rules="submitHomeworkRules" label-width="100px">
+          <el-form-item label="提交内容" prop="submissionContent">
+            <el-input 
+              v-model="submitHomeworkForm.submissionContent" 
+              type="textarea" 
+              :rows="6"
+              placeholder="请输入作业内容" 
+            />
+          </el-form-item>
+          <el-form-item label="提交文件">
+            <el-upload
+              ref="submitUpload"
+              :action="uploadUrl"
+              :headers="uploadHeaders"
+              :file-list="submitFileList"
+              :on-success="handleSubmitUploadSuccess"
+              :on-remove="handleSubmitFileRemove"
+              :before-upload="beforeSubmitUpload"
+              :data="uploadSubmitData"
+              multiple
+              :limit="3"
+              accept=".pdf,.doc,.docx,.txt"
+            >
+              <el-button size="small" type="primary">点击上传</el-button>
+              <div slot="tip" class="el-upload__tip">只能上传pdf/doc/docx/txt文件，且不超过10MB</div>
+            </el-upload>
+          </el-form-item>
+        </el-form>
+        <!-- 作业信息区（单独div，避免被背景遮挡） -->
+        <div class="submit-homework-info" style="margin-top: 24px; padding: 16px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e4e7ed;">
+          <h3 style="margin-bottom: 8px;">作业信息</h3>
+          <div><b>名称：</b>{{ currentSubmitHomework.homework ? currentSubmitHomework.homework.homeworkName : currentSubmitHomework.homeworkName }}</div>
+          <div><b>描述：</b>{{ currentSubmitHomework.homework ? currentSubmitHomework.homework.homeworkDesc : currentSubmitHomework.homeworkDesc }}</div>
+          <div><b>截止时间：</b>{{ formatDate(currentSubmitHomework.homework ? currentSubmitHomework.homework.dueDate : currentSubmitHomework.dueDate) }}</div>
+          <div><b>创建时间：</b>{{ formatDate(currentSubmitHomework.homework ? currentSubmitHomework.homework.createTime : currentSubmitHomework.createTime) }}</div>
+          <div v-if="getFilePaths((currentSubmitHomework.homework && currentSubmitHomework.homework.filePaths) || currentSubmitHomework.filePaths).length > 0" style="margin-top: 8px;">
+            <b>附件：</b>
+            <el-link
+              v-for="(file, idx) in getFilePaths((currentSubmitHomework.homework && currentSubmitHomework.homework.filePaths) || currentSubmitHomework.filePaths)"
+              :key="idx"
+              :underline="false"
+              type="primary"
+              @click="downloadFile(file)"
+              style="margin-right: 8px;"
+            >
+              {{ getFileName(file) }}
+            </el-link>
+          </div>
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="submitHomeworkVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitHomework" :loading="submitHomeworkLoading">提 交</el-button>
+      </div>
+    </el-dialog>
 
     <!-- 试卷详情弹窗 -->
-    <el-dialog 
-      title="试卷详情" 
-      :visible.sync="paperDetailVisible" 
-      width="80%" 
+    <el-dialog
+      title="试卷详情"
+      :visible.sync="paperDetailVisible"
+      width="80%"
       append-to-body
       :close-on-click-modal="true"
       :close-on-press-escape="true"
@@ -140,11 +534,10 @@
             <span v-if="currentScore">完成时间：{{ formatDate(currentScore.submitTime) }}</span>
           </div>
         </div>
-
         <!-- 题目列表 -->
         <div class="question-list">
-          <div 
-            v-for="(question, index) in questionList" 
+          <div
+            v-for="(question, index) in questionList"
             :key="index"
             class="question-item"
           >
@@ -156,11 +549,10 @@
             </div>
             <div class="question-content">
               <div class="content-text">{{ question.questionContent }}</div>
-              
               <!-- 选择题选项 -->
               <div v-if="question.options && question.options.length > 0" class="options-list">
-                <div 
-                  v-for="(option, optionIndex) in question.options" 
+                <div
+                  v-for="(option, optionIndex) in question.options"
                   :key="optionIndex"
                   class="option-item"
                 >
@@ -168,7 +560,6 @@
                   <span class="option-content">{{ option }}</span>
                 </div>
               </div>
-              
               <!-- 答案 -->
               <div class="answer-section">
                 <div class="answer-label">答案：</div>
@@ -178,17 +569,16 @@
           </div>
         </div>
       </div>
-      
       <div slot="footer" class="dialog-footer">
         <el-button @click="paperDetailVisible = false">关 闭</el-button>
       </div>
     </el-dialog>
 
     <!-- 答题弹窗 -->
-    <el-dialog 
-      title="试卷作答" 
-      :visible.sync="quizVisible" 
-      width="80%" 
+    <el-dialog
+      title="试卷作答"
+      :visible.sync="quizVisible"
+      width="80%"
       append-to-body
       :close-on-click-modal="false"
       :close-on-press-escape="false"
@@ -206,11 +596,10 @@
             <span>剩余时间：{{ remainingTime }}</span>
           </div>
         </div>
-
         <!-- 答题区域 -->
         <div v-if="!isSubmitted" class="question-list">
-          <div 
-            v-for="(question, index) in questionList" 
+          <div
+            v-for="(question, index) in questionList"
             :key="index"
             class="question-item"
           >
@@ -222,167 +611,29 @@
             </div>
             <div class="question-content">
               <div class="content-text">{{ question.questionContent }}</div>
-              
               <!-- 选择题选项 -->
               <div v-if="question.options && question.options.length > 0" class="options-list">
-                <div 
-                  v-for="(option, optionIndex) in question.options" 
+                <div
+                  v-for="(option, optionIndex) in question.options"
                   :key="optionIndex"
                   class="option-item"
                 >
-                  <el-radio 
-                    v-model="userAnswers[index]" 
-                    :label="String.fromCharCode(65 + optionIndex)"
-                    class="option-radio"
-                  >
-                    <span class="option-label">{{ String.fromCharCode(65 + optionIndex) }}.</span>
-                    <span class="option-content">{{ option }}</span>
-                  </el-radio>
+                  <span class="option-label">{{ String.fromCharCode(65 + optionIndex) }}.</span>
+                  <span class="option-content">{{ option }}</span>
                 </div>
               </div>
-              
-              <!-- 填空题 -->
-              <div v-else class="fill-blank-section">
-                <el-input
-                  v-model="userAnswers[index]"
-                  type="textarea"
-                  :rows="3"
-                  placeholder="请输入你的答案"
-                  class="answer-input"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 答题结果 -->
-        <div v-else class="result-container">
-          <div class="result-header">
-            <h3>答题完成！</h3>
-            <div class="score-display">
-              <span class="score-label">你的得分：</span>
-              <span class="score-value">{{ finalScore }}分</span>
-              <span class="score-total">/ {{ currentPaper.totalScore }}分</span>
-            </div>
-          </div>
-
-          <div class="question-list">
-            <div 
-              v-for="(question, index) in questionList" 
-              :key="index"
-              class="question-item"
-            >
-              <div class="question-header">
-                <span class="question-number">{{ index + 1 }}.</span>
-                <span class="question-type">{{ question.questionType }}</span>
-                <span class="question-score">{{ question.score }}分</span>
-                <span class="question-difficulty">{{ question.difficultyLevel }}</span>
-              </div>
-              <div class="question-content">
-                <div class="content-text">{{ question.questionContent }}</div>
-                
-                <!-- 选择题选项 -->
-                <div v-if="question.options && question.options.length > 0" class="options-list">
-                  <div 
-                    v-for="(option, optionIndex) in question.options" 
-                    :key="optionIndex"
-                    class="option-item"
-                  >
-                    <span class="option-label">{{ String.fromCharCode(65 + optionIndex) }}.</span>
-                    <span class="option-content">{{ option }}</span>
-                  </div>
-                </div>
-                
-                <!-- 答案对比 -->
-                <div class="answer-comparison">
-                  <div class="user-answer">
-                    <div class="answer-label">你的答案：</div>
-                    <div class="answer-content" :class="getAnswerClass(index)">
-                      {{ userAnswers[index] || '未作答' }}
-                    </div>
-                  </div>
-                  <div class="correct-answer">
-                    <div class="answer-label">正确答案：</div>
-                    <div class="answer-content correct">{{ question.answer }}</div>
-                  </div>
-                </div>
+              <!-- 答案 -->
+              <div class="answer-section">
+                <div class="answer-label">答案：</div>
+                <div class="answer-content">{{ question.answer }}</div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
       <div slot="footer" class="dialog-footer">
-        <el-button v-if="!isSubmitted" @click="cancelQuiz">取 消</el-button>
-        <el-button 
-          v-if="!isSubmitted" 
-          type="primary" 
-          @click="submitQuiz"
-          :loading="isSubmitting"
-        >
-          提交答案
-        </el-button>
-        <el-button v-if="isSubmitted" @click="closeQuiz">关 闭</el-button>
-      </div>
-    </el-dialog>
-
-    <!-- 添加任务弹窗 -->
-    <el-dialog 
-      title="添加学习任务" 
-      :visible.sync="openAddDialog" 
-      width="500px" 
-      append-to-body
-      @open="openAddTaskDialog"
-    >
-      <el-form :model="addForm" :rules="addRules" ref="addForm" label-width="90px">
-        <el-form-item label="任务名称" prop="taskName">
-          <el-input v-model="addForm.taskName" placeholder="请输入任务名称" />
-        </el-form-item>
-        <el-form-item label="任务类型" prop="taskType">
-          <el-select v-model="addForm.taskType" placeholder="请选择任务类型">
-            <el-option label="试卷完成" value="试卷完成" />
-            <el-option label="资料阅读" value="资料阅读" />
-            <el-option label="视频观看" value="视频观看" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="截止日期" prop="dueDate">
-          <el-date-picker
-            v-model="addForm.dueDate"
-            type="date"
-            placeholder="选择截止日期"
-            format="yyyy-MM-dd"
-            value-format="yyyy-MM-dd"
-          />
-        </el-form-item>
-        <el-form-item label="提交方式" prop="submitMethod">
-          <el-select v-model="addForm.submitMethod" placeholder="请选择提交方式">
-            <el-option label="试卷完成" value="试卷完成" />
-            <el-option label="资料阅读" value="资料阅读" />
-            <el-option label="视频观看" value="视频观看" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="任务描述" prop="taskDesc">
-          <el-input v-model="addForm.taskDesc" type="textarea" :rows="4" placeholder="请输入任务描述" />
-        </el-form-item>
-        <el-form-item v-if="addForm.submitMethod === '试卷完成'" label="选择试卷" prop="paperId">
-          <el-select v-model="addForm.paperId" placeholder="请选择试卷">
-            <el-option v-for="paper in paperList" :key="paper.paperId" :label="paper.paperName" :value="paper.paperId" />
-          </el-select>
-        </el-form-item>
-        <el-form-item v-if="addForm.submitMethod === '资料阅读' || addForm.submitMethod === '视频观看'" label="选择资源" prop="resourceId">
-          <el-select v-model="addForm.resourceId" placeholder="请选择资源">
-            <el-option
-              v-for="res in filteredResourceList"
-              :key="res.resourceId"
-              :label="res.resourceName + '（' + res.resourceType + '）'"
-              :value="res.resourceId"
-            />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="openAddDialog = false">取 消</el-button>
-        <el-button type="primary" @click="submitAddTask">确 定</el-button>
+        <el-button @click="quizVisible = false">关 闭</el-button>
+        <el-button type="primary" :loading="isSubmitting" @click="submitQuiz">提交</el-button>
       </div>
     </el-dialog>
   </div>
@@ -395,6 +646,14 @@ import { getLearningRecordByUserAndCourse } from "@/api/system/learningRecord";
 import { addTask } from "@/api/system/task";
 import { addLearningRecord } from "@/api/system/learningRecord";
 import { addSubmission } from "@/api/system/submission";
+import { 
+  listHomework, 
+  addHomework, 
+  delHomework, 
+  getUserHomeworkStatus, 
+  submitHomework, 
+  uploadHomeworkFile 
+} from "@/api/system/homework";
 import * as echarts from 'echarts';
 
 export default {
@@ -402,7 +661,7 @@ export default {
   props: {
     courseId: {
       type: [String, Number],
-      required: true
+      required: false
     }
   },
   data() {
@@ -467,12 +726,63 @@ export default {
             else callback();
           }}
         ]
-      }
+      },
+      // 作业相关数据
+      activeTab: 'homework',
+      homeworkList: [],
+      completedHomework: [],
+      uncompletedHomework: [],
+      selectedHomeworkIds: [],
+      addHomeworkVisible: false,
+      addHomeworkForm: {
+        homeworkName: '',
+        homeworkDesc: '',
+        dueDate: '',
+        filePaths: []
+      },
+      addHomeworkRules: {
+        homeworkName: [
+          { required: true, message: '请输入作业名称', trigger: 'blur' }
+        ],
+        homeworkDesc: [
+          { required: true, message: '请输入作业描述', trigger: 'blur' }
+        ],
+        dueDate: [
+          { required: true, message: '请选择截止时间', trigger: 'change' }
+        ]
+      },
+      homeworkDetailVisible: false,
+      currentHomework: null,
+      submitHomeworkVisible: false,
+      currentSubmitHomework: null,
+      submitHomeworkForm: {
+        submissionContent: '',
+        submissionFile: ''
+      },
+      submitHomeworkRules: {
+        submissionContent: [
+          { required: true, message: '请输入作业内容', trigger: 'blur' }
+        ]
+      },
+      uploadUrl: process.env.VUE_APP_BASE_API + '/system/homework/upload',
+      uploadHeaders: {},
+      homeworkFileList: [],
+      submitFileList: [],
+      addHomeworkLoading: false,
+      submitHomeworkLoading: false,
+      uploadHomeworkData: {},
+      uploadSubmitData: {},
+      realCourseId: '',
     };
   },
   computed: {
     id() {
       return this.$store.state.user.id;
+    },
+    isTeacher() {
+      // 根据用户角色判断是否为教师
+      const roles = this.$store.state.user.roles;
+      return roles && roles.includes('teacher');
     },
     filteredResourceList() {
       if (this.addForm.submitMethod === '资料阅读') {
@@ -485,22 +795,29 @@ export default {
     }
   },
   watch: {
-    // 监听courseId变化
     courseId: {
-      handler(newCourseId) {
-        if (newCourseId && newCourseId !== 'undefined' && newCourseId !== undefined) {
+      handler(newVal) {
+        if (newVal && newVal !== 'undefined') {
+          this.realCourseId = newVal;
           this.getPaperList();
           this.getScoreList();
+          this.getHomeworkList();
+          this.getUserHomeworkStatus();
+          this.updateUploadData();
         }
       },
       immediate: true
     }
   },
   created() {
-    // 如果courseId已经存在，立即加载数据
-    if (this.courseId && this.courseId !== 'undefined' && this.courseId !== undefined) {
+    this.initCourseId();
+    console.log('[DEBUG-created] realCourseId:', this.realCourseId, 'props.courseId:', this.courseId, 'route:', this.$route);
+    if (this.realCourseId && this.realCourseId !== 'undefined') {
       this.getPaperList();
       this.getScoreList();
+      this.getHomeworkList();
+      this.getUserHomeworkStatus();
+      this.updateUploadData();
     }
   },
   beforeDestroy() {
@@ -509,13 +826,17 @@ export default {
     }
   },
   methods: {
+    initCourseId() {
+      // 多重兜底，确保每次都能拿到courseId
+      this.realCourseId = this.courseId || (this.$route && this.$route.params && this.$route.params.courseId) || (this.$route && this.$route.query && this.$route.query.courseId) || '';
+    },
     // 获取试卷列表
     getPaperList() {
       this.loading = true;
-      console.log('开始获取试卷列表，courseId:', this.courseId);
+      console.log('开始获取试卷列表，courseId:', this.realCourseId);
       
       // 根据courseId查询试卷
-      listPaperByCourseId(this.courseId).then(response => {
+      listPaperByCourseId(this.realCourseId).then(response => {
         console.log('API响应:', response);
         this.paperList = response.data || response.rows || [];
         console.log('试卷列表:', this.paperList);
@@ -524,7 +845,7 @@ export default {
       }).catch(error => {
         console.error('API调用失败:', error);
         // 如果新API不存在，回退到原来的API
-        listPaper({ courseId: this.courseId, pageSize: 999 }).then(response => {
+        listPaper({ courseId: this.realCourseId, pageSize: 999 }).then(response => {
           console.log('回退API响应:', response);
           this.paperList = response.rows || [];
           this.classifyPapers();
@@ -540,11 +861,11 @@ export default {
     getScoreList() {
       // 从store中获取用户ID
       const userId = this.id;
-      console.log('获取成绩列表，userId:', userId, 'courseId:', this.courseId);
+      console.log('获取成绩列表，userId:', userId, 'courseId:', this.realCourseId);
       
       // 确保courseId和userId都存在才调用API
-      if (userId && this.courseId) {
-        getScoreByUserAndCourse(userId, this.courseId).then(response => {
+      if (userId && this.realCourseId) {
+        getScoreByUserAndCourse(userId, this.realCourseId).then(response => {
           console.log('成绩API响应:', response);
           this.scoreList = response.data || [];
           this.classifyPapers();
@@ -598,7 +919,7 @@ export default {
     goToQuestionBank() {
       this.$router.push({
         path: '/system/question/index',
-        query: { courseId: this.courseId }
+        query: { courseId: this.realCourseId }
       });
     },
     
@@ -699,11 +1020,11 @@ export default {
       let currentRecordId = null; // 保存学习记录ID，供后续Promise链使用
       
       // 获取或创建学习记录
-      getLearningRecordByUserAndCourse(userId, this.courseId).then(async learningRecord => {
+      getLearningRecordByUserAndCourse(userId, this.realCourseId).then(async learningRecord => {
         let record = learningRecord;
         if (!record) {
-          await addLearningRecord({ userId, courseId: this.courseId, joinTime: new Date(), courseProgress: 0 });
-          record = await getLearningRecordByUserAndCourse(userId, this.courseId);
+          await addLearningRecord({ userId, courseId: this.realCourseId, joinTime: new Date(), courseProgress: 0 });
+          record = await getLearningRecordByUserAndCourse(userId, this.realCourseId);
         }
         if (!record) throw new Error('获取学习记录失败');
 
@@ -808,10 +1129,10 @@ export default {
     async openAddTaskDialog() {
       this.openAddDialog = true;
       // 拉取试卷
-      const paperRes = await this.$api.paper.listPaper({ courseId: this.courseId });
+      const paperRes = await this.$api.paper.listPaper({ courseId: this.realCourseId });
       this.paperList = paperRes.rows || [];
       // 拉取资源
-      const resourceRes = await this.$api.resource.listResource({ courseId: this.courseId });
+      const resourceRes = await this.$api.resource.listResource({ courseId: this.realCourseId });
       this.resourceList = resourceRes.rows || [];
     },
     // 提交
@@ -827,7 +1148,7 @@ export default {
           this.addForm.paperId = null;
           this.addForm.resourceId = null;
         }
-        this.addForm.courseId = this.courseId;
+        this.addForm.courseId = this.realCourseId;
         await addTask(this.addForm);
         this.openAddDialog = false;
         this.$message.success('添加成功');
@@ -841,7 +1162,328 @@ export default {
       const pad = n => n < 10 ? '0' + n : n;
       return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' '
         + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-    }
+    },
+    // 处理作业相关逻辑
+    handleTabClick() {
+      // 切换标签页时重新加载数据
+      if (this.activeTab === 'homework') {
+        this.getHomeworkList();
+        this.getUserHomeworkStatus();
+      } else if (this.activeTab === 'quiz') {
+        this.getPaperList();
+        this.getScoreList();
+      }
+    },
+    handleHomeworkSelectionChange(selection) {
+      this.selectedHomeworkIds = selection.map(item => item.homeworkId);
+    },
+    deleteHomework(homework) {
+      this.$modal.confirm('确定要删除这个作业吗？').then(() => {
+        delHomework(homework.homeworkId).then(() => {
+          this.$modal.msgSuccess('删除成功');
+          this.getHomeworkList();
+        }).catch(error => {
+          console.error('删除作业失败:', error);
+          this.$modal.msgError('删除失败');
+        });
+      }).catch(() => {});
+    },
+    deleteSelectedHomework() {
+      if (this.selectedHomeworkIds.length === 0) {
+        this.$modal.msgWarning('请选择要删除的作业');
+        return;
+      }
+      
+      this.$modal.confirm(`确定要删除选中的 ${this.selectedHomeworkIds.length} 个作业吗？`).then(() => {
+        const deletePromises = this.selectedHomeworkIds.map(id => delHomework(id));
+        Promise.all(deletePromises).then(() => {
+          this.$modal.msgSuccess('删除成功');
+          this.getHomeworkList();
+          this.selectedHomeworkIds = [];
+        }).catch(error => {
+          console.error('批量删除作业失败:', error);
+          this.$modal.msgError('删除失败');
+        });
+      }).catch(() => {});
+    },
+    openAddHomeworkDialog() {
+      this.addHomeworkVisible = true;
+      this.addHomeworkForm = {
+        homeworkName: '',
+        homeworkDesc: '',
+        dueDate: '',
+        filePaths: []
+      };
+      this.homeworkFileList = [];
+    },
+    submitAddHomework() {
+      this.$refs.addHomeworkForm.validate(async valid => {
+        if (!valid) return;
+        console.log('[DEBUG] submitAddHomework homeworkFileList:', this.homeworkFileList);
+        if (this.homeworkFileList.some(f => f.status && f.status !== 'success')) {
+          this.$modal.msgError('请等待所有文件上传完成后再提交！');
+          return;
+        }
+        // 兼容后端返回msg为路径
+        const filePathsArr = this.homeworkFileList
+          .filter(f => f.status === 'success' && f.response && (f.response.data || f.response.msg))
+          .map(f => f.response.data || f.response.msg)
+          .filter(path => !!path && path !== 'null');
+        console.log('[DEBUG] filePathsArr:', filePathsArr);
+        this.addHomeworkLoading = true;
+        try {
+          const homeworkData = {
+            ...this.addHomeworkForm,
+            courseId: this.realCourseId,
+            filePaths: JSON.stringify(filePathsArr)
+          };
+          console.log('[DEBUG] 发布作业 homeworkData:', homeworkData);
+          await addHomework(homeworkData);
+          this.$modal.msgSuccess('发布成功');
+          this.addHomeworkVisible = false;
+          this.homeworkFileList = [];
+          this.getHomeworkList();
+        } catch (error) {
+          console.error('发布作业失败:', error);
+          this.$modal.msgError('发布失败');
+        } finally {
+          this.addHomeworkLoading = false;
+        }
+      });
+    },
+    handleHomeworkUploadSuccess(response, file, fileList) {
+      console.log('[DEBUG] 上传成功 response:', response, 'file:', file, 'fileList:', fileList);
+      // 兼容后端返回msg为路径
+      if (response && response.code === 200 && (response.data || response.msg)) {
+        file.response = response.data ? { data: response.data } : { msg: response.msg };
+      }
+      this.homeworkFileList = fileList.map(f => {
+        if (f.status === 'success' && (!f.response || (!f.response.data && !f.response.msg))) {
+          return { ...f, response: { msg: f.url || '' } };
+        }
+        return f;
+      });
+      this.homeworkFileList = JSON.parse(JSON.stringify(this.homeworkFileList));
+      console.log('[DEBUG] 上传成功后 homeworkFileList:', this.homeworkFileList);
+      this.$modal.msgSuccess('文件上传成功');
+    },
+    handleHomeworkFileRemove(file, fileList) {
+      console.log('[DEBUG] 文件移除 file:', file, 'fileList:', fileList);
+      this.homeworkFileList = fileList;
+    },
+    beforeHomeworkUpload(file) {
+      console.log('[DEBUG] beforeUpload file:', file);
+      const isValidType = /\.(pdf|doc|docx|txt)$/i.test(file.name);
+      const isLt10M = file.size / 1024 / 1024 < 10;
+      if (!isValidType) {
+        this.$modal.msgError('只能上传PDF/DOC/DOCX/TXT格式的文件!');
+        return false;
+      }
+      if (!isLt10M) {
+        this.$modal.msgError('文件大小不能超过10MB!');
+        return false;
+      }
+      return true;
+    },
+    handleHomeworkFileChange(file, fileList) {
+      console.log('[DEBUG] on-change file:', file, 'fileList:', fileList);
+    },
+    viewHomeworkDetail(homework) {
+      // 如果有submission字段，合并到currentHomework，便于详情弹窗展示
+      if (homework.submission) {
+        this.currentHomework = {
+          ...homework,
+          submissionContent: homework.submission.submissionContent,
+          submissionFile: homework.submission.submissionFile,
+          gradeScore: homework.submission.gradeScore,
+          gradeComment: homework.submission.gradeComment,
+          submitTime: homework.submission.submissionTime
+        };
+      } else {
+        this.currentHomework = homework;
+      }
+      this.homeworkDetailVisible = true;
+    },
+    openSubmitHomeworkDialog(homework) {
+      this.currentSubmitHomework = homework;
+      this.submitHomeworkForm = {
+        submissionContent: '',
+        submissionFile: ''
+      };
+      this.submitFileList = [];
+      // 修正：初始化上传参数
+      this.uploadSubmitData = {
+        courseId: this.realCourseId,
+        userId: this.userId || this.id,
+        role: 'student'
+      };
+      this.submitHomeworkVisible = true;
+    },
+    handleSubmitUploadSuccess(response, file, fileList) {
+      // 兼容后端返回msg为路径
+      if (response && response.code === 200 && (response.data || response.msg)) {
+        file.response = response.data ? { data: response.data } : { msg: response.msg };
+      }
+      this.submitFileList = fileList.map(f => {
+        if (f.status === 'success' && (!f.response || (!f.response.data && !f.response.msg))) {
+          return { ...f, response: { msg: f.url || '' } };
+        }
+        return f;
+      });
+      this.submitFileList = JSON.parse(JSON.stringify(this.submitFileList));
+      this.$modal.msgSuccess('文件上传成功');
+    },
+    handleSubmitFileRemove(file, fileList) {
+      this.submitFileList = fileList;
+    },
+    beforeSubmitUpload(file) {
+      const isValidType = /\.(pdf|doc|docx|txt)$/i.test(file.name);
+      const isLt10M = file.size / 1024 / 1024 < 10;
+      
+      if (!isValidType) {
+        this.$modal.msgError('只能上传PDF/DOC/DOCX/TXT格式的文件!');
+        return false;
+      }
+      if (!isLt10M) {
+        this.$modal.msgError('文件大小不能超过10MB!');
+        return false;
+      }
+      return true;
+    },
+    getFileName(filePath) {
+      if (!filePath) return '';
+      return filePath.split('/').pop() || filePath;
+    },
+    downloadFile(filePath) {
+      if (!filePath) return;
+      // 强制拼接后端域名
+      const backend = 'http://localhost:8080';
+      let url = filePath;
+      if (!/^https?:\/\//.test(filePath)) {
+        url = backend + filePath;
+      }
+      console.log('[DEBUG] 下载 filePath:', url);
+      window.open(url, '_blank');
+    },
+    getHomeworkList() {
+      listHomework({ courseId: this.realCourseId }).then(response => {
+        this.homeworkList = response.data || response.rows || [];
+      }).catch(error => {
+        console.error('获取作业列表失败:', error);
+        this.homeworkList = [];
+      });
+    },
+    getUserHomeworkStatus() {
+      const userId = this.id;
+      if (!userId || !this.realCourseId) return;
+      getUserHomeworkStatus(this.realCourseId, userId).then(response => {
+        const data = response.data || {};
+        // 新结构：completed/uncompleted均为[{homework, task, submission}]，前端需适配
+        this.completedHomework = (data.completed || []).map(item => {
+          return {
+            ...item.task,
+            homework: item.homework,
+            submission: item.submission
+          };
+        });
+        this.uncompletedHomework = (data.uncompleted || []).map(item => {
+          // 保证taskId等任务字段在顶层
+          return {
+            ...item.task,
+            homework: item.homework
+          };
+        });
+      }).catch(error => {
+        console.error('获取作业状态失败:', error);
+      });
+    },
+    initData() {
+      this.getPaperList();
+      this.getScoreList();
+      this.getHomeworkList();
+      this.getUserHomeworkStatus();
+    },
+    getFilePaths(filePaths) {
+      if (!filePaths) return [];
+      
+      if (typeof filePaths === 'string') {
+        try {
+          // 尝试解析JSON字符串
+          const parsed = JSON.parse(filePaths);
+          return Array.isArray(parsed) ? parsed : [filePaths];
+        } catch (e) {
+          // 如果不是JSON，按逗号分割
+          return filePaths.split(',').filter(path => path.trim());
+        }
+      } else if (Array.isArray(filePaths)) {
+        return filePaths;
+      } else {
+        return [];
+      }
+    },
+    updateUploadData() {
+      // 默认教师上传
+      this.uploadHomeworkData = {
+        courseId: this.realCourseId,
+        userId: this.id,
+        role: 'teacher'
+      };
+      this.uploadSubmitData = {
+        courseId: this.realCourseId,
+        userId: this.id,
+        role: 'student'
+      };
+    },
+    submitHomework() {
+      this.initCourseId();
+      // 调试输出
+      console.log('[DEBUG-submitHomework] realCourseId:', this.realCourseId, 'props.courseId:', this.courseId, 'route:', this.$route);
+      console.log('[DEBUG-submitHomework] uncompletedHomework:', this.uncompletedHomework);
+      console.log('[DEBUG-submitHomework] currentSubmitHomework:', this.currentSubmitHomework, JSON.stringify(this.currentSubmitHomework));
+      // 获取taskId
+      const taskId = this.currentSubmitHomework.taskId || (this.currentSubmitHomework.task && this.currentSubmitHomework.task.taskId);
+      if (!taskId) {
+        this.$modal.msgError('未能确定任务ID，无法提交！');
+        this.submitHomeworkLoading = false;
+        return;
+      }
+      // 获取homeworkId
+      const homeworkId = (this.currentSubmitHomework.homework && this.currentSubmitHomework.homework.homeworkId) || this.currentSubmitHomework.homeworkId;
+      // 修正：上传文件路径取自submitFileList，兼容data/msg/url
+      const submissionFile = JSON.stringify(this.submitFileList.map(file => file.response?.data || file.response?.msg || file.url));
+      const submitData = {
+        taskId: taskId,
+        homeworkId: homeworkId,
+        courseId: this.realCourseId,
+        userId: this.userId || this.id,
+        submissionContent: this.submitHomeworkForm.submissionContent,
+        submissionFile: submissionFile,
+        // ... 其他需要的字段
+      };
+      console.log('[DEBUG-submitHomework] submitData:', submitData);
+      this.submitHomeworkLoading = true;
+      try {
+        Promise.resolve(submitHomework(submitData)).then(res => {
+          console.log('[DEBUG-submitHomework] 提交返回:', res);
+          if (res && res.code === 200) {
+            this.$modal.msgSuccess('提交成功');
+            this.submitHomeworkVisible = false;
+            this.getUserHomeworkStatus();
+          } else {
+            this.$modal.msgError('提交失败: ' + (res && res.msg ? res.msg : '未知错误'));
+          }
+        }).catch(error => {
+          console.error('提交作业失败:', error);
+          this.$modal.msgError('提交失败: ' + (error && error.message ? error.message : error));
+        }).finally(() => {
+          this.submitHomeworkLoading = false;
+        });
+      } catch (error) {
+        console.error('提交作业异常:', error);
+        this.$modal.msgError('提交异常: ' + (error && error.message ? error.message : error));
+        this.submitHomeworkLoading = false;
+      }
+    },
   }
 };
 </script>
@@ -1255,4 +1897,257 @@ export default {
 .clearfix:after {
   clear: both;
 }
-</style> 
+
+/* 菜单栏样式 */
+.menu-header {
+  margin-bottom: 20px;
+}
+
+.menu-header .el-tabs__header {
+  margin-bottom: 0;
+}
+
+.menu-header .el-tabs__item {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.menu-header .el-tabs__item i {
+  margin-right: 8px;
+}
+
+/* 作业内容样式 */
+.homework-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.homework-section {
+  margin-bottom: 20px;
+}
+
+/* 作业列表样式 */
+.homework-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.homework-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #EBEEF5;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.homework-item:hover {
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.homework-item.completed {
+  border-left: 4px solid #67C23A;
+  background-color: #f0f9ff;
+}
+
+.homework-item.uncompleted {
+  border-left: 4px solid #E6A23C;
+  background-color: #fdf6ec;
+}
+
+.homework-item .homework-info {
+  flex: 1;
+}
+
+.homework-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.homework-details {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.homework-desc {
+  font-size: 14px;
+  color: #909399;
+  line-height: 1.4;
+}
+
+.homework-actions {
+  margin-left: 16px;
+}
+
+/* 作业详情样式 */
+.homework-detail-container {
+  padding: 20px 0;
+}
+
+.homework-detail-container .homework-info {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+}
+
+.homework-detail-container .homework-info h2 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.homework-detail-container .homework-info .homework-desc {
+  margin: 10px 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.homework-stats {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.homework-stats span {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 文件列表样式 */
+.file-list {
+  margin: 15px 0;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+}
+
+.file-item:last-child {
+  margin-bottom: 0;
+}
+
+.file-item i {
+  color: #409eff;
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.file-name {
+  flex: 1;
+  color: #606266;
+  font-size: 14px;
+}
+
+/* 提交内容样式 */
+.submission-content {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #409eff;
+}
+
+.submission-content h3 {
+  margin: 0 0 15px 0;
+  color: #303133;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.content-text {
+  color: #606266;
+  line-height: 1.6;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+/* 评分信息样式 */
+.grade-info {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f0f9ff;
+  border-radius: 8px;
+  border-left: 4px solid #67c23a;
+}
+
+.grade-info h3 {
+  margin: 0 0 15px 0;
+  color: #303133;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.grade-comment {
+  color: #606266;
+  line-height: 1.6;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+/* 提交作业容器样式 */
+.submit-homework-container {
+  padding: 20px 0;
+}
+
+.submit-homework-container .homework-info {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
+  color: white;
+  border-radius: 8px;
+}
+
+.submit-homework-container .homework-info h3 {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.submit-homework-container .homework-info .homework-desc {
+  margin: 10px 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.submit-homework-container .homework-stats {
+  display: flex;
+  gap: 20px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.submit-homework-container .homework-stats span {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* 试卷内容样式 */
+.quiz-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+</style>

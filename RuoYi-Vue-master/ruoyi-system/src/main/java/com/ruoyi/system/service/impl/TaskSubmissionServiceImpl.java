@@ -117,4 +117,11 @@ public class TaskSubmissionServiceImpl implements ITaskSubmissionService
     {
         return taskSubmissionMapper.deleteTaskSubmissionBySubmissionId(submissionId);
     }
+
+    @Override
+    public java.util.List<com.ruoyi.system.domain.TaskSubmission> selectByRecordId(Long recordId) {
+        com.ruoyi.system.domain.TaskSubmission query = new com.ruoyi.system.domain.TaskSubmission();
+        query.setRecordId(recordId);
+        return taskSubmissionMapper.selectTaskSubmissionList(query);
+    }
 }

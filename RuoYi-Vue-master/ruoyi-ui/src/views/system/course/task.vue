@@ -119,8 +119,7 @@
         <el-form-item label="任务类型" prop="taskType">
           <el-select v-model="addForm.taskType" placeholder="请选择任务类型">
             <el-option label="资料阅读" value="资料阅读" />
-            <el-option label="视频观看" value="视频观看" />
-            <el-option label="试卷完成" value="试卷完成" />
+            <el-option label="作业完成" value="作业完成" />
           </el-select>
         </el-form-item>
         <el-form-item label="截止时间" prop="dueDate">
@@ -129,22 +128,21 @@
         <el-form-item label="提交方式" prop="submitMethod">
           <el-select v-model="addForm.submitMethod" placeholder="请选择提交方式">
             <el-option label="资料阅读" value="资料阅读" />
-            <el-option label="视频观看" value="视频观看" />
-            <el-option label="试卷完成" value="试卷完成" />
+            <el-option label="作业完成" value="作业完成" />
           </el-select>
         </el-form-item>
         <!-- 任务内容选择 -->
-        <el-form-item v-if="addForm.submitMethod === '试卷完成'" label="任务内容" prop="paperId">
-          <el-select v-model="addForm.paperId" placeholder="请选择试卷" filterable>
-            <el-option v-for="paper in filteredPaperList" :key="paper.paperId" :label="paper.paperName" :value="paper.paperId" />
-          </el-select>
-          <el-button type="text" @click="openPaperFilterDialog">更多筛选</el-button>
-        </el-form-item>
-        <el-form-item v-if="addForm.submitMethod === '资料阅读' || addForm.submitMethod === '视频观看'" label="任务内容" prop="resourceId">
+        <el-form-item v-if="addForm.submitMethod === '资料阅读'" label="任务内容" prop="resourceId">
           <el-select v-model="addForm.resourceId" placeholder="请选择资源" filterable>
             <el-option v-for="res in filteredResourceList" :key="res.resourceId" :label="res.resourceName + '（' + res.resourceType + '）'" :value="res.resourceId" />
           </el-select>
           <el-button type="text" @click="openResourceFilterDialog">更多筛选</el-button>
+        </el-form-item>
+        <el-form-item v-if="addForm.submitMethod === '作业完成'" label="任务内容" prop="homeworkId">
+          <el-select v-model="addForm.homeworkId" placeholder="请选择作业" filterable>
+            <el-option v-for="hw in homeworkList" :key="hw.homeworkId" :label="hw.homeworkName" :value="hw.homeworkId" />
+          </el-select>
+          <el-button type="text" @click="openHomeworkFilterDialog">更多筛选</el-button>
         </el-form-item>
         <el-form-item label="任务描述" prop="taskDesc">
           <el-input v-model="addForm.taskDesc" type="textarea" placeholder="请输入任务描述" />
@@ -223,6 +221,35 @@
         <el-button @click="resourceFilterDialog=false">关 闭</el-button>
       </div>
     </el-dialog>
+    <!-- 作业筛选弹窗 -->
+    <el-dialog title="筛选作业" :visible.sync="homeworkFilterDialog" width="700px" append-to-body>
+      <el-form :inline="true" :model="homeworkFilter" class="filter-form" style="margin-bottom:10px;">
+        <el-form-item label="作业名称">
+          <el-input v-model="homeworkFilter.homeworkName" placeholder="输入作业名称" clearable />
+        </el-form-item>
+        <el-form-item label="截止时间">
+          <el-date-picker v-model="homeworkFilter.dueDate" type="date" placeholder="选择截止时间" clearable />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" size="mini" icon="el-icon-search" @click="applyHomeworkFilter">搜索</el-button>
+          <el-button size="mini" @click="resetHomeworkFilter">重置</el-button>
+        </el-form-item>
+      </el-form>
+      <el-table :data="filteredHomeworkTable" highlight-current-row @row-click="selectHomeworkRow" height="350" style="width:100%;">
+        <el-table-column prop="homeworkId" label="作业ID" width="80" align="center" />
+        <el-table-column prop="homeworkName" label="作业名称" min-width="120" />
+        <el-table-column prop="homeworkDesc" label="作业描述" min-width="180" />
+        <el-table-column prop="dueDate" label="截止时间" width="120" align="center" />
+        <el-table-column label="操作" width="100" align="center">
+          <template slot-scope="scope">
+            <el-button type="primary" size="mini" @click.stop="selectHomeworkRow(scope.row)">选择</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="homeworkFilterDialog=false">关 闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -232,6 +259,7 @@ import { listSubmission } from '@/api/system/submission';
 import { getLearningRecordByUserAndCourse, addLearningRecord } from '@/api/system/learningRecord';
 import { listPaper, listPaperByCourseId } from '@/api/system/paper';
 import { listResource } from '@/api/system/resource';
+import { listHomework } from '@/api/system/homework';
 import { mapState } from 'vuex';
 
 export default {
@@ -259,7 +287,8 @@ export default {
         taskDesc: '',
         courseId: '',
         paperId: null,
-        resourceId: null
+        resourceId: null,
+        homeworkId: null
       },
       addRules: {
         taskName: [{ required: true, message: '请输入任务名称', trigger: 'blur' }],
@@ -278,6 +307,10 @@ export default {
       resourceFilterDialog: false,
       paperFilter: { paperName: '', totalScore: '' },
       resourceFilter: { resourceName: '', resourceType: '', uploaderId: '' },
+      homeworkList: [],
+      homeworkFilterDialog: false,
+      homeworkFilter: { homeworkName: '', dueDate: '' },
+      realCourseId: '',
     };
   },
   computed: {
@@ -331,12 +364,25 @@ export default {
       if (this.resourceFilter.resourceType) arr = arr.filter(r => r.resourceType === this.resourceFilter.resourceType);
       if (this.resourceFilter.uploaderId) arr = arr.filter(r => String(r.uploaderId) === String(this.resourceFilter.uploaderId));
       return arr;
-    }
+    },
+    filteredHomeworkTable() {
+      let arr = this.homeworkList;
+      if (this.homeworkFilter && this.homeworkFilter.homeworkName) arr = arr.filter(hw => hw.homeworkName && hw.homeworkName.includes(this.homeworkFilter.homeworkName));
+      if (this.homeworkFilter && this.homeworkFilter.dueDate) arr = arr.filter(hw => hw.dueDate && hw.dueDate.startsWith(this.homeworkFilter.dueDate));
+      return arr;
+    },
   },
   watch: {
     courseId: {
-      handler(val) {
-        if (val) this.initData();
+      handler(newVal) {
+        if (newVal && newVal !== 'undefined') {
+          this.realCourseId = newVal;
+          this.getPaperList();
+          this.getScoreList();
+          this.getHomeworkList();
+          this.getUserHomeworkStatus();
+          this.updateUploadData();
+        }
       },
       immediate: true
     },
@@ -347,20 +393,30 @@ export default {
       immediate: true
     }
   },
+  created() {
+    if ((!this.courseId || this.courseId === 'undefined') && this.$route && this.$route.params && this.$route.params.courseId) {
+      this.courseId = this.$route.params.courseId;
+    }
+    this.initCourseId();
+    this.initData();
+  },
   methods: {
+    initCourseId() {
+      this.realCourseId = this.courseId || this.$route.params.courseId || this.$route.query.courseId || '';
+    },
     async initData() {
-      if (!this.courseId || !this.userId) return;
+      if (!this.realCourseId || !this.userId) return;
       // 获取学习记录
-      let rec = await getLearningRecordByUserAndCourse(this.userId, this.courseId);
+      let rec = await getLearningRecordByUserAndCourse(this.userId, this.realCourseId);
       if (!rec) {
         // 自动注册学习记录
         await addLearningRecord({
           userId: this.userId,
-          courseId: this.courseId,
+          courseId: this.realCourseId,
           joinTime: new Date(),
           courseProgress: 0
         });
-        rec = await getLearningRecordByUserAndCourse(this.userId, this.courseId);
+        rec = await getLearningRecordByUserAndCourse(this.userId, this.realCourseId);
       }
       if (rec) {
         this.recordId = rec.recordId;
@@ -369,7 +425,7 @@ export default {
       }
     },
     async getTaskList() {
-      const res = await listTask({ courseId: this.courseId, pageSize: 999 });
+      const res = await listTask({ courseId: this.realCourseId, pageSize: 999 });
       this.taskList = res.rows || res.data || [];
     },
     async getSubmissionList() {
@@ -418,7 +474,7 @@ export default {
       // 只emit事件，不直接操作$router
       if (task.submitMethod === '资料阅读') {
         this.$emit('switch-tab', 'resources');
-      } else if (task.submitMethod === '试卷完成') {
+      } else if (task.submitMethod === '作业完成') {
         this.$emit('switch-tab', 'quiz');
       } else if (task.submitMethod === '视频观看') {
         this.$message.warning('视频观看功能暂未实现');
@@ -426,10 +482,13 @@ export default {
     },
     async onOpenAddDialog() {
       // 拉取试卷和资源
-      const paperRes = await listPaperByCourseId(this.courseId);
+      const paperRes = await listPaperByCourseId(this.realCourseId);
       this.paperList = paperRes.rows || paperRes.data || [];
-      const resourceRes = await listResource({ courseId: this.courseId });
+      const resourceRes = await listResource({ courseId: this.realCourseId });
       this.resourceList = resourceRes.rows || resourceRes.data || [];
+      // 拉取本课程作业
+      const homeworkRes = await listHomework({ courseId: this.realCourseId });
+      this.homeworkList = homeworkRes.rows || homeworkRes.data || [];
     },
     openPaperFilterDialog() {
       this.paperFilterDialog = true;
@@ -446,9 +505,12 @@ export default {
       this.resourceFilterDialog = false;
     },
     async submitAddTask() {
+      if (!this.realCourseId || this.realCourseId === 'undefined') {
+        this.realCourseId = this.courseId || this.$route.params.courseId || this.$route.query.courseId || '';
+      }
       this.$refs.addForm.validate(async valid => {
         if (!valid) return;
-        this.addForm.courseId = this.courseId;
+        this.addForm.courseId = this.realCourseId;
         // 清理冗余字段
         if (this.addForm.submitMethod === '试卷完成') {
           this.addForm.resourceId = null;
@@ -461,7 +523,7 @@ export default {
         await addTask(this.addForm);
         this.$message.success('添加成功');
         this.openAddDialog = false;
-        this.addForm = { taskName: '', taskType: '', dueDate: '', submitMethod: '', taskDesc: '', courseId: '', paperId: null, resourceId: null };
+        this.addForm = { taskName: '', taskType: '', dueDate: '', submitMethod: '', taskDesc: '', courseId: '', paperId: null, resourceId: null, homeworkId: null };
         await this.getTaskList();
       });
     },
@@ -487,7 +549,96 @@ export default {
     fileUrl(path) {
       if (!path) return '';
       return process.env.VUE_APP_BASE_API + path;
-    }
+    },
+    handleHomeworkUploadSuccess(response, file, fileList) {
+      console.log('[DEBUG] 上传成功 response:', response, 'file:', file, 'fileList:', fileList);
+      // 兼容后端返回msg为路径
+      if (response && response.code === 200 && response.msg) {
+        file.response = { msg: response.msg };
+      }
+      this.homeworkFileList = fileList.map(f => {
+        if (f.status === 'success') {
+          if (!f.response || !f.response.msg) {
+            return { ...f, response: { msg: f.url || '' } };
+          }
+        }
+        return f;
+      });
+      this.homeworkFileList = JSON.parse(JSON.stringify(this.homeworkFileList));
+      console.log('[DEBUG] 上传成功后 homeworkFileList:', this.homeworkFileList);
+      this.$modal.msgSuccess('文件上传成功');
+    },
+    submitAddHomework() {
+      this.initCourseId();
+      // ...校验省略
+      this.$refs.submitHomeworkForm.validate(async valid => {
+        if (!valid) return;
+        this.submitHomeworkLoading = true;
+        try {
+          // 关键：获取taskId
+          let taskId = this.currentSubmitHomework.taskId;
+          if (!taskId && this.currentSubmitHomework.task) {
+            taskId = this.currentSubmitHomework.task.taskId;
+          }
+          // 兜底：如果还有问题，尝试从uncompletedHomework中查找
+          if (!taskId && this.currentSubmitHomework.homeworkId) {
+            const match = this.uncompletedHomework.find(
+              item => (item.homework && item.homework.homeworkId) === this.currentSubmitHomework.homeworkId
+            );
+            if (match && match.taskId) taskId = match.taskId;
+            if (match && match.task && match.task.taskId) taskId = match.task.taskId;
+          }
+          if (!taskId) {
+            this.$modal.msgError('未能确定任务ID，无法提交作业，请联系管理员！');
+            this.submitHomeworkLoading = false;
+            return;
+          }
+          const submitData = {
+            taskId, // 必须带上
+            homeworkId: this.currentSubmitHomework.homeworkId,
+            courseId: this.realCourseId,
+            userId: this.id,
+            submissionContent: this.submitHomeworkForm.submissionContent,
+            submissionFile: JSON.stringify(this.submitFileList.map(file => file.response?.data || file.url)),
+            submissionTime: this.formatDateTime(new Date())
+          };
+          console.log('[DEBUG-submitHomework] submitData:', submitData);
+          await submitHomework(submitData);
+          this.$modal.msgSuccess('提交成功');
+          this.submitHomeworkVisible = false;
+          this.getUserHomeworkStatus();
+        } catch (error) {
+          console.error('提交作业失败:', error);
+          this.$modal.msgError('提交失败');
+        } finally {
+          this.submitHomeworkLoading = false;
+        }
+      });
+    },
+    downloadFile(filePath) {
+      if (!filePath) return;
+      // 拼接完整后端地址
+      let url = filePath;
+      if (!/^https?:\/\//.test(filePath)) {
+        // 自动补全协议和host
+        url = window.location.origin + filePath;
+      }
+      console.log('[DEBUG] 下载 filePath:', url);
+      window.open(url, '_blank');
+    },
+    openHomeworkFilterDialog() {
+      this.homeworkFilterDialog = true;
+    },
+    applyHomeworkFilter() {
+      this.homeworkFilter = { ...this.homeworkFilter };
+    },
+    resetHomeworkFilter() {
+      this.homeworkFilter = { homeworkName: '', dueDate: '' };
+    },
+    selectHomeworkRow(row) {
+      this.addForm.homeworkId = row.homeworkId;
+      this.homeworkFilterDialog = false;
+    },
   }
 };
 </script>

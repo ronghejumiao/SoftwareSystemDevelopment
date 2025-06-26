@@ -58,4 +58,11 @@ public interface ITaskSubmissionService
      * @return 结果
      */
     public int deleteTaskSubmissionBySubmissionId(Long submissionId);
+
+    /**
+     * 根据学习记录ID查询任务提交列表
+     * @param recordId 学习记录ID
+     * @return 任务提交集合
+     */
+    public java.util.List<com.ruoyi.system.domain.TaskSubmission> selectByRecordId(Long recordId);
 }

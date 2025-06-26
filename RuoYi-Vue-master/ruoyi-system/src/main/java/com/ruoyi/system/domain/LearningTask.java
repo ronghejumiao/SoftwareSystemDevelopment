@@ -28,8 +28,8 @@ public class LearningTask extends BaseEntity
     @Excel(name = "任务名称")
     private String taskName;
 
-    /** 任务类型（作业、测试、视频观看等） */
-    @Excel(name = "任务类型", readConverterExp = "作=业、测试、视频观看等")
+    /** 任务类型（资料阅读、作业完成） */
+    @Excel(name = "任务类型", readConverterExp = "资料阅读=资料阅读、作业完成=作业完成")
     private String taskType;
 
     /** 任务描述 */
@@ -41,9 +41,17 @@ public class LearningTask extends BaseEntity
     @Excel(name = "截止时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date dueDate;
 
-    /** 提交方式（文件上传、在线答题等） */
-    @Excel(name = "提交方式", readConverterExp = "文=件上传、在线答题等")
+    /** 提交方式（资料阅读、作业完成） */
+    @Excel(name = "提交方式", readConverterExp = "资料阅读=资料阅读、作业完成=作业完成")
     private String submitMethod;
+
+    /** 资源ID，关联learning_resource表 */
+    @Excel(name = "资源ID")
+    private Long resourceId;
+
+    /** 作业ID，关联course_homework表 */
+    @Excel(name = "作业ID")
+    private Long homeworkId;
 
     /** 状态（1-启用，0-停用） */
     @Excel(name = "状态", readConverterExp = "1=-启用，0-停用")
@@ -119,6 +127,26 @@ public class LearningTask extends BaseEntity
         return submitMethod;
     }
 
+    public void setResourceId(Long resourceId) 
+    {
+        this.resourceId = resourceId;
+    }
+
+    public Long getResourceId() 
+    {
+        return resourceId;
+    }
+
+    public void setHomeworkId(Long homeworkId) 
+    {
+        this.homeworkId = homeworkId;
+    }
+
+    public Long getHomeworkId() 
+    {
+        return homeworkId;
+    }
+
     public void setStatus(String status) 
     {
         this.status = status;
@@ -139,6 +167,8 @@ public class LearningTask extends BaseEntity
             .append("taskDesc", getTaskDesc())
             .append("dueDate", getDueDate())
             .append("submitMethod", getSubmitMethod())
+            .append("resourceId", getResourceId())
+            .append("homeworkId", getHomeworkId())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())

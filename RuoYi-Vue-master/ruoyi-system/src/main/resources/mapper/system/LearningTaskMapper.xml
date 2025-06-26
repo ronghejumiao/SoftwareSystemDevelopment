@@ -12,6 +12,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="taskDesc"    column="task_desc"    />
         <result property="dueDate"    column="due_date"    />
         <result property="submitMethod"    column="submit_method"    />
+        <result property="resourceId"    column="resource_id"    />
+        <result property="homeworkId"    column="homework_id"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateBy"    column="update_by"    />
@@ -21,7 +23,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectLearningTaskVo">
-        select task_id, course_id, task_name, task_type, task_desc, due_date, submit_method, create_by, create_time, update_by, update_time, status, remark from learning_task
+        select task_id, course_id, task_name, task_type, task_desc, due_date, submit_method, resource_id, homework_id, create_by, create_time, update_by, update_time, status, remark from learning_task
     </sql>
 
     <select id="selectLearningTaskList" parameterType="LearningTask" resultMap="LearningTaskResult">
@@ -33,6 +35,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="taskDesc != null  and taskDesc != ''"> and task_desc = #{taskDesc}</if>
             <if test="dueDate != null "> and due_date = #{dueDate}</if>
             <if test="submitMethod != null  and submitMethod != ''"> and submit_method = #{submitMethod}</if>
+            <if test="resourceId != null "> and resource_id = #{resourceId}</if>
+            <if test="homeworkId != null "> and homework_id = #{homeworkId}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
         </where>
     </select>
@@ -51,6 +55,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="taskDesc != null">task_desc,</if>
             <if test="dueDate != null">due_date,</if>
             <if test="submitMethod != null">submit_method,</if>
+            <if test="resourceId != null">resource_id,</if>
+            <if test="homeworkId != null">homework_id,</if>
             <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateBy != null">update_by,</if>
@@ -65,6 +71,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="taskDesc != null">#{taskDesc},</if>
             <if test="dueDate != null">#{dueDate},</if>
             <if test="submitMethod != null">#{submitMethod},</if>
+            <if test="resourceId != null">#{resourceId},</if>
+            <if test="homeworkId != null">#{homeworkId},</if>
             <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateBy != null">#{updateBy},</if>
@@ -83,6 +91,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="taskDesc != null">task_desc = #{taskDesc},</if>
             <if test="dueDate != null">due_date = #{dueDate},</if>
             <if test="submitMethod != null">submit_method = #{submitMethod},</if>
+            <if test="resourceId != null">resource_id = #{resourceId},</if>
+            <if test="homeworkId != null">homework_id = #{homeworkId},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
