@@ -76,56 +76,12 @@
         <p>大小：{{ currentVideo.fileSize }}MB</p>
       </div>
     </el-dialog>
-
-    <!-- 新增/编辑弹窗 -->
-    <el-dialog :visible.sync="open" width="800px" class="video-form-dialog">
-      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="课程编号" prop="courseCode">
-          <el-input v-model="form.courseCode" disabled></el-input>
-        </el-form-item>
-        <el-form-item label="视频名称" prop="videoName">
-          <el-input v-model="form.videoName"></el-input>
-        </el-form-item>
-        <el-form-item label="视频类型" prop="videoType">
-          <el-select v-model="form.videoType">
-            <el-option value="MP4"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="视频存储路径" prop="videoPath">
-          <el-input v-model="form.videoPath"></el-input>
-        </el-form-item>
-        <el-form-item label="视频大小" prop="fileSize">
-          <el-input v-model="form.fileSize"></el-input>
-        </el-form-item>
-        <el-form-item label="视频时长" prop="duration">
-          <el-input v-model="form.duration"></el-input>
-        </el-form-item>
-        <el-form-item label="上传用户 ID" prop="suploaderId">
-          <el-input v-model="form.suploaderId"></el-input>
-        </el-form-item>
-        <el-form-item label="上传时间" prop="uploadTime">
-          <el-input v-model="form.uploadTime"></el-input>
-        </el-form-item>
-        <el-form-item label="封面图片" prop="thumbnail">
-          <el-input v-model="imageUrl"></el-input>
-          <el-button @click="removeThumbnail">移除封面</el-button>
-        </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input v-model="form.description"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="open = false">取消</el-button>
-        <el-button type="primary" @click="submitForm">提交</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listVideoresource, getVideoresource, delVideoresource, addVideoresource, updateVideoresource } from "@/api/system/videoresource";
-import { listCourse } from "@/api/system/course";
-import { getToken } from "@/utils/auth";
+import { getCourse } from "@/api/system/course";
+import { listVideoresource, getVideoresource, delVideoresource } from "@/api/system/videoresource";
 
 export default {
   name: "VideoList",
@@ -137,47 +93,7 @@ export default {
       groupedVideos: {},
       previewVisible: false,
       currentVideo: null,
-      activeVideoId: null,
-      // 新增/编辑弹窗相关
-      open: false,
-      title: '',
-      form: {},
-      rules: {
-        courseCode: [
-          { required: true, message: "所属课程不能为空", trigger: "change" }
-        ],
-        videoName: [
-          { required: true, message: "视频名称不能为空", trigger: "blur" }
-        ],
-        videoType: [
-          { required: true, message: "视频类型不能为空", trigger: "change" }
-        ],
-        videoPath: [
-          { required: true, message: "视频存储路径不能为空", trigger: "blur" }
-        ],
-        fileSize: [
-          { required: true, message: "视频大小不能为空", trigger: "blur" }
-        ],
-        suploaderId: [
-          { required: true, message: "上传用户 ID不能为空", trigger: "blur" }
-        ],
-      },
-      upload: {
-        videoUrl: process.env.VUE_APP_BASE_API + "/system/videoresource/uploadVideo",
-        imageUrl: process.env.VUE_APP_BASE_API + "/system/videoresource/uploadThumbnail",
-        headers: {
-          Authorization: "Bearer " + getToken()
-        }
-      },
-      videoFileList: [],
-      imageUrl: '',
-      courseOptions: [],
-      courseCodeToId: {},
-      courseIdToCode: {},
-      // 多选相关
-      ids: [],
-      single: true,
-      multiple: true,
+      activeVideoId: null
     };
   },
   created() {
@@ -189,7 +105,6 @@ export default {
     if (videoId) {
       this.activeVideoId = videoId;
     }
-    this.getCourseOptions();
   },
   mounted() {
     this.$nextTick(() => {
@@ -201,18 +116,8 @@ export default {
   },
   methods: {
     getCourseInfo(courseId) {
-      listCourse().then(response => {
-        const course = response.rows.find(c => c.courseId == courseId);
-        if (course) this.course = course;
-      });
-    },
-    getCourseOptions() {
-      listCourse().then(response => {
-        this.courseOptions = response.rows;
-        this.courseOptions.forEach(course => {
-          this.courseCodeToId[course.courseCode] = course.courseId;
-          this.courseIdToCode[course.courseId] = course.courseCode;
-        });
+      getCourse(courseId).then(response => {
+        this.course = response.data;
       });
     },
     getVideoList(courseId) {
@@ -229,156 +134,33 @@ export default {
         });
       });
     },
-    // 新增
     handleAdd() {
-      this.reset();
-      this.open = true;
-      this.title = "添加视频学习资源";
-      if (this.course && this.course.courseCode) {
-        this.form.courseCode = this.course.courseCode;
-        this.form.courseId = this.course.courseId;
-      }
-    },
-    // 修改
-    handleUpdate(video) {
-      this.reset();
-      getVideoresource(video.videoId).then(response => {
-        const data = response.data;
-        this.form = data;
-        this.form.courseCode = this.courseIdToCode[data.courseId];
-        if (data.thumbnail) {
-          this.imageUrl = process.env.VUE_APP_BASE_API + data.thumbnail;
-        } else {
-          this.imageUrl = '';
+      this.$router.push({ 
+        name: 'VideoAdd',
+        query: { 
+          courseId: this.course.courseId,
+          courseCode: this.course.courseCode
         }
-        if (data.videoPath) {
-          this.form.videoPath = data.videoPath;
-        }
-        this.open = true;
-        this.title = "修改视频学习资源";
       });
     },
-    // 删除
+    handleUpdate(video) {
+      this.$router.push({ 
+        name: 'VideoEdit',
+        query: { 
+          videoId: video.videoId,
+          courseId: this.course.courseId
+        }
+      });
+    },
     handleDelete(video) {
-      const videoIds = video.videoId || this.ids;
-      this.$modal.confirm('是否确认删除视频学习资源编号为"' + videoIds + '"的数据项？').then(function() {
-        return delVideoresource(videoIds);
+      const videoId = video.videoId;
+      this.$modal.confirm('是否确认删除该视频？').then(function() {
+        return delVideoresource(videoId);
       }).then(() => {
         this.getVideoList(this.course.courseId);
         this.$modal.msgSuccess("删除成功");
       }).catch(() => {});
     },
-    // 多选
-    handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.videoId);
-      this.single = selection.length!==1;
-      this.multiple = !selection.length;
-    },
-    // 表单重置
-    reset() {
-      this.form = {
-        videoId: null,
-        courseId: this.course.courseId || null,
-        courseCode: this.course.courseCode || null,
-        videoName: null,
-        videoType: null,
-        videoPath: null,
-        fileSize: null,
-        duration: null,
-        suploaderId: null,
-        uploadTime: null,
-        thumbnail: null,
-        description: null
-      };
-      this.imageUrl = '';
-      this.videoFileList = [];
-    },
-    // 提交
-    submitForm() {
-      this.$refs["form"].validate(valid => {
-        if (valid) {
-          this.form.videoType = "MP4";
-          if (!this.form.courseId) {
-            this.$modal.msgError("课程编号不存在");
-            return;
-          }
-          const submitForm = { ...this.form };
-          delete submitForm.courseCode;
-          if (submitForm.videoId != null) {
-            updateVideoresource(submitForm).then(response => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getVideoList(this.course.courseId);
-            });
-          } else {
-            addVideoresource(submitForm).then(response => {
-              this.$modal.msgSuccess("新增成功");
-              this.open = false;
-              this.getVideoList(this.course.courseId);
-            });
-          }
-        }
-      });
-    },
-    // 上传
-    handleVideoSuccess(response, file, fileList) {
-      if (response.code === 200) {
-        this.form.videoPath = response.videoUrl;
-        this.form.fileSize = response.fileSize;
-        this.form.duration = response.duration;
-        this.form.uploadTime = response.uploadTime;
-        if (response.coverImage) {
-          this.form.thumbnail = response.coverImage;
-          this.imageUrl = process.env.VUE_APP_BASE_API + response.coverImage;
-        }
-        this.$modal.msgSuccess("视频上传成功");
-      } else {
-        this.$modal.msgError(response.msg);
-      }
-    },
-    handleThumbnailSuccess(response, file) {
-      if (response.code === 200) {
-        this.imageUrl = process.env.VUE_APP_BASE_API + response.thumbnailUrl;
-        this.form.thumbnail = response.thumbnailUrl;
-        this.$modal.msgSuccess("封面上传成功");
-      } else {
-        this.$modal.msgError(response.msg);
-      }
-    },
-    handleError(err) {
-      this.$modal.msgError("上传失败");
-    },
-    beforeVideoUpload(file) {
-      const isMP4 = file.type === 'video/mp4';
-      const isLt3G = file.size / 1024 / 1024 / 1024 < 3;
-      if (!isMP4) {
-        this.$message.error('只能上传MP4格式的视频文件!');
-        return false;
-      }
-      if (!isLt3G) {
-        this.$message.error('视频大小不能超过 3GB!');
-        return false;
-      }
-      return true;
-    },
-    beforeThumbnailUpload(file) {
-      const isJPG = file.type === 'image/jpeg' || file.type === 'image/png';
-      const isLt2M = file.size / 1024 / 1024 < 2;
-      if (!isJPG) {
-        this.$message.error('上传封面图片只能是 JPG/PNG 格式!');
-        return false;
-      }
-      if (!isLt2M) {
-        this.$message.error('上传封面图片大小不能超过 2MB!');
-        return false;
-      }
-      return true;
-    },
-    removeThumbnail() {
-      this.imageUrl = '';
-      this.form.thumbnail = '';
-    },
-    // 预览
     handlePreview(video) {
       this.currentVideo = video;
       this.previewVisible = true;
@@ -549,11 +331,5 @@ export default {
 .active-video {
   border: 2px solid #409EFF;
   box-shadow: 0 0 8px #409EFF33;
-}
-
-.video-form-dialog {
-  .el-form {
-    padding: 20px;
-  }
 }
 </style> 

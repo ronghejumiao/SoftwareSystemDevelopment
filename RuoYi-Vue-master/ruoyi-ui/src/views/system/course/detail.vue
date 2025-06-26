@@ -175,58 +175,6 @@
             </div>
           </div>
         </el-card>
-        <!-- 视频新增/编辑弹窗 -->
-        <el-dialog :visible.sync="videoDialogVisible" width="800px" class="video-form-dialog">
-          <el-form ref="videoForm" :model="videoForm" :rules="videoRules" label-width="100px">
-            <el-form-item label="课程编号" prop="courseCode">
-              <el-input v-model="videoForm.courseCode" disabled></el-input>
-            </el-form-item>
-            <el-form-item label="视频名称" prop="videoName">
-              <el-input v-model="videoForm.videoName"></el-input>
-            </el-form-item>
-            <el-form-item label="视频存储路径" prop="videoPath">
-              <el-upload
-                :action="videoUpload.videoUrl"
-                :headers="videoUpload.headers"
-                :on-success="handleVideoUploadSuccess"
-                :on-error="handleVideoUploadError"
-                :before-upload="beforeVideoUpload"
-                :file-list="videoFileList"
-                :show-file-list="true"
-                accept=".mp4"
-                multiple>
-                <el-button size="small" type="primary">点击上传视频</el-button>
-                <div slot="tip" class="el-upload__tip">只能上传mp4格式视频文件</div>
-              </el-upload>
-              <video v-if="videoForm.videoPath" :src="baseUrl + videoForm.videoPath" style="margin-top: 10px; width: 100%; max-width: 400px; height: 220px; border:1px solid #eee;" controls />
-            </el-form-item>
-            <el-form-item label="上传用户 ID" prop="suploaderId">
-              <el-input v-model="videoForm.suploaderId"></el-input>
-            </el-form-item>
-            <el-form-item label="封面图片" prop="thumbnail">
-              <el-upload
-                class="avatar-uploader"
-                :action="videoUpload.imageUrl"
-                :headers="videoUpload.headers"
-                :show-file-list="false"
-                :on-success="handleThumbnailUploadSuccess"
-                :on-error="handleVideoUploadError"
-                :before-upload="beforeThumbnailUpload">
-                <img v-if="videoImageUrl" :src="videoImageUrl" class="avatar">
-                <el-button v-if="videoImageUrl" @click="removeVideoThumbnail" type="danger" size="mini">删除</el-button>
-                <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-                <div slot="tip" class="el-upload__tip">建议上传16:9比例的图片</div>
-              </el-upload>
-            </el-form-item>
-            <el-form-item label="描述" prop="description">
-              <el-input v-model="videoForm.description"></el-input>
-            </el-form-item>
-          </el-form>
-          <div slot="footer">
-            <el-button @click="videoDialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="submitVideoForm">提交</el-button>
-          </div>
-        </el-dialog>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -241,7 +189,6 @@ import { listRequirement, addRequirement, updateRequirement, delRequirement } fr
 import CourseQuiz from './quiz.vue';
 import CourseTask from './task.vue';
 import { listVideoresource, getVideoresource, delVideoresource, addVideoresource, updateVideoresource } from "@/api/system/videoresource";
-import { listCourse } from "@/api/system/course";
 
 export default {
   name: "CourseDetailPage",
@@ -314,35 +261,6 @@ export default {
       videoList: [],
       groupedVideos: {},
       uploaderId: JSON.parse(localStorage.getItem('userInfo') || '{}').userId || '',
-      // 新增/编辑弹窗相关
-      videoDialogVisible: false,
-      videoForm: {},
-      videoRules: {
-        courseCode: [
-          { required: true, message: "所属课程不能为空", trigger: "change" }
-        ],
-        videoName: [
-          { required: true, message: "视频名称不能为空", trigger: "blur" }
-        ],
-        videoPath: [
-          { required: true, message: "视频存储路径不能为空", trigger: "blur" }
-        ],
-        suploaderId: [
-          { required: true, message: "上传用户 ID不能为空", trigger: "blur" }
-        ],
-      },
-      videoUpload: {
-        videoUrl: process.env.VUE_APP_BASE_API + "/system/videoresource/uploadVideo",
-        imageUrl: process.env.VUE_APP_BASE_API + "/system/videoresource/uploadThumbnail",
-        headers: {
-          Authorization: "Bearer " + getToken()
-        }
-      },
-      videoFileList: [],
-      videoImageUrl: '',
-      courseOptions: [],
-      courseCodeToId: {},
-      courseIdToCode: {},
     };
   },
   computed: {
@@ -383,7 +301,6 @@ export default {
     if (tab && ['requirements', 'resources', 'tasks', 'quiz', 'videos'].includes(tab)) {
       this.activeTab = tab;
     }
-    this.getVideoCourseOptions();
   },
   methods: {
     getCourseDetails(courseId) {
@@ -596,41 +513,23 @@ export default {
         this.groupedVideos = {};
       });
     },
-    getVideoCourseOptions() {
-      listCourse().then(response => {
-        this.courseOptions = response.rows;
-        this.courseOptions.forEach(course => {
-          this.courseCodeToId[course.courseCode] = course.courseId;
-          this.courseIdToCode[course.courseId] = course.courseCode;
-        });
+    handleAddVideo() {
+      this.$router.push({
+        path: '/system/videoresource/add',
+        query: {
+          courseId: this.course.courseId,
+          courseCode: this.course.courseCode,
+          returnPath: this.$route.fullPath
+        }
       });
     },
-    handleAddVideo() {
-      this.resetVideoForm();
-      this.videoDialogVisible = true;
-      if (this.course && this.course.courseCode) {
-        this.videoForm.courseCode = this.course.courseCode;
-        this.videoForm.courseId = this.course.courseId;
-      }
-      this.videoForm.suploaderId = this.uploaderId;
-    },
     handleEditVideo(video) {
-      this.resetVideoForm();
-      getVideoresource(video.videoId).then(response => {
-        const data = response.data;
-        this.videoForm = data;
-        this.videoForm.courseCode = this.courseIdToCode[data.courseId];
-        if (data.thumbnail) {
-          this.videoImageUrl = process.env.VUE_APP_BASE_API + data.thumbnail;
-        } else {
-          this.videoImageUrl = '';
-        }
-        if (data.videoPath) {
-          this.videoForm.videoPath = data.videoPath;
-        }
-        this.videoDialogVisible = true;
-        if (!this.videoForm.suploaderId) {
-          this.videoForm.suploaderId = this.uploaderId;
+      this.$router.push({
+        path: '/system/videoresource/edit',
+        query: {
+          videoId: video.videoId,
+          courseId: this.course.courseId,
+          returnPath: this.$route.fullPath
         }
       });
     },
@@ -660,106 +559,6 @@ export default {
       if (tabName && ['requirements', 'resources', 'tasks', 'quiz', 'videos'].includes(tabName)) {
       this.activeTab = tabName;
       }
-    },
-    // 表单重置
-    resetVideoForm() {
-      this.videoForm = {
-        videoId: null,
-        courseId: this.course.courseId || null,
-        courseCode: this.course.courseCode || null,
-        videoName: null,
-        videoPath: null,
-        suploaderId: null,
-        thumbnail: null,
-        description: null
-      };
-      this.videoImageUrl = '';
-      this.videoFileList = [];
-    },
-    // 提交
-    submitVideoForm() {
-      this.$refs["videoForm"].validate(valid => {
-        if (valid) {
-          this.videoForm.videoType = "MP4";
-          if (!this.videoForm.courseId) {
-            this.$modal.msgError("课程编号不存在");
-            return;
-          }
-          const submitForm = { ...this.videoForm };
-          delete submitForm.courseCode;
-          if (submitForm.videoId != null) {
-            updateVideoresource(submitForm).then(response => {
-              this.$modal.msgSuccess("修改成功");
-              this.videoDialogVisible = false;
-              this.getVideoList(this.course.courseId);
-            });
-          } else {
-            addVideoresource(submitForm).then(response => {
-              this.$modal.msgSuccess("新增成功");
-              this.videoDialogVisible = false;
-              this.getVideoList(this.course.courseId);
-            });
-          }
-        }
-      });
-    },
-    // 上传
-    handleVideoUploadSuccess(response, file, fileList) {
-      if (response.code === 200) {
-        this.videoForm.videoPath = response.videoUrl;
-        this.videoForm.fileSize = response.fileSize;
-        this.videoForm.duration = response.duration;
-        this.videoForm.uploadTime = response.uploadTime;
-        if (response.coverImage) {
-          this.videoForm.thumbnail = response.coverImage;
-          this.videoImageUrl = process.env.VUE_APP_BASE_API + response.coverImage;
-        }
-        this.$modal.msgSuccess("视频上传成功");
-      } else {
-        this.$modal.msgError(response.msg);
-      }
-    },
-    handleThumbnailUploadSuccess(response, file) {
-      if (response.code === 200) {
-        this.videoImageUrl = process.env.VUE_APP_BASE_API + response.thumbnailUrl;
-        this.videoForm.thumbnail = response.thumbnailUrl;
-        this.$modal.msgSuccess("封面上传成功");
-      } else {
-        this.$modal.msgError(response.msg);
-      }
-    },
-    handleVideoUploadError(err) {
-      this.$modal.msgError("上传失败");
-    },
-    beforeVideoUpload(file) {
-      const isMP4 = file.type === 'video/mp4';
-      const isLt3G = file.size / 1024 / 1024 / 1024 < 3;
-      if (!isMP4) {
-        this.$message.error('只能上传MP4格式的视频文件!');
-        return false;
-      }
-      if (!isLt3G) {
-        this.$message.error('视频大小不能超过 3GB!');
-        return false;
-      }
-      return true;
-    },
-    beforeThumbnailUpload(file) {
-      const isJPG = file.type === 'image/jpeg' || file.type === 'image/png';
-      const isLt2M = file.size / 1024 / 1024 < 2;
-      if (!isJPG) {
-        this.$message.error('上传封面图片只能是 JPG/PNG 格式!');
-        return false;
-      }
-      if (!isLt2M) {
-        this.$message.error('上传封面图片大小不能超过 2MB!');
-        return false;
-      }
-      return true;
-    },
-    removeVideoThumbnail() {
-      this.videoImageUrl = '';
-      this.videoForm.thumbnail = '';
     },
   }
 };
@@ -971,16 +770,5 @@ export default {
 .video-actions {
   display: flex;
   gap: 8px;
-}
-/* 新增/编辑视频弹窗封面图片自适应样式 */
-.video-form-dialog .avatar-uploader .avatar {
-  width: 100%;
-  max-width: 400px;
-  aspect-ratio: 16/9;
-  height: auto;
-  border-radius: 4px;
-  object-fit: cover;
-  display: block;
-  margin: 0 auto;
 }
 </style>

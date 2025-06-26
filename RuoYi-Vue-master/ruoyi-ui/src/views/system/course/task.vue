@@ -261,7 +261,6 @@ import { listPaper, listPaperByCourseId } from '@/api/system/paper';
 import { listResource } from '@/api/system/resource';
 import { listHomework } from '@/api/system/homework';
 import { mapState } from 'vuex';
-import { getToken } from '@/utils/auth';
 
 export default {
   name: 'CourseTask',
@@ -312,10 +311,6 @@ export default {
       homeworkFilterDialog: false,
       homeworkFilter: { homeworkName: '', dueDate: '' },
       realCourseId: '',
-      uploadUrl: process.env.VUE_APP_BASE_API + '/system/homework/upload',
-      uploadHeaders: {
-        Authorization: 'Bearer ' + getToken()
-      },
     };
   },
   computed: {
