@@ -655,6 +655,7 @@ import {
   uploadHomeworkFile 
 } from "@/api/system/homework";
 import * as echarts from 'echarts';
+import { getToken } from '@/utils/auth';
 
 export default {
   name: "Quiz",
@@ -765,7 +766,9 @@ export default {
         ]
       },
       uploadUrl: process.env.VUE_APP_BASE_API + '/system/homework/upload',
-      uploadHeaders: {},
+      uploadHeaders: {
+        Authorization: 'Bearer ' + getToken()
+      },
       homeworkFileList: [],
       submitFileList: [],
       addHomeworkLoading: false,

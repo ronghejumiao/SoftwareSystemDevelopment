@@ -96,13 +96,14 @@ export default {
         // Before fetching new video, save progress of the old one
         this.updateWatchRecord(true);
         if (this.updateInterval) {
-           clearInterval(this.updateInterval);
+          clearInterval(this.updateInterval);
+          this.updateInterval = null;
         }
         // Reset state for the new video
         this.videoDetail = null;
         this.videoRecord = null;
         this.learningRecordId = null;
-
+        this.videoElement = null;
         this.getVideoDetails(newId);
       }
     }
@@ -133,23 +134,50 @@ export default {
       }
     },
     playPrev() {
+      // 切换前彻底清理定时器和状态，防止重复提交
+      if (this.updateInterval) {
+        clearInterval(this.updateInterval);
+        this.updateInterval = null;
+      }
+      this.videoElement = null;
+      this.videoRecord = null;
+      this.learningRecordId = null;
+      // 切换到上一个视频
       if (this.currentIndex > 0) {
         const prevVideo = this.videoList[this.currentIndex - 1];
         this.$router.push({ name: "VideoPlay", params: { videoId: prevVideo.videoId } });
       }
     },
     playNext() {
+      // 切换前彻底清理定时器和状态，防止重复提交
+      if (this.updateInterval) {
+        clearInterval(this.updateInterval);
+        this.updateInterval = null;
+      }
+      this.videoElement = null;
+      this.videoRecord = null;
+      this.learningRecordId = null;
+      // 切换到下一个视频
       if (this.currentIndex < this.videoList.length - 1) {
         const nextVideo = this.videoList[this.currentIndex + 1];
         this.$router.push({ name: "VideoPlay", params: { videoId: nextVideo.videoId } });
       }
     },
     handleEnded() {
+      // 结束时先清理定时器，防止重复提交
+      if (this.updateInterval) {
+        clearInterval(this.updateInterval);
+        this.updateInterval = null;
+      }
       // Mark as fully watched and save progress
       if (this.videoElement) {
         this.videoElement.currentTime = this.videoElement.duration;
       }
       this.updateWatchRecord(true);
+      // 自动切换下一个视频前，清理状态
+      this.videoElement = null;
+      this.videoRecord = null;
+      this.learningRecordId = null;
       // Automatically play the next video
       if (this.currentIndex < this.videoList.length - 1) {
         this.playNext();
@@ -221,9 +249,15 @@ export default {
         console.warn('videoRecord为空，无法刷新');
         return;
       }
+      // 兜底赋值
       if (!this.videoElement) {
         this.videoElement = this.$refs.videoPlayer;
+        // 再兜底一次
         if (!this.videoElement) {
+          // 尝试延迟获取
+          setTimeout(() => {
+            this.videoElement = this.$refs.videoPlayer;
+          }, 500);
           console.error('videoElement为空，无法刷新');
           return;
         }
@@ -262,6 +296,13 @@ export default {
     
     // Video Player Event Handlers
     onVideoPlay() {
+      // 兜底赋值
+      this.videoElement = this.$refs.videoPlayer;
+      if (!this.videoElement) {
+        setTimeout(() => {
+          this.videoElement = this.$refs.videoPlayer;
+        }, 500);
+      }
       if (this.updateInterval) clearInterval(this.updateInterval);
       // 每5秒刷新一次
       this.updateInterval = setInterval(() => this.updateWatchRecord(), 5000);
