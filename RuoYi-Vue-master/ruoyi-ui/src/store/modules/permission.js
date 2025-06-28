@@ -4,7 +4,6 @@ import { getRouters } from '@/api/menu'
 import Layout from '@/layout/index'
 import ParentView from '@/components/ParentView'
 import InnerLink from '@/layout/components/InnerLink'
-import { isExternal } from '@/utils/validate'
 
 const permission = {
   state: {
@@ -39,16 +38,8 @@ const permission = {
           const rdata = JSON.parse(JSON.stringify(res.data))
           const sidebarRoutes = filterAsyncRouter(sdata)
           const rewriteRoutes = filterAsyncRouter(rdata, false, true)
-          let asyncRoutes = filterDynamicRoutes(dynamicRoutes)
-
-          // 额外去重，防止后台返回的路由与前端静态/动态路由重名
-          asyncRoutes = dedupeRouteList(asyncRoutes, router.options.routes || [])
-
+          const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
           rewriteRoutes.push({ path: '*', redirect: '/404', hidden: true })
-
-          // 修正外链/无斜杠路径，防止 Vue Router 报警
-          asyncRoutes.forEach(fixRoutePath)
-
           router.addRoutes(asyncRoutes)
           commit('SET_ROUTES', rewriteRoutes)
           commit('SET_SIDEBAR_ROUTERS', constantRoutes.concat(sidebarRoutes))
@@ -63,18 +54,7 @@ const permission = {
 
 // 遍历后台传来的路由字符串，转换为组件对象
 function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
-  // 使用静态集合避免后台返回的同名或同路径路由重复
-  const nameSet = new Set()
-  const pathSet = new Set()
-
-  const handler = route => {
-    // 去重：如果 name 或 path 已存在，直接跳过
-    if ((route.name && nameSet.has(route.name)) || (route.path && pathSet.has(route.path))) {
-      return false
-    }
-    if (route.name) nameSet.add(route.name)
-    if (route.path) pathSet.add(route.path)
-
+  return asyncRouterMap.filter(route => {
     if (type && route.children) {
       route.children = filterChildren(route.children)
     }
@@ -97,9 +77,7 @@ function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
       delete route['redirect']
     }
     return true
-  }
-
-  return asyncRouterMap.filter(handler)
+  })
 }
 
 function filterChildren(childrenMap, lastRouter = false) {
@@ -133,55 +111,11 @@ export function filterDynamicRoutes(routes) {
 }
 
 export const loadView = (view) => {
-  // 去除可能的首尾空白，防止"Cannot find module"
-  view = view && view.trim ? view.trim() : view;
-  
-  // 确保路径正确格式化，防止加载失败
-  if (view && view.startsWith('/')) {
-    view = view.substring(1);
-  }
-  
   if (process.env.NODE_ENV === 'development') {
     return (resolve) => require([`@/views/${view}`], resolve)
   } else {
     // 使用 import 实现生产环境的路由懒加载
     return () => import(`@/views/${view}`)
-  }
-}
-
-// -------------------------------------
-// 工具函数：去重复、修正 path
-function dedupeRouteList(newRoutes, existRoutes) {
-  const nameSet = new Set()
-  const loop = routes => {
-    routes.forEach(r => {
-      if (r.name) nameSet.add(r.name)
-      if (r.children) loop(r.children)
-    })
-  }
-  loop(existRoutes)
-
-  const filterRecursive = routes => {
-    const res = []
-    routes.forEach(r => {
-      // 如果已有同名路由，则跳过
-      if (r.name && nameSet.has(r.name)) return
-      if (r.name) nameSet.add(r.name)
-      const clone = { ...r }
-      if (clone.children) clone.children = filterRecursive(clone.children)
-      res.push(clone)
-    })
-    return res
-  }
-  return filterRecursive(newRoutes)
-}
-
-function fixRoutePath(route) {
-  if (route.path && !route.path.startsWith('/') && !isExternal(route.path)) {
-    route.path = '/' + route.path
-  }
-  if (route.children && route.children.length) {
-    route.children.forEach(fixRoutePath)
   }
 }
 

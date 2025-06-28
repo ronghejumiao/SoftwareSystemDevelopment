@@ -67,6 +67,18 @@ public class LearningRecord extends BaseEntity
     @Excel(name = "课程状态")
     private Long courseStatus;
 
+    /** 用户姓名 */
+    private String userName;
+
+    /** 课程名称 */
+    private String courseName;
+
+    /** 用户昵称 */
+    private String nickName;
+
+    /** 课程代码 */
+    private String courseCode;
+
     public void setRecordId(Long recordId) 
     {
         this.recordId = recordId;
@@ -185,6 +197,38 @@ public class LearningRecord extends BaseEntity
     public Long getCourseStatus() 
     {
         return courseStatus;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getCourseName() {
+        return courseName;
+    }
+
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
+
+    public String getCourseCode() {
+        return courseCode;
+    }
+
+    public void setCourseCode(String courseCode) {
+        this.courseCode = courseCode;
     }
 
     @Override

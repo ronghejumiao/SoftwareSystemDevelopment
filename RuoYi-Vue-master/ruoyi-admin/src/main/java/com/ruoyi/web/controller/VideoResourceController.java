@@ -40,7 +40,7 @@ public class VideoResourceController extends BaseController
     /**
      * 查询视频学习资源列表
      */
-    @PreAuthorize("@ss.hasPermi('system:videoresource:list')")
+    @PreAuthorize("@ss.hasPermi('system:videoresource:list') or @ss.hasRole('teacher')")
     @GetMapping("/list")
     public TableDataInfo list(VideoResource videoResource)
     {
@@ -52,7 +52,7 @@ public class VideoResourceController extends BaseController
     /**
      * 导出视频学习资源列表
      */
-    @PreAuthorize("@ss.hasPermi('system:videoresource:export')")
+    @PreAuthorize("@ss.hasPermi('system:videoresource:export') or @ss.hasRole('teacher')")
     @Log(title = "视频学习资源", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, VideoResource videoResource)
@@ -65,7 +65,7 @@ public class VideoResourceController extends BaseController
     /**
      * 获取视频学习资源详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:videoresource:query')")
+    @PreAuthorize("@ss.hasPermi('system:videoresource:query') or @ss.hasRole('teacher')")
     @GetMapping(value = "/{videoId}")
     public AjaxResult getInfo(@PathVariable("videoId") Long videoId)
     {
@@ -75,7 +75,7 @@ public class VideoResourceController extends BaseController
         /**
          * 上传视频
          */
-        @PreAuthorize("@ss.hasPermi('system:videoresource:add')")
+        @PreAuthorize("@ss.hasPermi('system:videoresource:add') or @ss.hasRole('teacher')")
         @Log(title = "视频学习资源", businessType = BusinessType.INSERT)
         @PostMapping("/uploadVideo")
         @ResponseBody
@@ -146,7 +146,7 @@ public class VideoResourceController extends BaseController
     /**
      * 上传视频封面
      */
-    @PreAuthorize("@ss.hasPermi('system:videoresource:add')")
+    @PreAuthorize("@ss.hasPermi('system:videoresource:add') or @ss.hasRole('teacher')")
     @Log(title = "视频学习资源", businessType = BusinessType.INSERT)
     @PostMapping("/uploadThumbnail")
     @ResponseBody
@@ -181,7 +181,7 @@ public class VideoResourceController extends BaseController
         /**
          * 新增视频学习资源
          */
-        @PreAuthorize("@ss.hasPermi('system:videoresource:add')")
+        @PreAuthorize("@ss.hasPermi('system:videoresource:add') or @ss.hasRole('teacher')")
         @Log(title = "视频学习资源", businessType = BusinessType.INSERT)
         @PostMapping
         public AjaxResult add(@RequestBody VideoResource videoResource)
@@ -197,7 +197,7 @@ public class VideoResourceController extends BaseController
     /**
      * 修改视频学习资源
      */
-    @PreAuthorize("@ss.hasPermi('system:videoresource:edit')")
+    @PreAuthorize("@ss.hasPermi('system:videoresource:edit') or @ss.hasRole('teacher')")
     @Log(title = "视频学习资源", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody VideoResource videoResource)
@@ -208,7 +208,7 @@ public class VideoResourceController extends BaseController
     /**
      * 删除视频学习资源
      */
-    @PreAuthorize("@ss.hasPermi('system:videoresource:remove')")
+    @PreAuthorize("@ss.hasPermi('system:videoresource:remove') or @ss.hasRole('teacher')")
     @Log(title = "视频学习资源", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{videoIds}")
     public AjaxResult remove(@PathVariable Long[] videoIds)

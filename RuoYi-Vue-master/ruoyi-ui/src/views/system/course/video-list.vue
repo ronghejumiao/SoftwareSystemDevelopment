@@ -8,11 +8,12 @@
       </div>
     </div>
 
-    <el-row :gutter="10" class="mb8">
+    <el-row :gutter="10" class="mb8" v-if="isTeacherOrAdmin">
       <el-col :span="1.5">
         <el-button
           type="primary"
           plain
+          
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
@@ -57,7 +58,7 @@
               <span>大小：{{ video.fileSize }}MB</span>
             </div>
           </div>
-          <div class="video-actions">
+          <div class="video-actions" v-if="isTeacherOrAdmin">
             <el-button size="mini" type="text" icon="el-icon-edit" @click.stop="handleUpdate(video)">修改</el-button>
             <el-button size="mini" type="text" icon="el-icon-delete" @click.stop="handleDelete(video)">删除</el-button>
           </div>
@@ -95,6 +96,12 @@ export default {
       currentVideo: null,
       activeVideoId: null
     };
+  },
+  computed: {
+    isTeacherOrAdmin() {
+      const roles = this.$store.getters.roles || [];
+      return roles.includes('admin') || roles.includes('teacher');
+    }
   },
   created() {
     const { courseId, videoId } = this.$route.query;

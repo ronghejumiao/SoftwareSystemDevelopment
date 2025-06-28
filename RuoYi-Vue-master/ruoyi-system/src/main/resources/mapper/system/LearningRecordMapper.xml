@@ -19,37 +19,47 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="courseStatus"    column="course_status"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateTime"    column="update_time"    />
+        <result property="userName"    column="user_name"    />
+        <result property="courseName"    column="course_name"    />
+        <result property="nickName" column="nick_name" />
+        <result property="courseCode" column="course_code" />
     </resultMap>
 
     <sql id="selectLearningRecordVo">
-        select record_id, user_id, course_id, record_type, join_time, end_time, course_progress, video_progress, task_progress, exam_progress, total_score, course_status, create_time, update_time from learning_record
+        select lr.record_id, lr.user_id, lr.course_id, lr.record_type, lr.join_time, lr.end_time, lr.course_progress, lr.video_progress, lr.task_progress, lr.exam_progress, lr.total_score, lr.course_status, lr.create_time, lr.update_time,
+        u.user_name, u.nick_name, c.course_name, c.course_code
+        from learning_record lr
+        left join sys_user u on lr.user_id = u.user_id
+        left join course c on lr.course_id = c.course_id
     </sql>
 
     <select id="selectLearningRecordList" parameterType="LearningRecord" resultMap="LearningRecordResult">
         <include refid="selectLearningRecordVo"/>
         <where>  
-            <if test="userId != null "> and user_id = #{userId}</if>
-            <if test="courseId != null "> and course_id = #{courseId}</if>
-            <if test="recordType != null "> and record_type = #{recordType}</if>
-            <if test="joinTime != null "> and join_time = #{joinTime}</if>
-            <if test="endTime != null "> and end_time = #{endTime}</if>
-            <if test="courseProgress != null "> and course_progress = #{courseProgress}</if>
-            <if test="videoProgress != null "> and video_progress = #{videoProgress}</if>
-            <if test="taskProgress != null "> and task_progress = #{taskProgress}</if>
-            <if test="examProgress != null "> and exam_progress = #{examProgress}</if>
-            <if test="totalScore != null "> and total_score = #{totalScore}</if>
-            <if test="courseStatus != null "> and course_status = #{courseStatus}</if>
+            <if test="userId != null "> and lr.user_id = #{userId}</if>
+            <if test="courseId != null "> and lr.course_id = #{courseId}</if>
+            <if test="recordType != null "> and lr.record_type = #{recordType}</if>
+            <if test="joinTime != null "> and lr.join_time = #{joinTime}</if>
+            <if test="endTime != null "> and lr.end_time = #{endTime}</if>
+            <if test="courseProgress != null "> and lr.course_progress = #{courseProgress}</if>
+            <if test="videoProgress != null "> and lr.video_progress = #{videoProgress}</if>
+            <if test="taskProgress != null "> and lr.task_progress = #{taskProgress}</if>
+            <if test="examProgress != null "> and lr.exam_progress = #{examProgress}</if>
+            <if test="totalScore != null "> and lr.total_score = #{totalScore}</if>
+            <if test="courseStatus != null "> and lr.course_status = #{courseStatus}</if>
+            <if test="userName != null and userName != ''"> and u.user_name like concat('%', #{userName}, '%')</if>
+            <if test="courseCode != null and courseCode != ''"> and c.course_code = #{courseCode}</if>
         </where>
     </select>
     
     <select id="selectLearningRecordByRecordId" parameterType="Long" resultMap="LearningRecordResult">
         <include refid="selectLearningRecordVo"/>
-        where record_id = #{recordId}
+        where lr.record_id = #{recordId}
     </select>
 
     <select id="selectLearningRecordByUserIdAndCourseId" resultMap="LearningRecordResult">
         <include refid="selectLearningRecordVo"/>
-        where user_id = #{userId} and course_id = #{courseId} limit 1
+        where lr.user_id = #{userId} and lr.course_id = #{courseId} limit 1
     </select>
 
     <insert id="insertLearningRecord" parameterType="LearningRecord" useGeneratedKeys="true" keyProperty="recordId">

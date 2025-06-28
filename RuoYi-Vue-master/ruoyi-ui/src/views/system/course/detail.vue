@@ -71,7 +71,7 @@
       </el-tab-pane>
       <el-tab-pane label="学习资源" name="resources">
         <div class="block-title"><i class="el-icon-folder"></i> 学习资源</div>
-        <el-row :gutter="10" class="mb8">
+        <el-row :gutter="10" class="mb8" v-if="isTeacherOrAdmin">
           <el-col :span="1.5">
             <el-button
               type="primary"
@@ -79,7 +79,6 @@
               icon="el-icon-plus"
               size="mini"
               @click="handleAdd"
-              v-hasPermi="['system:resource:add']"
             >新增资源</el-button>
           </el-col>
         </el-row>
@@ -94,9 +93,9 @@
             <span class="resource-name" @click="handlePreview(resource)">
               <i class="el-icon-document" /> {{ resource.displayName }}
             </span>
-            <div class="actions">
-              <el-button size="mini" type="text" @click.stop="handleUpdate(resource)" v-hasPermi="['system:resource:edit']">修改</el-button>
-              <el-button size="mini" type="text" @click.stop="handleDelete(resource)" v-hasPermi="['system:resource:remove']">删除</el-button>
+            <div class="actions" v-if="isTeacherOrAdmin">
+              <el-button size="mini" type="text" @click.stop="handleUpdate(resource)">修改</el-button>
+              <el-button size="mini" type="text" @click.stop="handleDelete(resource)">删除</el-button>
             </div>
           </div>
         </el-card>
@@ -128,7 +127,7 @@
       </el-tab-pane>
       <el-tab-pane label="视频学习" name="videos">
         <div class="block-title"><i class="el-icon-video-camera"></i> 视频学习</div>
-        <el-row :gutter="10" class="mb8">
+        <el-row :gutter="10" class="mb8" v-if="isTeacherOrAdmin">
           <el-col :span="1.5">
             <el-button
               type="primary"
@@ -169,7 +168,7 @@
                 </div>
               </div>
             </div>
-            <div class="video-actions">
+            <div class="video-actions" v-if="isTeacherOrAdmin">
               <el-button size="mini" type="text" icon="el-icon-edit" @click.stop="handleEditVideo(video)">修改</el-button>
               <el-button size="mini" type="text" icon="el-icon-delete" @click.stop="handleDeleteVideo(video)">删除</el-button>
             </div>
@@ -189,6 +188,7 @@ import { listRequirement, addRequirement, updateRequirement, delRequirement } fr
 import CourseQuiz from './quiz.vue';
 import CourseTask from './task.vue';
 import { listVideoresource, getVideoresource, delVideoresource, addVideoresource, updateVideoresource } from "@/api/system/videoresource";
+import { notificationState } from '@/utils/notificationControl';
 
 export default {
   name: "CourseDetailPage",
@@ -272,20 +272,27 @@ export default {
         const parts = resourceName.split(' - ');
         const groupName = parts.length > 1 ? parts[0].trim() : '其他';
         const displayName = parts.length > 1 ? parts.slice(1).join(' - ').trim() : resourceName;
-
         if (!groups[groupName]) {
           groups[groupName] = [];
         }
-
         groups[groupName].push({
           ...resource,
           displayName: displayName
         });
       });
       return groups;
+    },
+    isTeacherOrAdmin() {
+      const roles = this.$store.getters.roles || [];
+      return roles.includes('admin') || roles.includes('teacher');
+    },
+    isStudent() {
+      const roles = this.$store.getters.roles || [];
+      return roles.includes('student');
     }
   },
   created() {
+    notificationState.isErrorNotificationsEnabled = false; // 进入页面时关闭弹窗
     const courseId = this.$route.params.courseId || this.$route.query.courseId;
     if (courseId) {
       this.getCourseDetails(courseId);
@@ -301,6 +308,9 @@ export default {
     if (tab && ['requirements', 'resources', 'tasks', 'quiz', 'videos'].includes(tab)) {
       this.activeTab = tab;
     }
+  },
+  destroyed() {
+    notificationState.isErrorNotificationsEnabled = true; // 离开页面时恢复弹窗
   },
   methods: {
     getCourseDetails(courseId) {

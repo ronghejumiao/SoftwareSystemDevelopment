@@ -1,6 +1,9 @@
 <template>
   <div class="login">
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form">
+      <div class="login-logo-container">
+        <img src="@/assets/logo/logo.png" alt="Logo" class="login-logo" />
+      </div>
       <h3 class="title">{{title}}</h3>
       <el-form-item prop="username">
         <el-input
@@ -44,7 +47,7 @@
           :loading="loading"
           size="medium"
           type="primary"
-          style="width:100%;"
+          style="width:100%; border-radius: 20px;"
           @click.native.prevent="handleLogin"
         >
           <span v-if="!loading">登 录</span>
@@ -176,16 +179,28 @@ export default {
   color: #707070;
 }
 
+.login-logo-container {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.login-logo {
+  width: 80px;
+  height: 80px;
+}
+
 .login-form {
-  border-radius: 6px;
+  border-radius: 15px;
   background: #ffffff;
-  width: 400px;
+  box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.1);
+  width: 450px;
   padding: 25px 25px 5px 25px;
   z-index: 1;
   .el-input {
     height: 38px;
     input {
       height: 38px;
+      border-radius: 20px;
     }
   }
   .input-icon {
@@ -222,5 +237,14 @@ export default {
 }
 .login-code-img {
   height: 38px;
+}
+
+.el-button--primary {
+  background-color: #409EFF;
+  border-color: #409EFF;
+}
+
+.link-type, .link-type:focus, .link-type:hover {
+  color: #409EFF;
 }
 </style>

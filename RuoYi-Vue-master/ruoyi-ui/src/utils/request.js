@@ -6,6 +6,7 @@ import errorCode from '@/utils/errorCode'
 import { tansParams, blobValidate } from "@/utils/ruoyi"
 import cache from '@/plugins/cache'
 import { saveAs } from 'file-saver'
+import { notificationState } from '@/utils/notificationControl'
 
 let downloadLoadingInstance
 // 是否显示重新登录
@@ -95,13 +96,19 @@ service.interceptors.response.use(res => {
     }
       return Promise.reject('无效的会话，或者会话已过期，请重新登录。')
     } else if (code === 500) {
-      Message({ message: msg, type: 'error' })
+      if (notificationState.isErrorNotificationsEnabled) {
+        Message({ message: msg, type: 'error' })
+      }
       return Promise.reject(new Error(msg))
     } else if (code === 601) {
-      Message({ message: msg, type: 'warning' })
+      if (notificationState.isErrorNotificationsEnabled) {
+        Message({ message: msg, type: 'warning' })
+      }
       return Promise.reject('error')
     } else if (code !== 200) {
-      Notification.error({ title: msg })
+      if (notificationState.isErrorNotificationsEnabled) {
+        Notification.error({ title: msg })
+      }
       return Promise.reject('error')
     } else {
       return res.data
@@ -117,7 +124,9 @@ service.interceptors.response.use(res => {
     } else if (message.includes("Request failed with status code")) {
       message = "系统接口" + message.substr(message.length - 3) + "异常"
     }
-    Message({ message: message, type: 'error', duration: 5 * 1000 })
+    if (notificationState.isErrorNotificationsEnabled) {
+      Message({ message: message, type: 'error', duration: 5 * 1000 })
+    }
     return Promise.reject(error)
   }
 )
