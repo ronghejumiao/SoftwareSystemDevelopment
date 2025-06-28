@@ -38,7 +38,6 @@ public class TestPaperController extends BaseController
     /**
      * 查询试卷，一个试卷库包含多个试卷列表
      */
-    @PreAuthorize("@ss.hasPermi('system:paper:list')")
     @GetMapping("/list")
     public TableDataInfo list(TestPaper testPaper)
     {
@@ -63,7 +62,6 @@ public class TestPaperController extends BaseController
     /**
      * 获取试卷，一个试卷库包含多个试卷详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:paper:query')")
     @GetMapping(value = "/{paperId}")
     public AjaxResult getInfo(@PathVariable("paperId") Long paperId)
     {
@@ -122,7 +120,6 @@ public class TestPaperController extends BaseController
     /**
      * 根据课程ID查询试卷列表
      */
-    @PreAuthorize("@ss.hasPermi('system:paper:list')")
     @GetMapping("/course/{courseId}")
     public AjaxResult listByCourseId(@PathVariable("courseId") Long courseId)
     {

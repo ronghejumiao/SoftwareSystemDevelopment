@@ -37,7 +37,6 @@ public class LearningTaskController extends BaseController
     /**
      * 查询学习任务，存储课程的学习任务信息列表
      */
-    @PreAuthorize("@ss.hasPermi('system:task:list')")
     @GetMapping("/list")
     public TableDataInfo list(LearningTask learningTask)
     {
@@ -62,7 +61,6 @@ public class LearningTaskController extends BaseController
     /**
      * 获取学习任务，存储课程的学习任务信息详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:task:query')")
     @GetMapping(value = "/{taskId}")
     public AjaxResult getInfo(@PathVariable("taskId") Long taskId)
     {

@@ -50,9 +50,9 @@
             批量删除
         </el-button>
       </div>
-        <el-table 
-          :data="homeworkList" 
-          border 
+        <el-table
+          :data="homeworkList"
+          border
           style="width: 100%"
           @selection-change="handleHomeworkSelectionChange"
         >
@@ -133,15 +133,15 @@
           <span class="section-title">已完成作业</span>
           <span class="section-count">({{ completedHomework.length }}份)</span>
         </div>
-        
+
         <div v-if="completedHomework.length === 0" class="empty-state">
           <i class="el-icon-document-checked"></i>
           <p>暂无已完成的作业</p>
         </div>
-        
+
         <div v-else class="homework-list">
-          <div 
-            v-for="homework in completedHomework" 
+          <div
+            v-for="homework in completedHomework"
             :key="homework.homeworkId"
             class="homework-item completed"
           >
@@ -170,9 +170,9 @@
               </div>
             </div>
             <div class="homework-actions">
-              <el-button 
-                type="primary" 
-                size="small" 
+              <el-button
+                type="primary"
+                size="small"
                 @click="viewHomeworkDetail(homework)"
               >
                 查看详情
@@ -188,15 +188,15 @@
           <span class="section-title">未完成作业</span>
           <span class="section-count">({{ uncompletedHomework.length }}份)</span>
         </div>
-        
+
         <div v-if="uncompletedHomework.length === 0" class="empty-state">
           <i class="el-icon-document"></i>
           <p>暂无未完成的作业</p>
         </div>
-        
+
         <div v-else class="homework-list">
-          <div 
-            v-for="item in uncompletedHomework" 
+          <div
+            v-for="item in uncompletedHomework"
             :key="(item.homework && item.homework.homeworkId) || item.homeworkId"
             class="homework-item uncompleted"
           >
@@ -234,9 +234,9 @@
               </div>
             </div>
             <div class="homework-actions">
-              <el-button 
-                type="success" 
-                size="small" 
+              <el-button
+                type="success"
+                size="small"
                 @click="openSubmitHomeworkDialog(item)"
               >
                 去完成
@@ -259,11 +259,11 @@
             <el-input v-model="addHomeworkForm.homeworkName" placeholder="请输入作业名称" />
           </el-form-item>
           <el-form-item label="作业描述" prop="homeworkDesc">
-            <el-input 
-              v-model="addHomeworkForm.homeworkDesc" 
-              type="textarea" 
+            <el-input
+              v-model="addHomeworkForm.homeworkDesc"
+              type="textarea"
               :rows="4"
-              placeholder="请输入作业描述" 
+              placeholder="请输入作业描述"
             />
           </el-form-item>
           <el-form-item label="截止时间" prop="dueDate">
@@ -328,15 +328,15 @@
         <span class="section-title">已作答试卷</span>
         <span class="section-count">({{ completedPapers.length }}份)</span>
       </div>
-      
+
       <div v-if="completedPapers.length === 0" class="empty-state">
         <i class="el-icon-document"></i>
         <p>暂无已作答的试卷</p>
       </div>
-      
+
       <div v-else class="paper-list">
-        <div 
-          v-for="paper in completedPapers" 
+        <div
+          v-for="paper in completedPapers"
           :key="paper.paperId"
           class="paper-item completed"
         >
@@ -361,9 +361,9 @@
             </div>
           </div>
           <div class="paper-actions">
-            <el-button 
-              type="primary" 
-              size="small" 
+            <el-button
+              type="primary"
+              size="small"
               @click="viewPaperDetail(paper)"
             >
               查看详情
@@ -379,15 +379,15 @@
         <span class="section-title">未作答试卷</span>
         <span class="section-count">({{ uncompletedPapers.length }}份)</span>
       </div>
-      
+
       <div v-if="uncompletedPapers.length === 0" class="empty-state">
         <i class="el-icon-document"></i>
         <p>暂无未作答的试卷</p>
       </div>
-      
+
       <div v-else class="paper-list">
-        <div 
-          v-for="paper in uncompletedPapers" 
+        <div
+          v-for="paper in uncompletedPapers"
           :key="paper.paperId"
           class="paper-item uncompleted"
         >
@@ -412,9 +412,9 @@
             </div>
           </div>
           <div class="paper-actions">
-            <el-button 
-              type="success" 
-              size="small" 
+            <el-button
+              type="success"
+              size="small"
               @click="startQuiz(paper)"
             >
               开始作答
@@ -446,8 +446,8 @@
           <div v-if="getFilePaths(currentHomework.filePaths).length > 0" class="homework-files">
             <h3>作业附件</h3>
             <div class="file-list">
-              <div 
-                v-for="(file, index) in getFilePaths(currentHomework.filePaths)" 
+              <div
+                v-for="(file, index) in getFilePaths(currentHomework.filePaths)"
                 :key="index"
                 class="file-item"
               >
@@ -472,8 +472,8 @@
         <div v-if="currentHomework.submissionFile && getFilePaths(currentHomework.submissionFile).length > 0" class="submission-files">
           <h3>提交文件</h3>
           <div class="file-list">
-            <div 
-              v-for="(file, index) in getFilePaths(currentHomework.submissionFile)" 
+            <div
+              v-for="(file, index) in getFilePaths(currentHomework.submissionFile)"
               :key="index"
               class="file-item"
             >
@@ -564,21 +564,21 @@
             <div class="card-body">
               <el-form :model="gradeForm" label-width="80px">
                 <el-form-item label="评分">
-                  <el-input-number 
-                    v-model="gradeForm.gradeScore" 
-                    :min="0" 
-                    :max="100" 
+                  <el-input-number
+                    v-model="gradeForm.gradeScore"
+                    :min="0"
+                    :max="100"
                     :precision="1"
                     style="width: 200px;"
                   />
                   <span class="score-unit">分</span>
                 </el-form-item>
                 <el-form-item label="评语">
-                  <el-input 
-                    v-model="gradeForm.gradeComment" 
-                    type="textarea" 
+                  <el-input
+                    v-model="gradeForm.gradeComment"
+                    type="textarea"
                     :rows="4"
-                    placeholder="请输入评语（可选）" 
+                    placeholder="请输入评语（可选）"
                   />
                 </el-form-item>
               </el-form>
@@ -622,12 +622,12 @@
                   </span>
                 </div>
               </div>
-              
+
               <div v-if="currentSubmitHomework.homework ? currentSubmitHomework.homework.homeworkDesc : currentSubmitHomework.homeworkDesc" class="homework-desc">
                 <div class="section-title">作业描述：</div>
                 <div class="content-text">{{ currentSubmitHomework.homework ? currentSubmitHomework.homework.homeworkDesc : currentSubmitHomework.homeworkDesc }}</div>
               </div>
-              
+
               <div v-if="getFilePaths((currentSubmitHomework.homework && currentSubmitHomework.homework.filePaths) || currentSubmitHomework.filePaths).length > 0" class="homework-files">
                 <div class="section-title">作业附件：</div>
                 <div class="file-list">
@@ -655,11 +655,11 @@
             <div class="card-body">
               <el-form ref="submitHomeworkForm" :model="submitHomeworkForm" :rules="submitHomeworkRules" label-width="100px">
                 <el-form-item label="提交内容" prop="submissionContent">
-                  <el-input 
-                    v-model="submitHomeworkForm.submissionContent" 
-                    type="textarea" 
+                  <el-input
+                    v-model="submitHomeworkForm.submissionContent"
+                    type="textarea"
                     :rows="6"
-                    placeholder="请输入作业内容（必填）" 
+                    placeholder="请输入作业内容（必填）"
                   />
                 </el-form-item>
                 <el-form-item label="提交文件">
@@ -719,7 +719,7 @@
             <span v-if="currentScore">完成时间：{{ formatDate(currentScore.submitTime) }}</span>
           </div>
         </div>
-        
+
         <!-- 学生作答详情 -->
         <div v-if="currentScore && currentScore.answerDetails" class="answer-details-section">
           <h3>作答详情</h3>
@@ -752,7 +752,7 @@
             </el-row>
           </div>
         </div>
-        
+
         <!-- 题目列表 -->
         <div class="question-list">
           <div
@@ -783,7 +783,7 @@
                   <span class="option-content">{{ option }}</span>
                 </div>
               </div>
-              
+
               <!-- 学生作答详情 -->
               <div v-if="currentScore && currentScore.answerDetails" class="answer-comparison">
                 <div class="answer-row">
@@ -879,7 +879,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- 答题结果 -->
         <div v-else class="result-container">
           <div class="result-header">
@@ -966,13 +966,13 @@ import { getLearningRecordByUserAndCourse } from "@/api/system/learningRecord";
 import { addTask } from "@/api/system/task";
 import { addLearningRecord } from "@/api/system/learningRecord";
 import { addSubmission, updateSubmission, listSubmission } from "@/api/system/submission";
-import { 
-  listHomework, 
-  addHomework, 
-  delHomework, 
-  getUserHomeworkStatus, 
-  submitHomework, 
-  uploadHomeworkFile 
+import {
+  listHomework,
+  addHomework,
+  delHomework,
+  getUserHomeworkStatus,
+  submitHomework,
+  uploadHomeworkFile
 } from "@/api/system/homework";
 import * as echarts from 'echarts';
 import { listTask } from '@/api/system/task';
@@ -992,13 +992,13 @@ export default {
       scoreList: [],
       completedPapers: [],
       uncompletedPapers: [],
-      
+
       // 试卷详情相关
       paperDetailVisible: false,
       currentPaper: {},
       questionList: [],
       currentScore: null,
-      
+
       // 答题相关
       quizVisible: false,
       userAnswers: [],
@@ -1167,7 +1167,14 @@ export default {
     getPaperList() {
       this.loading = true;
       console.log('开始获取试卷列表，courseId:', this.realCourseId);
-      
+
+      if (!this.realCourseId) {
+        console.error('courseId不存在，无法获取试卷列表');
+        this.paperList = [];
+        this.loading = false;
+        return;
+      }
+
       // 根据courseId查询试卷
       listPaperByCourseId(this.realCourseId).then(response => {
         console.log('API响应:', response);
@@ -1185,17 +1192,19 @@ export default {
           this.loading = false;
         }).catch(error2 => {
           console.error('回退API也失败:', error2);
+          this.paperList = [];
+          this.classifyPapers();
           this.loading = false;
         });
       });
     },
-    
+
     // 获取学生成绩列表
     getScoreList() {
       // 从store中获取用户ID
       const userId = this.id;
       console.log('获取成绩列表，userId:', userId, 'courseId:', this.realCourseId);
-      
+
       // 确保courseId和userId都存在才调用API
       if (userId && this.realCourseId) {
         getScoreByUserAndCourse(userId, this.realCourseId).then(response => {
@@ -1215,39 +1224,39 @@ export default {
         this.classifyPapers();
       }
     },
-    
+
     // 分类试卷
     classifyPapers() {
       const completedPaperIds = this.scoreList.map(score => score.paperId);
-      
-      this.completedPapers = this.paperList.filter(paper => 
+
+      this.completedPapers = this.paperList.filter(paper =>
         completedPaperIds.includes(paper.paperId)
       );
-      
-      this.uncompletedPapers = this.paperList.filter(paper => 
+
+      this.uncompletedPapers = this.paperList.filter(paper =>
         !completedPaperIds.includes(paper.paperId)
       );
     },
-    
+
     // 获取试卷得分
     getScore(paperId) {
       const scoreRecord = this.scoreList.find(score => score.paperId === paperId);
       return scoreRecord ? scoreRecord.score : 0;
     },
-    
+
     // 获取提交时间
     getScoreSubmitTime(paperId) {
       const scoreRecord = this.scoreList.find(score => score.paperId === paperId);
       return scoreRecord ? scoreRecord.submitTime : '';
     },
-    
+
     // 格式化日期
     formatDate(dateString) {
       if (!dateString) return '';
       const date = new Date(dateString);
       return date.toLocaleDateString('zh-CN');
     },
-    
+
     // 跳转到题库
     goToQuestionBank() {
       this.$router.push({
@@ -1255,7 +1264,7 @@ export default {
         query: { courseId: this.realCourseId }
       });
     },
-    
+
     // 查看试卷详情
     viewPaperDetail(paper) {
       this.currentPaper = paper;
@@ -1263,7 +1272,7 @@ export default {
       this.parseQuestionContent(paper);
       this.paperDetailVisible = true;
     },
-    
+
     // 开始作答
     startQuiz(paper) {
       this.currentPaper = paper;
@@ -1276,7 +1285,7 @@ export default {
       this.quizVisible = true;
       this.startTimer();
     },
-    
+
     // 解析题目内容
     parseQuestionContent(paper) {
       try {
@@ -1288,7 +1297,7 @@ export default {
         } else {
           this.questionList = [];
         }
-        
+
         // 处理每个题目的选项数据
         this.questionList.forEach(question => {
           // 如果options是字符串，尝试解析为数组
@@ -1318,7 +1327,7 @@ export default {
         this.questionList = [];
       }
     },
-    
+
     // 开始计时器
     startTimer() {
       let timeLeft = 30 * 60; // 30分钟
@@ -1327,14 +1336,14 @@ export default {
         const minutes = Math.floor(timeLeft / 60);
         const seconds = timeLeft % 60;
         this.remainingTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
+
         if (timeLeft <= 0) {
           clearInterval(this.timer);
           this.submitQuiz();
         }
       }, 1000);
     },
-    
+
     // 取消答题
     cancelQuiz() {
       this.$modal.confirm('确定要取消答题吗？已作答的内容将不会保存。').then(() => {
@@ -1344,14 +1353,14 @@ export default {
         }
       }).catch(() => {});
     },
-    
+
     // 提交答案
     submitQuiz() {
       this.isSubmitting = true;
-      
+
       // 计算得分
       this.finalScore = this.calculateScore();
-      
+
       // 构建详细的作答记录
       const answerDetails = {
         questions: this.questionList.map((question, index) => ({
@@ -1369,10 +1378,10 @@ export default {
         maxScore: this.currentPaper.totalScore,
         submitTime: new Date().toISOString()
       };
-      
+
       const userId = this.id;
       let currentRecordId = null; // 保存学习记录ID，供后续Promise链使用
-      
+
       // 获取或创建学习记录
       getLearningRecordByUserAndCourse(userId, this.realCourseId).then(async learningRecord => {
         let record = learningRecord;
@@ -1409,48 +1418,48 @@ export default {
         this.isSubmitting = false;
       });
     },
-    
+
     // 计算得分
     calculateScore() {
       let totalScore = 0;
-      
+
       this.questionList.forEach((question, index) => {
         const userAnswer = this.userAnswers[index];
         if (userAnswer && this.isAnswerCorrect(question, userAnswer)) {
           totalScore += question.score || 0;
         }
       });
-      
+
       return totalScore;
     },
-    
+
     // 判断答案是否正确
     isAnswerCorrect(question, userAnswer) {
       const correctAnswer = question.answer;
-      
+
       // 选择题
       if (question.options && question.options.length > 0) {
         return userAnswer === correctAnswer;
       }
-      
+
       // 填空题
       return userAnswer && userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
     },
-    
+
     // 获取答案样式类
     getAnswerClass(index) {
       const question = this.questionList[index];
       const userAnswer = this.userAnswers[index];
-      
+
       if (!userAnswer) return 'unanswered';
-      
+
       if (this.isAnswerCorrect(question, userAnswer)) {
         return 'correct';
       } else {
         return 'incorrect';
       }
     },
-    
+
     // 关闭答题弹窗
     closeQuiz() {
       this.quizVisible = false;
@@ -1537,7 +1546,7 @@ export default {
         this.$modal.msgWarning('请选择要删除的作业');
         return;
       }
-      
+
       this.$modal.confirm(`确定要删除选中的 ${this.selectedHomeworkIds.length} 个作业吗？`).then(() => {
         const deletePromises = this.selectedHomeworkIds.map(id => delHomework(id));
         Promise.all(deletePromises).then(() => {
@@ -1683,7 +1692,7 @@ export default {
     beforeSubmitUpload(file) {
       const isValidType = /\.(pdf|doc|docx|txt)$/i.test(file.name);
       const isLt10M = file.size / 1024 / 1024 < 10;
-      
+
       if (!isValidType) {
         this.$modal.msgError('只能上传PDF/DOC/DOCX/TXT格式的文件!');
         return false;
@@ -1694,10 +1703,7 @@ export default {
       }
       return true;
     },
-    getFileName(filePath) {
-      if (!filePath) return '';
-      return filePath.split('/').pop() || filePath;
-    },
+
     downloadFile(filePath) {
       if (!filePath) return;
       // 强制拼接后端域名
@@ -1710,7 +1716,15 @@ export default {
       window.open(url, '_blank');
     },
     getHomeworkList() {
+
       console.log('获取作业列表，courseId:', this.realCourseId);
+
+      if (!this.realCourseId) {
+        console.error('courseId不存在，无法获取作业列表');
+        this.homeworkList = [];
+        return;
+      }
+
       listHomework({ courseId: this.realCourseId }).then(response => {
         console.log('作业列表响应:', response);
         this.homeworkList = response.rows || response.data || [];
@@ -1722,26 +1736,35 @@ export default {
     },
     getUserHomeworkStatus() {
       const userId = this.id;
-      if (!userId || !this.realCourseId) return;
-      
-      // 获取学习记录
-      getLearningRecordByUserAndCourse(userId, this.realCourseId).then(record => {
-        if (record) {
-          // 获取作业提交记录 - 只获取当前课程相关的记录
-          listSubmission({ recordId: record.recordId, pageSize: 999 }).then(response => {
-            const allSubmissions = response.rows || response.data || [];
-            // 过滤出当前课程的提交记录
-            this.filterCurrentCourseSubmissions(allSubmissions);
-          }).catch(error => {
-            console.error('获取作业提交记录失败:', error);
-            this.processHomeworkStatus([]);
-          });
-        } else {
-          this.processHomeworkStatus([]);
-        }
+
+      if (!userId || !this.realCourseId) {
+        console.error('userId或courseId不存在，无法获取作业状态');
+        this.completedHomework = [];
+        this.uncompletedHomework = [];
+        return;
+      }
+
+      getUserHomeworkStatus(this.realCourseId, userId).then(response => {
+        const data = response.data || {};
+        // 新结构：completed/uncompleted均为[{homework, task, submission}]，前端需适配
+        this.completedHomework = (data.completed || []).map(item => {
+          return {
+            ...item.task,
+            homework: item.homework,
+            submission: item.submission
+          };
+        });
+        this.uncompletedHomework = (data.uncompleted || []).map(item => {
+          // 保证taskId等任务字段在顶层
+          return {
+            ...item.task,
+            homework: item.homework
+          };
+        });
       }).catch(error => {
-        console.error('获取学习记录失败:', error);
-        this.processHomeworkStatus([]);
+        console.error('获取作业状态失败:', error);
+        this.completedHomework = [];
+        this.uncompletedHomework = [];
       });
     },
     initData() {
@@ -1752,7 +1775,7 @@ export default {
     },
     getFilePaths(filePaths) {
       if (!filePaths) return [];
-      
+
       if (typeof filePaths === 'string') {
         try {
           // 尝试解析JSON字符串
@@ -1867,7 +1890,7 @@ export default {
     },
     submitGrade() {
       if (!this.currentGradeSubmission) return;
-      
+
       const submissionId = this.currentGradeSubmission.submissionId;
       const updateData = {
         submissionId,
@@ -1876,7 +1899,7 @@ export default {
         isGraded: '1',
         graderId: this.id
       };
-      
+
       this.$modal.loading('正在保存...');
       updateSubmission(updateData).then(() => {
         this.$modal.msgSuccess('评分已保存');
@@ -1903,12 +1926,12 @@ export default {
         // 过滤出作业类型的任务（排除资料阅读）
         const homeworkTasks = tasks.filter(task => task.taskType !== '资料阅读');
         const homeworkTaskIds = homeworkTasks.map(task => task.taskId);
-        
+
         // 过滤出作业相关的提交记录
-        const homeworkSubmissions = submissions.filter(submission => 
+        const homeworkSubmissions = submissions.filter(submission =>
           homeworkTaskIds.includes(submission.taskId)
         );
-        
+
         // 创建task_id到homework_id的映射
         const taskToHomeworkMap = {};
         homeworkTasks.forEach(task => {
@@ -1916,25 +1939,25 @@ export default {
             taskToHomeworkMap[task.taskId] = task.homeworkId;
           }
         });
-        
+
         // 处理已完成作业
         this.completedHomework = this.homeworkList.filter(homework => {
           // 找到对应的task_id
-          const taskId = Object.keys(taskToHomeworkMap).find(key => 
+          const taskId = Object.keys(taskToHomeworkMap).find(key =>
             taskToHomeworkMap[key] === homework.homeworkId
           );
           if (!taskId) return false;
-          
+
           // 检查是否有对应的提交记录
           const submission = homeworkSubmissions.find(s => s.taskId === parseInt(taskId));
           return submission !== undefined; // 只要有提交记录就算完成，不依赖is_graded
         }).map(homework => {
           // 找到对应的task_id
-          const taskId = Object.keys(taskToHomeworkMap).find(key => 
+          const taskId = Object.keys(taskToHomeworkMap).find(key =>
             taskToHomeworkMap[key] === homework.homeworkId
           );
           const submission = homeworkSubmissions.find(s => s.taskId === parseInt(taskId));
-          
+
           return {
             ...homework,
             submitTime: submission ? submission.submissionTime : null,
@@ -1945,28 +1968,28 @@ export default {
             isGraded: submission ? submission.isGraded : '0'
           };
         });
-        
+
         // 处理未完成作业
         this.uncompletedHomework = this.homeworkList.filter(homework => {
           // 找到对应的task_id
-          const taskId = Object.keys(taskToHomeworkMap).find(key => 
+          const taskId = Object.keys(taskToHomeworkMap).find(key =>
             taskToHomeworkMap[key] === homework.homeworkId
           );
           if (!taskId) return true; // 如果没有对应的task，认为是未完成
-          
+
           // 检查是否有对应的提交记录
           const submission = homeworkSubmissions.find(s => s.taskId === parseInt(taskId));
           return submission === undefined; // 没有提交记录就算未完成
         });
-        
+
         // 更新评分列表 - 只包含作业类型的提交记录
         this.updateGradeList(homeworkSubmissions, homeworkTasks);
       }).catch(error => {
         console.error('处理作业状态失败:', error);
         // 如果获取任务失败，使用原始逻辑
         const completedHomeworkIds = submissions.map(s => s.taskId);
-        
-        this.completedHomework = this.homeworkList.filter(homework => 
+
+        this.completedHomework = this.homeworkList.filter(homework =>
           completedHomeworkIds.includes(homework.homeworkId)
         ).map(homework => {
           const submission = submissions.find(s => s.taskId === homework.homeworkId);
@@ -1980,15 +2003,15 @@ export default {
             isGraded: submission ? submission.isGraded : '0'
           };
         });
-        
-        this.uncompletedHomework = this.homeworkList.filter(homework => 
+
+        this.uncompletedHomework = this.homeworkList.filter(homework =>
           !completedHomeworkIds.includes(homework.homeworkId)
         );
-        
+
         this.updateGradeList(submissions, []);
       });
     },
-    
+
     // 获取学习任务
     getLearningTasks() {
       return new Promise((resolve) => {
@@ -2001,15 +2024,15 @@ export default {
         });
       });
     },
-    
+
     // 更新评分列表
     updateGradeList(submissions, tasks) {
       this.filteredGradeList = submissions.map(submission => {
         const task = tasks.find(t => t.taskId === submission.taskId);
         // 通过task的homeworkId找到对应的homework
-        const homework = task && task.homeworkId ? 
+        const homework = task && task.homeworkId ?
           this.homeworkList.find(h => h.homeworkId === task.homeworkId) : null;
-        
+
         return {
           ...submission,
           taskName: task ? task.taskName : (homework ? homework.homeworkName : '未知作业'),
@@ -2018,19 +2041,19 @@ export default {
         };
       });
     },
-    
+
     // 过滤当前课程的提交记录
     filterCurrentCourseSubmissions(allSubmissions) {
       // 获取当前课程的所有学习任务
       this.getLearningTasks().then(tasks => {
         // 过滤出当前课程的任务ID
         const currentCourseTaskIds = tasks.map(task => task.taskId);
-        
+
         // 过滤出当前课程的提交记录
-        const currentCourseSubmissions = allSubmissions.filter(submission => 
+        const currentCourseSubmissions = allSubmissions.filter(submission =>
           currentCourseTaskIds.includes(submission.taskId)
         );
-        
+
         this.processHomeworkStatus(currentCourseSubmissions);
       }).catch(error => {
         console.error('过滤课程提交记录失败:', error);
@@ -2054,7 +2077,7 @@ export default {
     },
     downloadSubmissionFile(file) {
       if (!file) return;
-      
+
       // 构建下载URL
       let url = file;
       if (!/^https?:\/\//.test(file)) {
@@ -2062,9 +2085,9 @@ export default {
         // 注意：这里需要直接使用后端地址，而不是代理路径
         url = 'http://localhost:8080' + file;
       }
-      
+
       console.log('[DEBUG] 下载文件:', url);
-      
+
       // 创建临时链接进行下载
       const link = document.createElement('a');
       link.href = url;
@@ -2154,11 +2177,11 @@ export default {
       const answerDetails = JSON.parse(this.currentScore.answerDetails);
       const question = answerDetails.questions ? answerDetails.questions[index] : null;
       if (!question) return '';
-      
+
       const optionLabel = String.fromCharCode(65 + optionIndex);
       const correctAnswer = question.correctAnswer;
       const userAnswer = question.userAnswer;
-      
+
       // 如果是正确答案
       if (optionLabel === correctAnswer) {
         return 'correct-option';
@@ -2173,11 +2196,11 @@ export default {
       const question = this.questionList[index];
       const userAnswer = this.userAnswers[index];
       const correctAnswer = question.answer;
-      
+
       if (!question.options || question.options.length === 0) return '';
-      
+
       const optionLabel = String.fromCharCode(65 + optionIndex);
-      
+
       // 如果是正确答案
       if (optionLabel === correctAnswer) {
         return 'correct-option';

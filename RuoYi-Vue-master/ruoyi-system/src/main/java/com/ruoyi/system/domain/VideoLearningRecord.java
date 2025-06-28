@@ -78,6 +78,9 @@ public class VideoLearningRecord extends BaseEntity
     /** 完成率范围（结束） */
     private Integer completionRateEnd;
 
+    /** 完成状态 */
+    private String completionStatus;
+
     public void setRecordId(Long recordId) 
     {
         this.recordId = recordId;
@@ -191,6 +194,9 @@ public class VideoLearningRecord extends BaseEntity
     public void setCompletionRateStart(Integer completionRateStart) { this.completionRateStart = completionRateStart; }
     public Integer getCompletionRateEnd() { return completionRateEnd; }
     public void setCompletionRateEnd(Integer completionRateEnd) { this.completionRateEnd = completionRateEnd; }
+    
+    public String getCompletionStatus() { return completionStatus; }
+    public void setCompletionStatus(String completionStatus) { this.completionStatus = completionStatus; }
 
     @Override
     public String toString() {

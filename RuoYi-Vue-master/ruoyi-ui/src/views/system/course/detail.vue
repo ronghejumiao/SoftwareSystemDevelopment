@@ -37,13 +37,13 @@
               能力掌握度：{{ averageSkillScore }}%
             </span>
           </div>
-          
+
           <!-- 能力图谱 -->
           <div v-if="studentSkills.length > 0" class="skill-radar-container">
             <div class="radar-chart-wrapper">
               <div ref="radarChart" class="radar-chart"></div>
             </div>
-            
+
             <!-- 能力详情列表 -->
             <div class="skill-details-list">
               <div class="skill-detail-item" v-for="skill in studentSkills" :key="skill.requirementId">
@@ -63,7 +63,7 @@
               </div>
             </div>
           </div>
-          
+
           <div v-else class="no-skill-data">
             <i class="el-icon-warning"></i>
             <span>暂无能力数据，请联系教师初始化</span>
@@ -82,7 +82,7 @@
               @click="handleAddRequirement"
             >新增能力要求</el-button>
           </div>
-          
+
           <div v-if="requirementList.length === 0" style="text-align: center; color: #909399;">暂无能力要求</div>
           <div class="ability-list-container">
             <div class="ability-list-grid">
@@ -126,7 +126,7 @@
       </el-tab-pane>
       <el-tab-pane label="学习资源" name="resources">
         <div class="block-title"><i class="el-icon-folder"></i> 学习资源</div>
-        <el-row :gutter="10" class="mb8">
+        <el-row :gutter="10" class="mb8" v-if="isTeacherOrAdmin">
           <el-col :span="1.5">
             <el-button
               type="primary"
@@ -134,7 +134,6 @@
               icon="el-icon-plus"
               size="mini"
               @click="handleAdd"
-              v-hasPermi="['system:resource:add']"
             >新增资源</el-button>
           </el-col>
         </el-row>
@@ -149,7 +148,7 @@
             <el-link type="primary" class="resource-name" @click="handleDownloadAndSubmit(resource)">
               <i class="el-icon-document" /> {{ resource.displayName }}
             </el-link>
-            <div class="actions">
+            <div class="actions" v-if="isTeacherOrAdmin">
               <el-button size="mini" type="text" @click.stop="handleUpdate(resource)" v-hasPermi="['system:resource:edit']">修改</el-button>
               <el-button size="mini" type="text" @click.stop="handleDelete(resource)" v-hasPermi="['system:resource:remove']">删除</el-button>
             </div>
@@ -183,7 +182,7 @@
       </el-tab-pane>
       <el-tab-pane label="视频学习" name="videos">
         <div class="block-title"><i class="el-icon-video-camera"></i> 视频学习</div>
-        <el-row :gutter="10" class="mb8">
+        <el-row :gutter="10" class="mb8" v-if="isTeacherOrAdmin">
           <el-col :span="1.5">
             <el-button
               type="primary"
@@ -224,19 +223,19 @@
                 </div>
               </div>
             </div>
-            <div class="video-actions">
+            <div class="video-actions" v-if="isTeacherOrAdmin">
               <el-button size="mini" type="text" icon="el-icon-edit" @click.stop="handleEditVideo(video)">修改</el-button>
               <el-button size="mini" type="text" icon="el-icon-delete" @click.stop="handleDeleteVideo(video)">删除</el-button>
             </div>
           </div>
         </el-card>
-        
+
         <!-- 添加或修改视频学习资源对话框 -->
         <el-dialog :title="videoDialogTitle" :visible.sync="videoDialogVisible" width="600px" append-to-body>
           <el-form ref="videoForm" :model="videoForm" :rules="videoRules" label-width="100px">
             <el-form-item label="课程编号" prop="courseCode">
-              <el-input 
-                v-model="videoForm.courseCode" 
+              <el-input
+                v-model="videoForm.courseCode"
                 placeholder="请输入课程编号"
                 :disabled="true"
               />
@@ -307,10 +306,14 @@ import { getStudentSkillByStudentAndCourse, initStudentCourseSkills, addStudentS
 import CourseQuiz from './quiz.vue';
 import CourseTask from './task.vue';
 import { listVideoresource, getVideoresource, delVideoresource, addVideoresource, updateVideoresource } from "@/api/system/videoresource";
+
 import { addSubmission } from '@/api/system/submission';
 import { listTask } from '@/api/system/task';
 import { getLearningRecordByUserAndCourse } from '@/api/system/learningRecord';
 import * as echarts from 'echarts';
+
+import { notificationState } from '@/utils/notificationControl';
+
 
 export default {
   name: "CourseDetailPage",
@@ -321,28 +324,6 @@ export default {
       course: {},
       baseUrl: process.env.VUE_APP_BASE_API,
       loading: false,
-      // 课程图片背景样式
-      get courseHeroStyle() {
-        if (this.course.courseImg) {
-          let imgPath = this.course.courseImg;
-          if (!/^https?:\/\//.test(imgPath)) {
-            if (!imgPath.startsWith('/')) {
-              imgPath = '/' + imgPath;
-            }
-            imgPath = this.baseUrl + imgPath;
-          }
-          return {
-            backgroundImage: `url('${imgPath}')`,
-            backgroundPosition: 'center center',
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat'
-          };
-        } else {
-          return {
-            background: 'linear-gradient(120deg, #e6eaf3 0%, #f8fafc 100%)'
-          };
-        }
-      },
       // 学习资源相关
       resourceList: [],
       open: false,
@@ -383,7 +364,7 @@ export default {
       videoList: [],
       groupedVideos: {},
       uploaderId: JSON.parse(localStorage.getItem('userInfo') || '{}').userId || '',
-      
+
       // 学生能力相关
       studentSkills: [],
       radarChart: null,
@@ -420,6 +401,29 @@ export default {
     };
   },
   computed: {
+    // 课程图片背景样式
+    courseHeroStyle() {
+      if (this.course.courseImg) {
+        let imgPath = this.course.courseImg;
+        if (!/^https?:\/\//.test(imgPath)) {
+          if (!imgPath.startsWith('/')) {
+            imgPath = '/' + imgPath;
+          }
+          imgPath = this.baseUrl + imgPath;
+        }
+        return {
+          backgroundImage: `url('${imgPath}')`,
+          backgroundPosition: 'center center',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat'
+        };
+      } else {
+        return {
+          background: 'linear-gradient(120deg, #e6eaf3 0%, #f8fafc 100%)'
+        };
+      }
+    },
+
     groupedResources() {
       if (!this.resourceList) return {};
       const groups = {};
@@ -428,11 +432,9 @@ export default {
         const parts = resourceName.split(' - ');
         const groupName = parts.length > 1 ? parts[0].trim() : '其他';
         const displayName = parts.length > 1 ? parts.slice(1).join(' - ').trim() : resourceName;
-
         if (!groups[groupName]) {
           groups[groupName] = [];
         }
-
         groups[groupName].push({
           ...resource,
           displayName: displayName
@@ -440,18 +442,33 @@ export default {
       });
       return groups;
     },
-    
+
     // 计算平均能力分数
     averageSkillScore() {
       if (!this.studentSkills || this.studentSkills.length === 0) return 0;
       const total = this.studentSkills.reduce((sum, skill) => sum + parseFloat(skill.skillScore || 0), 0);
       return Math.round(total / this.studentSkills.length);
+    },
+
+    // 判断是否为教师或管理员
+    isTeacherOrAdmin() {
+      const roles = this.$store.getters.roles || [];
+      return roles.includes('admin') || roles.includes('teacher');
+    },
+
+    // 判断是否为学生
+    isStudent() {
+      const roles = this.$store.getters.roles || [];
+      return roles.includes('student');
     }
   },
+
   async created() {
     // 初始化用户信息
     await this.initUserInfo();
-    
+
+    notificationState.isErrorNotificationsEnabled = false; // 进入页面时关闭弹窗
+
     const courseId = this.$route.params.courseId || this.$route.query.courseId;
     if (courseId) {
       this.getCourseDetails(courseId);
@@ -461,22 +478,27 @@ export default {
     } else {
       this.$message.error('未找到课程ID参数');
     }
-    
+
     // 检查是否有tab参数，如果有则切换到相应的选项卡
     const tab = this.$route.query.tab;
     if (tab && ['requirements', 'resources', 'tasks', 'quiz', 'videos'].includes(tab)) {
       this.activeTab = tab;
     }
   },
+
   beforeDestroy() {
     // 清理雷达图实例
     if (this.radarChart) {
       this.radarChart.dispose();
       this.radarChart = null;
     }
-    
+
     // 移除窗口大小变化监听器
     window.removeEventListener('resize', this.handleResize);
+  },
+
+  destroyed() {
+    notificationState.isErrorNotificationsEnabled = true; // 离开页面时恢复弹窗
   },
   methods: {
     // 初始化用户信息
@@ -488,14 +510,14 @@ export default {
           this.studentId = this.$store.getters.id;
           this.uploaderId = this.$store.getters.id;
         }
-        
+
         // 如果store中没有，尝试从localStorage获取
         if (!this.studentId) {
           const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
           this.studentId = userInfo.userId || '';
           this.uploaderId = userInfo.userId || '';
         }
-        
+
         console.log('[DEBUG] 初始化用户信息完成，studentId:', this.studentId);
       } catch (error) {
         console.error('初始化用户信息失败:', error);
@@ -505,7 +527,7 @@ export default {
         this.uploaderId = userInfo.userId || '';
       }
     },
-    
+
     getCourseDetails(courseId) {
       if (!courseId) {
         this.$message.error('未找到课程ID参数');
@@ -738,20 +760,20 @@ export default {
         this.requirementList = [];
       });
     },
-    
+
     // 获取学生能力数据
     async getStudentSkills() {
       if (!this.studentId || !this.course.courseId) {
         console.log('[DEBUG] 缺少必要参数，studentId:', this.studentId, 'courseId:', this.course.courseId);
         return;
       }
-      
+
       try {
         console.log('[DEBUG] 开始获取学生能力数据，studentId:', this.studentId, 'courseId:', this.course.courseId);
         const response = await getStudentSkillByStudentAndCourse(this.studentId, this.course.courseId);
         this.studentSkills = response.data || [];
         console.log('[DEBUG] 获取到的学生能力数据:', this.studentSkills);
-        
+
         // 检查是否需要初始化
         if (this.studentSkills.length === 0 && this.requirementList.length > 0) {
           console.log('[DEBUG] 学生能力数据为空，开始初始化');
@@ -759,16 +781,16 @@ export default {
         } else if (this.studentSkills.length > 0 && this.requirementList.length > 0) {
           // 检查是否有缺失的能力要求
           const existingRequirementIds = this.studentSkills.map(skill => skill.requirementId);
-          const missingRequirements = this.requirementList.filter(req => 
+          const missingRequirements = this.requirementList.filter(req =>
             !existingRequirementIds.includes(req.requirementId)
           );
-          
+
           if (missingRequirements.length > 0) {
             console.log('[DEBUG] 发现缺失的能力要求:', missingRequirements);
             await this.initMissingSkills(missingRequirements);
           }
         }
-        
+
         // 绘制雷达图
         this.$nextTick(() => {
           this.initRadarChart();
@@ -776,7 +798,7 @@ export default {
       } catch (error) {
         console.error('获取学生能力数据失败:', error);
         this.studentSkills = [];
-        
+
         // 如果获取失败，尝试初始化
         if (this.requirementList.length > 0) {
           console.log('[DEBUG] 获取失败，尝试初始化学生能力数据');
@@ -784,28 +806,28 @@ export default {
         }
       }
     },
-    
+
     // 初始化学生能力数据
     async initStudentSkills() {
       if (!this.studentId || !this.course.courseId) {
         console.log('[DEBUG] 初始化失败，缺少必要参数');
         return;
       }
-      
+
       try {
         console.log('[DEBUG] 开始初始化学生能力数据');
         await initStudentCourseSkills(this.studentId, this.course.courseId);
         console.log('[DEBUG] 初始化成功，重新获取学生能力数据');
-        
+
         // 重新获取学生能力数据
         const response = await getStudentSkillByStudentAndCourse(this.studentId, this.course.courseId);
         this.studentSkills = response.data || [];
-        
+
         // 重新绘制雷达图
         this.$nextTick(() => {
           this.initRadarChart();
         });
-        
+
         this.$message.success('学生能力数据初始化成功');
         console.log('[DEBUG] 初始化后的学生能力数据:', this.studentSkills);
       } catch (error) {
@@ -813,14 +835,14 @@ export default {
         this.$message.error('初始化学生能力数据失败: ' + (error.message || '未知错误'));
       }
     },
-    
+
     // 初始化缺失的能力记录
     async initMissingSkills(missingRequirements) {
       if (!this.studentId || missingRequirements.length === 0) return;
-      
+
       try {
         console.log('[DEBUG] 开始初始化缺失的能力记录:', missingRequirements);
-        
+
         // 为每个缺失的能力要求创建学生能力记录
         const promises = missingRequirements.map(requirement => {
           const skillData = {
@@ -830,58 +852,58 @@ export default {
             updateTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
             updateReason: '系统自动初始化'
           };
-          
+
           return addStudentSkill(skillData);
         });
-        
+
         await Promise.all(promises);
         console.log('[DEBUG] 缺失能力记录初始化成功');
-        
+
         // 重新获取学生能力数据
         const response = await getStudentSkillByStudentAndCourse(this.studentId, this.course.courseId);
         this.studentSkills = response.data || [];
-        
+
         // 重新绘制雷达图
         this.$nextTick(() => {
           this.initRadarChart();
         });
-        
+
         this.$message.success(`成功初始化 ${missingRequirements.length} 个能力记录`);
       } catch (error) {
         console.error('初始化缺失能力记录失败:', error);
         this.$message.error('初始化缺失能力记录失败');
       }
     },
-    
+
     // 初始化雷达图
     initRadarChart() {
       if (!this.studentSkills || this.studentSkills.length === 0) return;
-      
+
       const chartDom = this.$refs.radarChart;
       if (!chartDom) return;
-      
+
       // 销毁之前的图表
       if (this.radarChart) {
         this.radarChart.dispose();
       }
-      
+
       this.radarChart = echarts.init(chartDom);
-      
+
       // 准备数据
       const indicators = this.studentSkills.map(skill => ({
         name: skill.skillName,
         max: 100
       }));
-      
+
       const values = this.studentSkills.map(skill => parseFloat(skill.skillScore || 0));
-      
+
       // 调试信息
       console.log('[DEBUG] 雷达图数据:', {
         indicators: indicators,
         values: values,
         studentSkills: this.studentSkills
       });
-      
+
       const option = {
         title: {
           text: '能力掌握情况',
@@ -902,18 +924,18 @@ export default {
           confine: true,
           formatter: (params) => {
             console.log('[DEBUG] Tooltip被触发，params:', params);
-            
+
             // 对于雷达图，使用params.name来找到对应的技能数据
             const skillName = params.name;
             const skill = this.studentSkills.find(s => s.skillName === skillName);
-            
+
             if (!skill) {
               console.log('[DEBUG] 未找到对应技能数据，name:', skillName);
               return `${skillName || '未知能力'}<br/>得分：${params.value}分`;
             }
-            
+
             console.log('[DEBUG] 找到技能数据:', skill);
-            
+
             return `<div style="padding: 8px;">
               <div style="font-weight: bold; color: #409eff; margin-bottom: 6px; font-size: 14px;">${skill.skillName}</div>
               <div style="margin-bottom: 6px; font-size: 13px;">得分：<span style="color: #67c23a; font-weight: bold;">${skill.skillScore}分</span></div>
@@ -973,9 +995,9 @@ export default {
           }
         }]
       };
-      
+
       this.radarChart.setOption(option);
-      
+
       // 监听窗口大小变化
       this.handleResize = () => {
         if (this.radarChart) {
@@ -984,7 +1006,7 @@ export default {
       };
       window.addEventListener('resize', this.handleResize);
     },
-    
+
     // 获取能力状态类型
     getSkillStatusType(score) {
       const numScore = parseFloat(score || 0);
@@ -992,7 +1014,7 @@ export default {
       if (numScore >= 60) return 'warning';
       return 'danger';
     },
-    
+
     // 获取能力状态文本
     getSkillStatusText(score) {
       const numScore = parseFloat(score || 0);
@@ -1048,7 +1070,7 @@ export default {
     getVideoList(courseId) {
       listVideoresource({ courseId: courseId, pageSize: 999 }).then(response => {
         this.videoList = response.rows || [];
-        
+
         // 按章节分组视频
         this.groupedVideos = {};
         this.videoList.forEach(video => {
@@ -1104,8 +1126,8 @@ export default {
       }).catch(() => {});
     },
     handleVideoPreview(video) {
-      this.$router.push({ 
-        name: 'VideoPlay', 
+      this.$router.push({
+        name: 'VideoPlay',
         params: { videoId: video.videoId },
         query: { courseId: this.course.courseId }
       });
@@ -1127,13 +1149,13 @@ export default {
         this.videoForm.fileSize = res.fileSize;
         this.videoForm.duration = res.duration;
         this.videoForm.uploadTime = res.uploadTime;
-        
+
         // 自动赋值首帧为封面
         if (res.coverImage) {
           this.videoForm.thumbnail = res.coverImage;
           this.videoImageUrl = this.baseUrl + res.coverImage;
         }
-        
+
         this.videoFileList = [{
           name: file.name,
           url: this.baseUrl + res.videoUrl
@@ -1150,7 +1172,7 @@ export default {
     beforeVideoUpload(file) {
       const isMP4 = file.type === 'video/mp4';
       const isLt3G = file.size / 1024 / 1024 / 1024 < 3;
-      
+
       if (!isMP4) {
         this.$message.error('只能上传MP4格式的视频文件!');
         return false;
@@ -1173,7 +1195,7 @@ export default {
     beforeThumbnailUpload(file) {
       const isJPG = file.type === 'image/jpeg' || file.type === 'image/png';
       const isLt2M = file.size / 1024 / 1024 < 2;
-      
+
       if (!isJPG) {
         this.$message.error('上传封面图片只能是 JPG/PNG 格式!');
         return false;
@@ -1194,7 +1216,7 @@ export default {
           // 设置课程ID和视频类型
           this.videoForm.courseId = this.course.courseId;
           this.videoForm.videoType = "MP4";
-          
+
           if (this.videoForm.videoId) {
             // 修改视频
             updateVideoresource(this.videoForm).then(response => {
@@ -1684,30 +1706,30 @@ export default {
     gap: 20px;
     min-height: auto;
   }
-  
+
   .radar-chart-wrapper {
     height: 300px;
   }
-  
+
   .radar-chart {
     height: 260px;
   }
-  
+
   .skill-details-list {
     max-width: 100%;
     max-height: 300px;
   }
-  
+
   .ability-list-container {
     max-height: 300px;
   }
-  
+
   .skill-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .skill-score {
     margin-left: 0;
   }
@@ -1719,49 +1741,49 @@ export default {
   .course-requirements-section {
     margin-bottom: 20px;
   }
-  
+
   .overview-card {
     padding: 15px;
   }
-  
+
   .overview-text {
     font-size: 14px;
   }
-  
+
   .radar-chart-wrapper {
     padding: 15px;
     height: 250px;
   }
-  
+
   .radar-chart {
     height: 220px;
   }
-  
+
   .skill-details-list {
     max-height: 250px;
   }
-  
+
   .ability-list-container {
     max-height: 250px;
   }
-  
+
   .skill-detail-item {
     padding: 12px;
   }
-  
+
   .skill-name {
     font-size: 14px;
   }
-  
+
   .score-value {
     font-size: 18px;
   }
-  
+
   .ability-list-grid {
     grid-template-columns: 1fr;
     gap: 15px;
   }
-  
+
   .ability-card {
     padding: 15px;
   }

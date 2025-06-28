@@ -28,7 +28,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="8" v-if="isTeacherOrAdmin">
         <el-card class="stat-card" shadow="hover">
           <div class="stat-content">
             <div class="stat-icon">
@@ -36,7 +36,7 @@
             </div>
             <div class="stat-info">
               <div class="stat-number">{{ uniqueUserCount }}</div>
-              <div class="stat-label">用户总数</div>
+              <div class="stat-label">学生总数</div>
             </div>
           </div>
         </el-card>
@@ -57,39 +57,39 @@
       </div>
       <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="100px" class="search-form">
         <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="用户ID" prop="userId">
+          <el-col :span="8" v-if="isTeacherOrAdmin">
+            <el-form-item label="用户名" prop="userName">
               <el-input
-                v-model="queryParams.userId"
-                placeholder="请输入用户ID"
+                v-model="queryParams.userName"
+                placeholder="请输入用户名"
                 clearable
                 @keyup.enter.native="handleQuery"
               />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="课程ID" prop="courseId">
+            <el-form-item label="课程代码" prop="courseCode">
               <el-input
-                v-model="queryParams.courseId"
-                placeholder="请输入课程ID"
+                v-model="queryParams.courseCode"
+                placeholder="请输入课程代码"
                 clearable
                 @keyup.enter.native="handleQuery"
               />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="选课时间" prop="joinTime">
+            <el-form-item label="记录时间" prop="joinTime">
               <el-date-picker clearable
                 v-model="queryParams.joinTime"
                 type="date"
                 value-format="yyyy-MM-dd"
-                placeholder="请选择选课时间"
+                placeholder="请选择时间"
                 style="width: 100%"
               />
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row :gutter="20">
+        <el-row :gutter="20" justify="end">
           <el-col :span="8">
             <el-form-item label="课程进度" prop="courseProgress">
               <el-input
@@ -100,7 +100,7 @@
               />
             </el-form-item>
           </el-col>
-          <el-col :span="16">
+          <el-col :span="8" :offset="8" style="text-align: right;">
             <el-form-item>
               <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
               <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -113,17 +113,16 @@
     <!-- 操作按钮区域 -->
     <el-card class="operation-card" shadow="never">
       <el-row :gutter="10" class="mb8">
-        <el-col :span="1.5">
+        <el-col :span="1.5" v-if="isTeacherOrAdmin">
           <el-button
             type="primary"
             plain
             icon="el-icon-plus"
             size="mini"
             @click="handleAdd"
-            v-hasPermi="['system:learningRecord:add']"
           >新增</el-button>
         </el-col>
-        <el-col :span="1.5">
+        <el-col :span="1.5" v-if="isTeacherOrAdmin">
           <el-button
             type="success"
             plain
@@ -131,10 +130,9 @@
             size="mini"
             :disabled="single"
             @click="handleUpdate"
-            v-hasPermi="['system:learningRecord:edit']"
           >修改</el-button>
         </el-col>
-        <el-col :span="1.5">
+        <el-col :span="1.5" v-if="isTeacherOrAdmin">
           <el-button
             type="danger"
             plain
@@ -142,7 +140,6 @@
             size="mini"
             :disabled="multiple"
             @click="handleDelete"
-            v-hasPermi="['system:learningRecord:remove']"
           >删除</el-button>
         </el-col>
         <el-col :span="1.5">
@@ -152,7 +149,6 @@
             icon="el-icon-download"
             size="mini"
             @click="handleExport"
-            v-hasPermi="['system:learningRecord:export']"
           >导出</el-button>
         </el-col>
         <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
@@ -171,16 +167,20 @@
         class="learning-record-table"
       >
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="记录ID" align="center" prop="recordId" width="80" />
-        <el-table-column label="用户ID" align="center" prop="userId" width="100" />
+      <el-table-column label="记录ID" align="center" prop="recordId" width="80" v-if="$store.getters.roles.includes('admin')" />
+        <el-table-column label="用户名" align="center" prop="userName" width="120" v-if="isTeacherOrAdmin" />
+        <el-table-column label="真实姓名" align="center" prop="nickName" width="120" v-if="isTeacherOrAdmin" />
         <el-table-column label="课程ID" align="center" prop="courseId" width="100" />
-        <el-table-column label="选课时间" align="center" prop="joinTime" width="120">
+        <el-table-column label="课程名称" align="center" prop="courseName" width="150" />
+        <el-table-column label="课程代码" align="center" prop="courseCode" width="120" />
+        <el-table-column label="记录时间" align="center" prop="joinTime" width="120">
           <template slot-scope="scope">
             <span>{{ parseTime(scope.row.joinTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
         <el-table-column label="课程进度" align="center" prop="courseProgress" width="100" />
         <el-table-column label="总成绩" align="center" prop="totalScore" width="100" />
+
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="320">
           <template slot-scope="scope">
             <el-button
@@ -201,20 +201,8 @@
               icon="el-icon-document"
               @click="goToSubmissionRecord(scope.row)"
             >任务提交详情</el-button>
-            <el-button
-              size="mini"
-              type="text"
-              icon="el-icon-edit"
-              @click="handleUpdate(scope.row)"
-              v-hasPermi="['system:learningRecord:edit']"
-            >修改</el-button>
-            <el-button
-              size="mini"
-              type="text"
-              icon="el-icon-delete"
-              @click="handleDelete(scope.row)"
-              v-hasPermi="['system:learningRecord:remove']"
-            >删除</el-button>
+
+
           </template>
         </el-table-column>
       </el-table>
@@ -236,12 +224,12 @@
         <el-form-item label="课程ID" prop="courseId">
           <el-input v-model="form.courseId" placeholder="请输入课程ID" />
         </el-form-item>
-        <el-form-item label="选课时间" prop="joinTime">
+        <el-form-item label="记录时间" prop="joinTime">
           <el-date-picker clearable
             v-model="form.joinTime"
             type="date"
             value-format="yyyy-MM-dd"
-            placeholder="请选择选课时间"
+            placeholder="请选择时间"
             style="width: 100%"
           />
         </el-form-item>
@@ -320,6 +308,12 @@ export default {
     uniqueUserCount() {
       const userSet = new Set(this.learningRecordList.map(item => item.userId))
       return userSet.size
+    },
+    isTeacherOrAdmin() {
+      return this.$store.getters.roles.includes('admin') || this.$store.getters.roles.includes('teacher');
+    },
+    currentUserName() {
+      return this.$store.getters.name;
     }
   },
   created() {
@@ -328,6 +322,9 @@ export default {
   methods: {
     /** 查询学习记录列表 */
     getList() {
+      if (!this.isTeacherOrAdmin) {
+        this.queryParams.userName = this.currentUserName;
+      }
       this.loading = true
       listLearningRecord(this.queryParams).then(response => {
         this.learningRecordList = response.rows
@@ -440,7 +437,7 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('system/learningRecord/export', {
+      this.download('system/record/export', {
         ...this.queryParams
       }, `learningRecord_${new Date().getTime()}.xlsx`)
     }

@@ -71,7 +71,7 @@
       
       <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="100px" class="search-form">
         <el-row :gutter="20">
-          <el-col :span="8">
+          <el-col :span="8" v-if="!isStudent">
             <el-form-item label="成绩ID" prop="scoreId">
         <el-input
           v-model="queryParams.scoreId"
@@ -113,7 +113,7 @@
         />
       </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="8" v-if="!isStudent">
             <el-form-item label="得分范围" prop="score">
               <el-input-number
           v-model="queryParams.score"
@@ -124,7 +124,7 @@
         />
       </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="8" v-if="!isStudent">
             <el-form-item label="成绩状态" prop="scoreStatus">
               <el-select v-model="queryParams.scoreStatus" placeholder="请选择成绩状态" clearable style="width: 100%">
           <el-option
@@ -136,9 +136,7 @@
         </el-select>
       </el-form-item>
           </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="8">
+          <el-col :span="8" v-if="!isStudent && queryParams.scoreStatus === undefined">
             <el-form-item label="提交时间" prop="submitTime">
               <el-date-picker
           v-model="queryParams.submitTime"
@@ -150,7 +148,7 @@
               />
       </el-form-item>
           </el-col>
-          <el-col :span="16">
+          <el-col :span="isStudent ? 16 : 8">
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -161,7 +159,7 @@
     </el-card>
 
     <!-- 操作按钮区域 -->
-    <el-card class="operation-card" shadow="never">
+    <el-card class="operation-card" shadow="never" v-if="!isStudent">
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
@@ -220,7 +218,7 @@
         highlight-current-row
         class="score-table"
       >
-      <el-table-column type="selection" width="55" align="center" />
+      <el-table-column type="selection" width="55" align="center" v-if="!isStudent"/>
         <el-table-column label="成绩ID" align="center" prop="scoreId" width="80" />
         <el-table-column label="学习记录ID" align="center" prop="learningRecordId" width="120" />
         <el-table-column label="任务ID" align="center" prop="taskId" width="100" />
@@ -252,7 +250,7 @@
             <span>{{ parseTime(scope.row.submitTime, '{y}-{m}-{d} {h}:{i}') }}</span>
         </template>
       </el-table-column>
-        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="150">
+        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="150" v-if="!isStudent">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -359,6 +357,7 @@
 
 <script>
 import { listScore, getScore, delScore, addScore, updateScore } from "@/api/system/score"
+import { isStudent, isTeacher, isAdmin } from "@/utils/roles"
 
 export default {
   name: "Score",
@@ -413,7 +412,9 @@ export default {
         scoreStatus: [
           { required: true, message: "成绩状态不能为空", trigger: "change" }
         ],
-      }
+      },
+      // 是否为学生
+      isStudent: false,
     }
   },
   computed: {
@@ -438,6 +439,9 @@ export default {
     }
   },
   created() {
+    // 检查是否为学生角色
+    this.isStudent = isStudent()
+    
     // 自动读取 query 参数
     if (this.$route.query.userId) {
       this.queryParams.userId = this.$route.query.userId

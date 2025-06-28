@@ -1,6 +1,9 @@
 <template>
   <div class="register">
     <el-form ref="registerForm" :model="registerForm" :rules="registerRules" class="register-form">
+      <div class="register-logo-container">
+        <img src="@/assets/logo/logo.png" alt="Logo" class="register-logo" />
+      </div>
       <h3 class="title">{{title}}</h3>
       <el-form-item prop="username">
         <el-input v-model="registerForm.username" type="text" auto-complete="off" placeholder="账号">
@@ -53,7 +56,7 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item prop="roleId">
-        <el-select v-model="registerForm.roleId" placeholder="请选择角色" style="width: 100%">
+        <el-select v-model="registerForm.roleId" placeholder="请选择角色" style="width: 100%;">
           <el-option
             v-for="role in roleOptions"
             :key="role.roleId"
@@ -81,7 +84,7 @@
           :loading="loading"
           size="medium"
           type="primary"
-          style="width:100%;"
+          style="width:100%; border-radius: 20px;"
           @click.native.prevent="handleRegister"
         >
           <span v-if="!loading">注 册</span>
@@ -238,15 +241,27 @@ export default {
   color: #707070;
 }
 
+.register-logo-container {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.register-logo {
+  width: 80px;
+  height: 80px;
+}
+
 .register-form {
-  border-radius: 6px;
+  border-radius: 15px;
   background: #ffffff;
-  width: 400px;
+  box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.1);
+  width: 450px;
   padding: 25px 25px 5px 25px;
   .el-input {
     height: 38px;
     input {
       height: 38px;
+      border-radius: 20px;
     }
   }
   .input-icon {
@@ -255,6 +270,11 @@ export default {
     margin-left: 2px;
   }
 }
+
+.el-select .el-input__inner{
+  border-radius: 20px;
+}
+
 .register-tip {
   font-size: 13px;
   text-align: center;
@@ -283,5 +303,14 @@ export default {
 }
 .register-code-img {
   height: 38px;
+}
+
+.el-button--primary {
+  background-color: #409EFF;
+  border-color: #409EFF;
+}
+
+.link-type, .link-type:focus, .link-type:hover {
+  color: #409EFF;
 }
 </style>
