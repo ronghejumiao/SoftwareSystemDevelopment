@@ -24,12 +24,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectVideoLearningRecordVo">
-        select vlr.*, su.user_name as student_name, su.avatar as student_avatar, lr2.resource_name as resource_name, lr2.resource_type as resource_category, c.course_name
+        select vlr.*, su.user_name as student_name, su.avatar as student_avatar, vr.video_name as resource_name, vr.video_type as resource_category, c.course_name
         from video_learning_record vlr
         left join learning_record lr on lr.record_id = vlr.learning_record_id
         left join sys_user su on su.user_id = lr.user_id
-        left join learning_resource lr2 on lr2.resource_id = vlr.resource_id
-        left join course c on c.course_id = lr2.course_id
+        left join video_resource vr on vr.video_id = vlr.resource_id
+        left join course c on c.course_id = vr.course_id
     </sql>
 
     <select id="selectVideoLearningRecordList" parameterType="VideoLearningRecord" resultMap="VideoLearningRecordResult">
@@ -47,7 +47,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <!-- 按学生姓名模糊查询 -->
             <if test="studentName != null and studentName != ''"> and su.user_name like concat('%', #{studentName}, '%')</if>
             <!-- 按资源名称模糊查询 -->
-            <if test="resourceName != null and resourceName != ''"> and lr2.resource_name like concat('%', #{resourceName}, '%')</if>
+            <if test="resourceName != null and resourceName != ''"> and vr.video_name like concat('%', #{resourceName}, '%')</if>
             <!-- 完成率区间查询 -->
             <if test="completionRateStart != null"> and vlr.completion_rate &gt;= #{completionRateStart}</if>
             <if test="completionRateEnd != null"> and vlr.completion_rate &lt;= #{completionRateEnd}</if>
@@ -119,6 +119,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <!-- 根据学习记录ID和资源ID查询 -->
     <select id="selectByLearningAndResourceId" resultMap="VideoLearningRecordResult">
+        <include refid="selectVideoLearningRecordVo"/>
+        where vlr.learning_record_id = #{learningRecordId} and vlr.resource_id = #{resourceId}
+    </select>
+
+    <!-- 根据学习记录ID和资源ID查询（新增方法） -->
+    <select id="selectByLearningRecordIdAndResourceId" resultMap="VideoLearningRecordResult">
         <include refid="selectVideoLearningRecordVo"/>
         where vlr.learning_record_id = #{learningRecordId} and vlr.resource_id = #{resourceId}
     </select>

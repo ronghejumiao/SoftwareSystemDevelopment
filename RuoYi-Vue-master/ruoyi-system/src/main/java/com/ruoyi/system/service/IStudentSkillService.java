@@ -58,4 +58,22 @@ public interface IStudentSkillService
      * @return 结果
      */
     public int deleteStudentSkillById(Long id);
+
+    /**
+     * 根据学生ID和课程ID查询学生能力
+     * 
+     * @param studentId 学生ID
+     * @param courseId 课程ID
+     * @return 学生能力列表
+     */
+    public List<StudentSkill> selectStudentSkillByStudentAndCourse(Long studentId, Long courseId);
+
+    /**
+     * 初始化学生课程能力（为缺失的能力要求创建记录）
+     * 
+     * @param studentId 学生ID
+     * @param courseId 课程ID
+     * @return 结果
+     */
+    public int initStudentCourseSkills(Long studentId, Long courseId);
 }

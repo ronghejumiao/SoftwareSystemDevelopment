@@ -97,7 +97,11 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="资源ID" align="center" prop="resourceId" />
       <el-table-column label="课程ID" align="center" prop="courseId" />
-      <el-table-column label="资源名称" align="center" prop="resourceName" />
+      <el-table-column label="资源名称" align="center" prop="resourceName">
+        <template slot-scope="scope">
+          <el-link type="primary" @click="handleDownloadAndSubmit(scope.row)">{{ scope.row.resourceName }}</el-link>
+        </template>
+      </el-table-column>
       <el-table-column label="资源类型" align="center" prop="resourceType" />
       <el-table-column label="文件名称" align="center" prop="resourcePath">
         <template slot-scope="scope">
@@ -126,6 +130,13 @@
             @click="handleDelete(scope.row)"
             v-hasPermi="['system:resource:remove']"
           >删除</el-button>
+          <el-button
+            v-if="scope.row.resourceType && scope.row.resourceType.toLowerCase() === 'ppt'"
+            size="mini"
+            type="text"
+            icon="el-icon-download"
+            @click="handleDownloadAndSubmit(scope.row)"
+          >下载</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -148,7 +159,19 @@
           <el-input v-model="form.resourceName" placeholder="请输入资源名称" />
         </el-form-item>
         <el-form-item label="上传资源" prop="resourcePath">
-          <file-upload v-model="form.resourcePath" :action="uploadUrl" :headers="uploadHeaders" :file-size="3072" :limit="isUpdate ? 1 : 10" @upload-completed="handleResourceUploadSuccess" />
+          <file-upload 
+            v-model="form.resourcePath" 
+            :action="uploadUrl" 
+            :headers="uploadHeaders" 
+            :file-size="3072" 
+            :limit="isUpdate ? 1 : 10" 
+            :accept="allowedFileTypes"
+            @upload-completed="handleResourceUploadSuccess" 
+            @before-upload="beforeUpload"
+          />
+          <div slot="tip" class="el-upload__tip">
+            支持的文件类型：PPT、PDF、DOC、DOCX、TXT等文档格式，不支持视频文件
+          </div>
         </el-form-item>
         <el-form-item label="上传者ID" prop="uploaderId">
           <el-input v-model="form.uploaderId" placeholder="请输入上传者ID" />
@@ -166,6 +189,9 @@
 import { listResource, getResource, delResource, addResource, updateResource } from "@/api/system/resource"
 import { getToken } from "@/utils/auth"
 import { listCourse, getCourse } from "@/api/system/course"
+import { addSubmission } from '@/api/system/submission'
+import { listTask } from '@/api/system/task'
+import { getLearningRecordByUserAndCourse } from '@/api/system/learningRecord'
 
 export default {
   name: "Resource",
@@ -227,15 +253,18 @@ export default {
         resourcePath: [
           { required: true, message: "请上传资源文件", trigger: "blur" }
         ]
-      }
+      },
+      allowedFileTypes: '.ppt,.pdf,.doc,.docx,.txt'
     }
   },
   created() {
+    console.log('[DEBUG] Resource页面created钩子执行');
     // 只要进入页面就加载全部资源
     this.getList();
   },
   methods: {
     getFileName(path) {
+      console.log('[DEBUG] getFileName调用', path);
       if (path) {
         const lastSlash = path.lastIndexOf('/');
         if (lastSlash !== -1) {
@@ -247,11 +276,14 @@ export default {
     },
     /** 查询学习资源列表 */
     getList() {
+      console.log('[DEBUG] getList方法调用');
       this.loading = true
       listResource(this.queryParams).then(response => {
-        this.resourceList = response.rows
-        this.total = response.total
+        // 过滤掉video类型的资源，因为视频资源现在单独管理
+        this.resourceList = (response.rows || []).filter(resource => resource.resourceType !== 'video');
+        this.total = this.resourceList.length;
         this.loading = false
+        console.log('[DEBUG] getList响应', response);
       })
     },
     // 取消按钮
@@ -410,6 +442,81 @@ export default {
     },
     handleSwitchTab(tabName) {
       this.activeTab = tabName;
+    },
+    async handleDownloadAndSubmit(resource) {
+      console.log('[DEBUG] handleDownloadAndSubmit被调用，resource:', resource);
+      let userId = this.$store.getters.id;
+      if (!userId) {
+        console.log('[DEBUG] userId为空，尝试获取用户信息');
+        await this.$store.dispatch('user/getInfo');
+        userId = this.$store.getters.id;
+        console.log('[DEBUG] 获取后userId:', userId);
+      }
+      const courseId = resource.courseId;
+      if (!userId || !courseId) {
+        this.$modal.msgError('无法获取用户或课程信息，userId:' + userId + ', courseId:' + courseId);
+        console.error('[DEBUG] userId或courseId为空，终止提交');
+        return;
+      }
+      let record = await getLearningRecordByUserAndCourse(userId, courseId);
+      console.log('[DEBUG] 查询学习记录:', record);
+      if (!record) {
+        await this.$store.dispatch('user/getInfo');
+        await getLearningRecordByUserAndCourse(userId, courseId);
+        record = await getLearningRecordByUserAndCourse(userId, courseId);
+        console.log('[DEBUG] 再次查询学习记录:', record);
+      }
+      if (!record) {
+        this.$modal.msgError('未找到学习记录，无法提交');
+        console.error('[DEBUG] 未找到学习记录，终止提交');
+        return;
+      }
+      const taskRes = await listTask({ courseId, submitMethod: '资料阅读', resourceId: resource.resourceId, pageSize: 10 });
+      console.log('[DEBUG] 查询资料阅读任务:', taskRes);
+      const task = (taskRes.rows || taskRes.data || []).find(t => t.resourceId === resource.resourceId && t.submitMethod === '资料阅读');
+      console.log('[DEBUG] 匹配到的任务:', task);
+      if (task) {
+        try {
+          const now = new Date();
+          const submissionData = {
+            recordId: record.recordId,
+            taskId: task.taskId,
+            userId,
+            submissionContent: '已阅读资料',
+            submissionFile: resource.resourcePath,
+            submissionTime: now,
+            createTime: now,
+            isGraded: '1',
+            gradeScore: 100,
+            gradeComment: '资料阅读自动满分',
+            status: '1',
+            delFlag: '0'
+          };
+          console.log('[DEBUG] 提交任务参数:', submissionData);
+          const res = await addSubmission(submissionData);
+          console.log('[DEBUG] addSubmission响应:', res);
+          this.$modal.msgSuccess('已自动记录任务完成，得分100');
+          this.$root && this.$root.$emit && this.$root.$emit('submissionRecordUpdated');
+        } catch (e) {
+          console.error('[DEBUG] 自动提交任务失败', e);
+          this.$modal.msgError('自动提交任务失败，请重试');
+        }
+      } else {
+        console.warn('[DEBUG] 未找到资料阅读任务，不提交，仅下载');
+      }
+      let url = resource.resourcePath;
+      if (!/^https?:\/{2}/.test(url)) {
+        url = process.env.VUE_APP_BASE_API + url;
+      }
+      window.open(url, '_blank');
+    },
+    beforeUpload(file) {
+      const isVideo = file.type.toLowerCase().startsWith('video');
+      if (isVideo) {
+        this.$modal.msgError('不支持上传视频文件');
+        return false;
+      }
+      return true;
     }
   },
   computed: {

@@ -36,12 +36,13 @@ export function addRecord(data) {
 }
 
 // 修改视频学习记录，记录学生观看视频的行为数据
-export function updateRecord(data) {
+export function updateRecord(data, config = {}) {
   console.log('更新视频学习记录，数据:', data);
   return request({
     url: '/system/videoLearningRecord',
     method: 'put',
-    data: data
+    data: data,
+    ...config
   });
 }
 

@@ -35,6 +35,12 @@ public class StudentSkill extends BaseEntity
     @Excel(name = "评分更新原因")
     private String updateReason;
 
+    /** 能力名称（关联查询） */
+    private String skillName;
+
+    /** 能力描述（关联查询） */
+    private String description;
+
     public void setId(Long id) 
     {
         this.id = id;
@@ -85,6 +91,26 @@ public class StudentSkill extends BaseEntity
         return updateReason;
     }
 
+    public void setSkillName(String skillName) 
+    {
+        this.skillName = skillName;
+    }
+
+    public String getSkillName() 
+    {
+        return skillName;
+    }
+
+    public void setDescription(String description) 
+    {
+        this.description = description;
+    }
+
+    public String getDescription() 
+    {
+        return description;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -94,6 +120,8 @@ public class StudentSkill extends BaseEntity
             .append("skillScore", getSkillScore())
             .append("updateTime", getUpdateTime())
             .append("updateReason", getUpdateReason())
+            .append("skillName", getSkillName())
+            .append("description", getDescription())
             .toString();
     }
 }

@@ -11,6 +11,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="skillScore"    column="skill_score"    />
         <result property="updateTime"    column="update_time"    />
         <result property="updateReason"    column="update_reason"    />
+        <result property="skillName"    column="skill_name"    />
+        <result property="description"    column="description"    />
     </resultMap>
 
     <sql id="selectStudentSkillVo">
@@ -72,4 +74,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{id}
         </foreach>
     </delete>
+
+    <select id="selectStudentSkillByStudentAndCourse" resultMap="StudentSkillResult">
+        select 
+            ss.id, 
+            ss.student_id, 
+            ss.requirement_id, 
+            ss.skill_score, 
+            ss.update_time, 
+            ss.update_reason,
+            csr.skill_name,
+            csr.description
+        from student_skill ss
+        left join course_skill_requirement csr on ss.requirement_id = csr.requirement_id
+        where ss.student_id = #{studentId} 
+        and csr.course_id = #{courseId}
+        order by csr.requirement_id
+    </select>
 </mapper>

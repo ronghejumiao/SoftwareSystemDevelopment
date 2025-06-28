@@ -51,6 +51,10 @@ public class Score extends BaseEntity
     @Excel(name = "提交时间，默认当前时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date submitTime;
 
+    /** 试卷详情，存储学生作答情况 */
+    @Excel(name = "试卷详情")
+    private String answerDetails;
+
     public void setScoreId(Long scoreId) 
     {
         this.scoreId = scoreId;
@@ -131,6 +135,16 @@ public class Score extends BaseEntity
         return submitTime;
     }
 
+    public void setAnswerDetails(String answerDetails) 
+    {
+        this.answerDetails = answerDetails;
+    }
+
+    public String getAnswerDetails() 
+    {
+        return answerDetails;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -142,6 +156,7 @@ public class Score extends BaseEntity
             .append("scoreDesc", getScoreDesc())
             .append("scoreStatus", getScoreStatus())
             .append("submitTime", getSubmitTime())
+            .append("answerDetails", getAnswerDetails())
             .append("createTime", getCreateTime())
             .append("updateTime", getUpdateTime())
             .toString();

@@ -25,8 +25,8 @@ public class VideoLearningRecord extends BaseEntity
     @Excel(name = "学习记录ID，关联learning_record表")
     private Long learningRecordId;
 
-    /** 资源ID，关联learning_resource表（视频） */
-    @Excel(name = "资源ID，关联learning_resource表", readConverterExp = "视=频")
+    /** 资源ID，关联video_resource表（视频） */
+    @Excel(name = "资源ID，关联video_resource表", readConverterExp = "视=频")
     private Long resourceId;
 
     /** 视频总时长（秒） */

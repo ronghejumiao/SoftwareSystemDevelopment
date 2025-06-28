@@ -5,6 +5,7 @@
       <div slot="header" class="clearfix">
         <span>学习任务</span>
         <el-button
+          v-hasRole="['admin','teacher']"
           style="float: right; margin-left: 8px;"
           type="danger"
           plain
@@ -14,6 +15,7 @@
           @click="deleteSelectedTasks"
         >删除任务</el-button>
         <el-button
+          v-hasRole="['admin','teacher']"
           style="float: right;"
           type="primary"
           plain
@@ -24,7 +26,7 @@
       </div>
       <el-form :inline="true" :model="filter" class="filter-form">
         <el-form-item label="任务类型">
-          <el-select v-model="filter.taskType" placeholder="全部" clearable>
+          <el-select v-model="filter.taskType" placeholder="全部" clearable style="width: 140px;">
             <el-option label="全部" value="" />
             <el-option label="资料阅读" value="资料阅读" />
             <el-option label="视频观看" value="视频观看" />
@@ -32,14 +34,14 @@
           </el-select>
         </el-form-item>
         <el-form-item label="截止时间">
-          <el-select v-model="filter.dueOrder" placeholder="排序" clearable>
+          <el-select v-model="filter.dueOrder" placeholder="排序" clearable style="width: 140px;">
             <el-option label="正序" value="asc" />
             <el-option label="倒序" value="desc" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" size="mini" @click="applyFilter">筛选</el-button>
-          <el-button size="mini" @click="resetFilter">重置</el-button>
+          <el-button type="primary" size="mini" icon="el-icon-search" @click="applyFilter">筛选</el-button>
+          <el-button size="mini" icon="el-icon-refresh" @click="resetFilter">重置</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -89,21 +91,87 @@
     </el-card>
 
     <!-- 任务详情弹窗 -->
-    <el-dialog title="任务详情" :visible.sync="detailDialogVisible" width="600px" append-to-body>
-      <div v-if="currentTask">
-        <h3>{{ currentTask.taskName }}</h3>
-        <p><b>类型：</b>{{ currentTask.taskType }}</p>
-        <p><b>截止时间：</b>{{ formatDate(currentTask.dueDate) }}</p>
-        <p><b>提交方式：</b>{{ currentTask.submitMethod }}</p>
-        <p><b>描述：</b>{{ currentTask.taskDesc }}</p>
-        <div v-if="currentSubmission">
-          <p><b>提交内容：</b>{{ currentSubmission.submissionContent }}</p>
-          <p v-if="currentSubmission.submissionFile"><b>提交文件：</b><a :href="fileUrl(currentSubmission.submissionFile)" target="_blank">下载</a></p>
-          <p><b>提交时间：</b>{{ formatDate(currentSubmission.submissionTime) }}</p>
-          <p v-if="currentSubmission.isGraded === '1'"><b>评分：</b>{{ currentSubmission.gradeScore }} 分</p>
-          <p v-if="currentSubmission.gradeComment"><b>评语：</b>{{ currentSubmission.gradeComment }}</p>
+    <el-dialog title="任务详情" :visible.sync="detailDialogVisible" width="700px" append-to-body>
+      <div v-if="currentTask" class="task-detail-container">
+        <!-- 任务基本信息 -->
+        <div class="task-detail-info-section">
+          <div class="task-detail-header">
+            <h3 class="task-detail-title">{{ currentTask.taskName }}</h3>
+            <div class="task-type-badge">
+              <el-tag :type="currentTask.taskType === '资料阅读' ? 'info' : 'primary'" size="medium">
+                {{ currentTask.taskType }}
+              </el-tag>
+            </div>
+          </div>
+          <div class="task-detail-meta">
+            <span class="meta-item">
+              <i class="el-icon-time"></i>
+              截止时间：{{ formatDate(currentTask.dueDate) }}
+            </span>
+            <span class="meta-item">
+              <i class="el-icon-s-operation"></i>
+              提交方式：{{ currentTask.submitMethod }}
+            </span>
+          </div>
         </div>
-        <div v-else style="color:#E6A23C;">暂无提交记录</div>
+
+        <!-- 任务描述 -->
+        <div v-if="currentTask.taskDesc" class="task-desc-section">
+          <div class="content-card">
+            <div class="card-header">
+              <i class="el-icon-document"></i>
+              <span>任务描述</span>
+            </div>
+            <div class="card-body">
+              <div class="content-text">{{ currentTask.taskDesc }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 提交记录 -->
+        <div class="task-submission-section">
+          <div class="content-card">
+            <div class="card-header">
+              <i class="el-icon-upload"></i>
+              <span>提交记录</span>
+            </div>
+            <div class="card-body">
+              <div v-if="currentSubmission" class="submission-info">
+                <div class="submission-meta">
+                  <span class="meta-item">
+                    <i class="el-icon-time"></i>
+                    提交时间：{{ formatDate(currentSubmission.submissionTime) }}
+                  </span>
+                </div>
+                
+                <!-- 提交内容 -->
+                <div v-if="currentSubmission.submissionContent" class="submission-content">
+                  <div class="section-title">提交内容：</div>
+                  <div class="content-text">{{ currentSubmission.submissionContent }}</div>
+                </div>
+                
+                <!-- 提交文件 -->
+                <div v-if="currentSubmission.submissionFile" class="submission-files">
+                  <div class="section-title">提交文件：</div>
+                  <div class="file-list">
+                    <div class="file-item">
+                      <i class="el-icon-document"></i>
+                      <span class="file-name">{{ getFileName(currentSubmission.submissionFile) }}</span>
+                      <el-button type="primary" size="mini" @click="downloadSubmissionFile(currentSubmission.submissionFile)">
+                        <i class="el-icon-download"></i>
+                        下载
+                      </el-button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="no-submission">
+                <i class="el-icon-warning"></i>
+                <span>暂无提交记录</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div slot="footer" class="dialog-footer">
         <el-button @click="detailDialogVisible = false">关 闭</el-button>
@@ -192,8 +260,8 @@
         <el-form-item label="类型">
           <el-select v-model="resourceFilter.resourceType" placeholder="全部" clearable style="width:120px;">
             <el-option label="全部" value="" />
-            <el-option label="PPT" value="PPT" />
-            <el-option label="PDF" value="PDF" />
+            <el-option label="PPT" value="ppt" />
+            <el-option label="PDF" value="pdf" />
             <el-option label="视频" value="视频" />
           </el-select>
         </el-form-item>
@@ -207,7 +275,13 @@
       </el-form>
       <el-table :data="filteredResourceTable" highlight-current-row @row-click="selectResourceRow" height="350" style="width:100%;">
         <el-table-column prop="resourceId" label="资源ID" width="80" align="center" />
-        <el-table-column prop="resourceName" label="资源名称" min-width="120" />
+        <el-table-column label="资源名称" align="center" prop="resourceName">
+          <template slot-scope="scope">
+            <el-link type="primary" @click="handleDownloadAndSubmit(scope.row)">
+              {{ scope.row.resourceName }}
+            </el-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="resourceType" label="类型" width="80" align="center" />
         <el-table-column prop="uploaderId" label="上传者ID" width="100" align="center" />
         <el-table-column prop="uploadTime" label="上传时间" min-width="140" />
@@ -345,10 +419,14 @@ export default {
     },
     filteredResourceList() {
       if (this.addForm.submitMethod === '资料阅读') {
-        return this.resourceList.filter(r => r.resourceType === 'PPT' || r.resourceType === 'PDF');
+        return this.resourceList.filter(r =>
+          r.resourceType && (r.resourceType.toLowerCase() === 'ppt' || r.resourceType.toLowerCase() === 'pdf')
+        );
       }
       if (this.addForm.submitMethod === '视频观看') {
-        return this.resourceList.filter(r => r.resourceType === '视频');
+        return this.resourceList.filter(r =>
+          r.resourceType && r.resourceType.toLowerCase() === '视频'
+        );
       }
       return this.resourceList;
     },
@@ -359,9 +437,9 @@ export default {
       return arr;
     },
     filteredResourceTable() {
-      let arr = this.resourceList;
+      // 只展示类型为ppt的资源
+      let arr = this.resourceList.filter(r => r.resourceType && r.resourceType.toLowerCase() === 'ppt');
       if (this.resourceFilter.resourceName) arr = arr.filter(r => r.resourceName && r.resourceName.includes(this.resourceFilter.resourceName));
-      if (this.resourceFilter.resourceType) arr = arr.filter(r => r.resourceType === this.resourceFilter.resourceType);
       if (this.resourceFilter.uploaderId) arr = arr.filter(r => String(r.uploaderId) === String(this.resourceFilter.uploaderId));
       return arr;
     },
@@ -484,7 +562,7 @@ export default {
       // 拉取试卷和资源
       const paperRes = await listPaperByCourseId(this.realCourseId);
       this.paperList = paperRes.rows || paperRes.data || [];
-      const resourceRes = await listResource({ courseId: this.realCourseId });
+      const resourceRes = await listResource({ courseId: this.realCourseId, pageNum: 1, pageSize: 999 });
       this.resourceList = resourceRes.rows || resourceRes.data || [];
       // 拉取本课程作业
       const homeworkRes = await listHomework({ courseId: this.realCourseId });
@@ -639,6 +717,48 @@ export default {
       this.addForm.homeworkId = row.homeworkId;
       this.homeworkFilterDialog = false;
     },
+    async handleDownloadAndSubmit(resource) {
+      let userId = this.$store.getters.id;
+      if (!userId) {
+        await this.$store.dispatch('user/getInfo');
+        userId = this.$store.getters.id;
+      }
+      const courseId = resource.courseId;
+      if (!userId || !courseId) {
+        this.$modal.msgError('无法获取用户或课程信息，userId: ' + userId + ', courseId: ' + courseId);
+        return;
+      }
+      // ...后续逻辑不变
+    },
+    // 获取文件名
+    getFileName(filePath) {
+      if (!filePath) return '未知文件';
+      const parts = filePath.split('/');
+      return parts[parts.length - 1] || '未知文件';
+    },
+    
+    // 下载提交文件
+    downloadSubmissionFile(file) {
+      if (!file) return;
+      
+      // 构建下载URL
+      let url = file;
+      if (!/^https?:\/\//.test(file)) {
+        // 如果不是完整URL，添加后端地址
+        url = 'http://localhost:8080' + file;
+      }
+      
+      console.log('[DEBUG] 下载文件:', url);
+      
+      // 创建临时链接进行下载
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.download = this.getFileName(file);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
   }
 };
 </script>
@@ -647,20 +767,99 @@ export default {
 .task-container {
   padding: 20px;
 }
+
+/* 页面顶部筛选栏样式 */
 .task-header {
   margin-bottom: 20px;
 }
+
 .task-section {
   margin-bottom: 20px;
 }
+
 .filter-form {
   margin-bottom: 10px;
 }
+
+/* 筛选表单样式优化 */
+.filter-form .el-form-item {
+  margin-bottom: 10px;
+  margin-right: 15px;
+}
+
+.filter-form .el-select {
+  width: 140px;
+}
+
+.filter-form .el-button {
+  margin-right: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .filter-form .el-form-item {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+  
+  .filter-form .el-select {
+    width: 100%;
+  }
+  
+  .task-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .task-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .task-status,
+  .task-actions {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+  
+  .task-actions {
+    flex-direction: row;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .task-container {
+    padding: 10px;
+  }
+  
+  .task-header .el-button {
+    margin-bottom: 5px;
+  }
+  
+  .task-name {
+    font-size: 14px;
+  }
+  
+  .detail-item {
+    font-size: 12px;
+  }
+}
+
+/* 任务列表样式 */
 .task-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
+
 .task-item {
   display: flex;
   justify-content: space-between;
@@ -669,79 +868,297 @@ export default {
   border: 1px solid #EBEEF5;
   border-radius: 8px;
   transition: all 0.3s;
+  background: #fff;
 }
+
 .task-item.completed {
   border-left: 4px solid #67C23A;
   background-color: #f0f9ff;
 }
+
 .task-item.uncompleted {
   border-left: 4px solid #E6A23C;
   background-color: #fdf6ec;
 }
+
 .task-item.selected {
   box-shadow: 0 0 0 2px #409EFF;
   background: #e6f7ff;
 }
+
+.task-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
 .task-info {
   flex: 1;
 }
+
 .task-name {
   font-size: 16px;
   font-weight: bold;
   color: #303133;
   margin-bottom: 8px;
 }
+
 .task-details {
   display: flex;
   gap: 16px;
   margin-bottom: 8px;
+  flex-wrap: wrap;
 }
+
 .detail-item {
   display: flex;
   align-items: center;
   font-size: 14px;
   color: #606266;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 4px 8px;
+  border-radius: 4px;
 }
+
 .detail-item i {
   margin-right: 4px;
+  color: #409eff;
 }
+
 .task-desc {
   font-size: 14px;
   color: #909399;
   line-height: 1.4;
 }
+
 .task-status {
   margin-left: 16px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
   color: #67C23A;
   min-width: 60px;
   text-align: center;
+  padding: 4px 8px;
+  background: rgba(103, 194, 58, 0.1);
+  border-radius: 4px;
 }
+
 .task-status.uncompleted {
   color: #E6A23C;
+  background: rgba(230, 162, 60, 0.1);
 }
+
 .task-actions {
   margin-left: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
+.task-actions .el-button {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.task-actions .el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
 .empty-state {
   text-align: center;
   padding: 40px 0;
   color: #909399;
 }
+
 .empty-state i {
   font-size: 48px;
   margin-bottom: 16px;
   display: block;
 }
+
 .empty-state p {
   margin: 0;
   font-size: 14px;
 }
+
 .task-item .el-checkbox {
   margin-right: 12px;
+}
+
+/* 任务详情弹窗样式 */
+.task-detail-container {
+  padding: 20px;
+}
+
+.task-detail-info-section {
+  margin-bottom: 20px;
+}
+
+.task-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.task-detail-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #303133;
+  margin: 0;
+}
+
+.task-type-badge {
+  align-self: flex-start;
+}
+
+.task-detail-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.task-detail-meta .meta-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #606266;
+  background: #f5f7fa;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+.task-detail-meta .meta-item i {
+  margin-right: 6px;
+  color: #409eff;
+}
+
+.task-desc-section,
+.task-submission-section {
+  margin-bottom: 20px;
+}
+
+.content-card {
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  background: #f8f9fa;
+  padding: 12px 15px;
+  border-bottom: 1px solid #e4e7ed;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: #303133;
+}
+
+.card-header i {
+  margin-right: 8px;
+  color: #409eff;
+}
+
+.card-body {
+  padding: 15px;
+}
+
+.content-text {
+  line-height: 1.6;
+  color: #606266;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.section-title {
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.submission-meta {
+  margin-bottom: 15px;
+}
+
+.submission-content,
+.submission-files {
+  margin-bottom: 15px;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e4e7ed;
+  transition: all 0.3s ease;
+}
+
+.file-item:hover {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+}
+
+.file-item i {
+  margin-right: 8px;
+  color: #409eff;
+}
+
+.file-name {
+  flex: 1;
+  margin-right: 10px;
+  color: #606266;
+  word-break: break-all;
+}
+
+.file-item .el-button {
+  transition: all 0.3s ease;
+}
+
+.file-item .el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
+}
+
+.no-submission {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #909399;
+  font-size: 14px;
+}
+
+.no-submission i {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+/* 弹窗按钮样式 */
+.dialog-footer {
+  text-align: right;
+  padding-top: 20px;
+}
+
+.dialog-footer .el-button {
+  margin-left: 10px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.dialog-footer .el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 </style> 

@@ -1,6 +1,7 @@
 package com.ruoyi.web.controller;
 
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,5 +101,42 @@ public class StudentSkillController extends BaseController
     public AjaxResult remove(@PathVariable Long[] ids)
     {
         return toAjax(studentSkillService.deleteStudentSkillByIds(ids));
+    }
+
+    /**
+     * 根据学生ID和课程ID查询学生能力
+     */
+    @GetMapping("/student/{studentId}/course/{courseId}")
+    public AjaxResult getStudentSkillByStudentAndCourse(@PathVariable("studentId") Long studentId, @PathVariable("courseId") Long courseId)
+    {
+        List<StudentSkill> list = studentSkillService.selectStudentSkillByStudentAndCourse(studentId, courseId);
+        return success(list);
+    }
+
+    /**
+     * 初始化学生课程能力（为缺失的能力要求创建记录）
+     */
+    @PostMapping("/init")
+    public AjaxResult initStudentCourseSkills(@RequestBody Map<String, Object> params)
+    {
+        try {
+            if (params == null || params.get("studentId") == null || params.get("courseId") == null) {
+                return error("参数不能为空：studentId和courseId");
+            }
+            
+            Long studentId = Long.valueOf(params.get("studentId").toString());
+            Long courseId = Long.valueOf(params.get("courseId").toString());
+            
+            if (studentId <= 0 || courseId <= 0) {
+                return error("参数无效：studentId和courseId必须大于0");
+            }
+            
+            int result = studentSkillService.initStudentCourseSkills(studentId, courseId);
+            return toAjax(result);
+        } catch (NumberFormatException e) {
+            return error("参数格式错误：studentId和courseId必须是数字");
+        } catch (Exception e) {
+            return error("初始化失败：" + e.getMessage());
+        }
     }
 }

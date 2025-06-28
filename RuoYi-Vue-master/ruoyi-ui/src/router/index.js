@@ -153,6 +153,19 @@ export const constantRoutes = [
       }
     ]
   },
+  {
+    path: '/system/videoresource',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/system/videoresource/index'),
+        name: 'VideoResource',
+        meta: { title: '视频资源管理', noCache: true }
+      }
+    ]
+  },
   // 个人学习记录相关页面
   {
     path: '/user/videos',

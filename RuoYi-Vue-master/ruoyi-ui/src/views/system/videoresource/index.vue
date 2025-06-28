@@ -302,7 +302,9 @@ export default {
       videoList: [],
       imageUrl: '',
       // 基础API地址
-      baseApi: process.env.VUE_APP_BASE_API
+      baseApi: process.env.VUE_APP_BASE_API,
+      // 返回路径
+      returnPath: null
     }
   },
   created() {
@@ -319,7 +321,43 @@ export default {
           this.courseIdToCode[course.courseId] = course.courseCode;
         });
         this.getList()
+        // 在课程选项加载完成后再检查查询参数
+        this.$nextTick(() => {
+          this.checkQueryParams()
+        })
       });
+    },
+    /** 检查查询参数 */
+    checkQueryParams() {
+      const { courseId, courseCode, videoId, returnPath } = this.$route.query;
+      
+      // 如果有courseId或courseCode，说明是添加新视频
+      if (courseId || courseCode) {
+        this.reset();
+        if (courseCode) {
+          this.form.courseCode = courseCode;
+          this.handleFormCourseCodeChange();
+        } else if (courseId) {
+          this.form.courseId = courseId;
+          // 根据courseId查找courseCode
+          const course = this.courseOptions.find(c => c.courseId == courseId);
+          if (course) {
+            this.form.courseCode = course.courseCode;
+          }
+        }
+        this.open = true;
+        this.title = "添加视频学习资源";
+      }
+      
+      // 如果有videoId，说明是编辑视频
+      if (videoId) {
+        this.handleUpdate({ videoId: videoId });
+      }
+      
+      // 保存返回路径
+      if (returnPath) {
+        this.returnPath = returnPath;
+      }
     },
     /** 处理查询表单课程编号变化 */
     handleCourseCodeChange() {
@@ -456,12 +494,20 @@ export default {
               this.$modal.msgSuccess("修改成功")
               this.open = false
               this.getList()
+              // 如果有返回路径，则跳转回去
+              if (this.returnPath) {
+                this.$router.push(this.returnPath);
+              }
             })
           } else {
             addVideoresource(submitForm).then(response => {
               this.$modal.msgSuccess("新增成功")
               this.open = false
               this.getList()
+              // 如果有返回路径，则跳转回去
+              if (this.returnPath) {
+                this.$router.push(this.returnPath);
+              }
             })
           }
         }

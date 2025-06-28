@@ -20,11 +20,18 @@ export function getSubmission(submissionId) {
 
 // 新增任务提交记录，记录学生提交任务的信息
 export function addSubmission(data) {
+  console.log('[DEBUG] addSubmission发起请求:', data);
   return request({
     url: '/system/submission',
     method: 'post',
     data: data
-  })
+  }).then(res => {
+    console.log('[DEBUG] addSubmission响应:', res);
+    return res;
+  }).catch(err => {
+    console.error('[DEBUG] addSubmission请求失败:', err);
+    throw err;
+  });
 }
 
 // 修改任务提交记录，记录学生提交任务的信息

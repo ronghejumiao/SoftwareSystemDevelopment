@@ -67,4 +67,13 @@ public interface VideoLearningRecordMapper
      */
     public VideoLearningRecord selectByLearningAndResourceId(@org.apache.ibatis.annotations.Param("learningRecordId") Long learningRecordId,
                                                              @org.apache.ibatis.annotations.Param("resourceId") Long resourceId);
+
+    /**
+     * 根据学习记录ID和资源ID查询记录
+     * @param learningRecordId 学习记录ID
+     * @param resourceId 资源ID
+     * @return 已存在的学习记录，若不存在返回null
+     */
+    public VideoLearningRecord selectByLearningRecordIdAndResourceId(@org.apache.ibatis.annotations.Param("learningRecordId") Long learningRecordId,
+                                                                     @org.apache.ibatis.annotations.Param("resourceId") Long resourceId);
 }

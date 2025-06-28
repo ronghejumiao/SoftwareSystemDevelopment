@@ -175,14 +175,17 @@ public class SysMenuServiceImpl implements ISysMenuService
             router.setQuery(menu.getQuery());
             router.setMeta(new MetaVo(menu.getMenuName(), menu.getIcon(), StringUtils.equals("1", menu.getIsCache()), menu.getPath()));
             List<SysMenu> cMenus = menu.getChildren();
+            
             if (StringUtils.isNotEmpty(cMenus) && UserConstants.TYPE_DIR.equals(menu.getMenuType()))
             {
+                // 目录类型：有子菜单
                 router.setAlwaysShow(true);
                 router.setRedirect("noRedirect");
                 router.setChildren(buildMenus(cMenus));
             }
             else if (isMenuFrame(menu))
             {
+                // 菜单内部跳转
                 router.setMeta(null);
                 List<RouterVo> childrenList = new ArrayList<RouterVo>();
                 RouterVo children = new RouterVo();
@@ -196,6 +199,7 @@ public class SysMenuServiceImpl implements ISysMenuService
             }
             else if (menu.getParentId().intValue() == 0 && isInnerLink(menu))
             {
+                // 顶级内链
                 router.setMeta(new MetaVo(menu.getMenuName(), menu.getIcon()));
                 router.setPath("/");
                 List<RouterVo> childrenList = new ArrayList<RouterVo>();
@@ -208,6 +212,34 @@ public class SysMenuServiceImpl implements ISysMenuService
                 childrenList.add(children);
                 router.setChildren(childrenList);
             }
+            else if (menu.getParentId().intValue() == 0 && UserConstants.TYPE_MENU.equals(menu.getMenuType()))
+            {
+                // 顶级菜单（parent_id=0, menu_type=C）
+                List<RouterVo> childrenList = new ArrayList<RouterVo>();
+                RouterVo children = new RouterVo();
+                children.setPath(menu.getPath());
+                children.setComponent(menu.getComponent());
+                children.setName(getRouteName(menu.getRouteName(), menu.getPath()));
+                children.setMeta(new MetaVo(menu.getMenuName(), menu.getIcon(), StringUtils.equals("1", menu.getIsCache()), menu.getPath()));
+                children.setQuery(menu.getQuery());
+                childrenList.add(children);
+                router.setChildren(childrenList);
+            }
+            else
+            {
+                // 其他情况：普通菜单
+                List<RouterVo> childrenList = new ArrayList<RouterVo>();
+                RouterVo children = new RouterVo();
+                children.setPath(menu.getPath());
+                children.setComponent(menu.getComponent());
+                children.setName(getRouteName(menu.getRouteName(), menu.getPath()));
+                children.setMeta(new MetaVo(menu.getMenuName(), menu.getIcon(), StringUtils.equals("1", menu.getIsCache()), menu.getPath()));
+                children.setQuery(menu.getQuery());
+                childrenList.add(children);
+                router.setChildren(childrenList);
+            }
+            
+            // 只在这里添加一次路由
             routers.add(router);
         }
         return routers;

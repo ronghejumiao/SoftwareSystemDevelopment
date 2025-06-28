@@ -1,6 +1,7 @@
 package com.ruoyi.system.mapper;
 
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 import com.ruoyi.system.domain.StudentSkill;
 
 /**
@@ -58,4 +59,13 @@ public interface StudentSkillMapper
      * @return 结果
      */
     public int deleteStudentSkillByIds(Long[] ids);
+
+    /**
+     * 根据学生ID和课程ID查询学生能力
+     * 
+     * @param studentId 学生ID
+     * @param courseId 课程ID
+     * @return 学生能力列表
+     */
+    public List<StudentSkill> selectStudentSkillByStudentAndCourse(@Param("studentId") Long studentId, @Param("courseId") Long courseId);
 }

@@ -77,7 +77,10 @@ public class TaskSubmissionController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody TaskSubmission taskSubmission)
     {
-        return toAjax(taskSubmissionService.insertTaskSubmission(taskSubmission));
+        System.out.println("[DEBUG] 收到新增任务提交请求: " + taskSubmission);
+        AjaxResult result = toAjax(taskSubmissionService.insertTaskSubmission(taskSubmission));
+        System.out.println("[DEBUG] 新增任务提交结果: " + result);
+        return result;
     }
 
     /**

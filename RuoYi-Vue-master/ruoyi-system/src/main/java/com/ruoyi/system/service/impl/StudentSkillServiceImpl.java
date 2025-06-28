@@ -1,11 +1,14 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
+import java.util.Date;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.mapper.StudentSkillMapper;
+import com.ruoyi.system.mapper.CourseSkillRequirementMapper;
 import com.ruoyi.system.domain.StudentSkill;
+import com.ruoyi.system.domain.CourseSkillRequirement;
 import com.ruoyi.system.service.IStudentSkillService;
 
 /**
@@ -19,6 +22,9 @@ public class StudentSkillServiceImpl implements IStudentSkillService
 {
     @Autowired
     private StudentSkillMapper studentSkillMapper;
+
+    @Autowired
+    private CourseSkillRequirementMapper courseSkillRequirementMapper;
 
     /**
      * 查询学生能力，基于课程能力要求构建
@@ -91,5 +97,63 @@ public class StudentSkillServiceImpl implements IStudentSkillService
     public int deleteStudentSkillById(Long id)
     {
         return studentSkillMapper.deleteStudentSkillById(id);
+    }
+
+    /**
+     * 根据学生ID和课程ID查询学生能力
+     * 
+     * @param studentId 学生ID
+     * @param courseId 课程ID
+     * @return 学生能力列表
+     */
+    @Override
+    public List<StudentSkill> selectStudentSkillByStudentAndCourse(Long studentId, Long courseId)
+    {
+        return studentSkillMapper.selectStudentSkillByStudentAndCourse(studentId, courseId);
+    }
+
+    /**
+     * 初始化学生课程能力（为缺失的能力要求创建记录）
+     * 
+     * @param studentId 学生ID
+     * @param courseId 课程ID
+     * @return 结果
+     */
+    @Override
+    public int initStudentCourseSkills(Long studentId, Long courseId)
+    {
+        // 查询课程的所有能力要求
+        CourseSkillRequirement requirement = new CourseSkillRequirement();
+        requirement.setCourseId(courseId);
+        List<CourseSkillRequirement> requirements = courseSkillRequirementMapper.selectCourseSkillRequirementList(requirement);
+        
+        if (requirements.isEmpty()) {
+            return 0; // 没有能力要求，无需初始化
+        }
+        
+        // 查询学生已有的能力记录
+        List<StudentSkill> existingSkills = studentSkillMapper.selectStudentSkillByStudentAndCourse(studentId, courseId);
+        
+        // 找出缺失的能力要求
+        int createdCount = 0;
+        for (CourseSkillRequirement req : requirements) {
+            boolean exists = existingSkills.stream()
+                .anyMatch(skill -> skill.getRequirementId().equals(req.getRequirementId()));
+            
+            if (!exists) {
+                // 创建缺失的能力记录
+                StudentSkill newSkill = new StudentSkill();
+                newSkill.setStudentId(studentId);
+                newSkill.setRequirementId(req.getRequirementId());
+                newSkill.setSkillScore(java.math.BigDecimal.ZERO); // 初始分数为0
+                newSkill.setUpdateTime(DateUtils.getNowDate());
+                newSkill.setUpdateReason("系统自动初始化");
+                
+                studentSkillMapper.insertStudentSkill(newSkill);
+                createdCount++;
+            }
+        }
+        
+        return createdCount;
     }
 }

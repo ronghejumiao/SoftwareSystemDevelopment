@@ -23,10 +23,11 @@
     <!-- 作业功能 -->
     <div v-if="activeTab === 'homework'" class="homework-content">
       <!-- 作业管理区域 -->
-    <el-card class="homework-section">
+    <el-card class="homework-section" v-hasRole="['admin','teacher']">
       <div slot="header" class="clearfix">
         <span class="section-title">作业管理</span>
         <el-button
+          v-hasRole="['admin','teacher']"
           style="float: right;"
           type="primary"
           plain
@@ -37,6 +38,7 @@
             添加作业
         </el-button>
         <el-button
+          v-hasRole="['admin','teacher']"
           style="float: right; margin-right: 8px;"
           type="danger"
           plain
@@ -85,6 +87,46 @@
       </el-table>
     </el-card>
 
+      <!-- 作业评分区域 -->
+      <el-card class="homework-section" v-hasRole="['admin','teacher']">
+        <div slot="header" class="clearfix">
+          <span class="section-title">作业评分</span>
+          <el-form :inline="true" :model="gradeFilter" class="filter-form" style="float: right;">
+            <el-form-item label="作业名称">
+              <el-input v-model="gradeFilter.taskName" placeholder="作业名称" size="small" clearable />
+            </el-form-item>
+            <el-form-item label="截止时间">
+              <el-date-picker v-model="gradeFilter.dueDate" type="date" placeholder="截止时间" size="small" clearable />
+            </el-form-item>
+            <el-form-item label="提交者">
+              <el-input v-model="gradeFilter.studentName" placeholder="提交者" size="small" clearable />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" size="mini" @click="applyGradeFilter">筛选</el-button>
+              <el-button size="mini" @click="resetGradeFilter">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+        <el-table :data="filteredGradeList" style="width:100%;" size="small">
+          <el-table-column prop="taskName" label="作业名称" min-width="120" />
+          <el-table-column prop="dueDate" label="截止时间" min-width="120">
+            <template slot-scope="scope">{{ formatDate(scope.row.dueDate) }}</template>
+          </el-table-column>
+          <el-table-column prop="studentName" label="提交者" min-width="100" />
+          <el-table-column prop="gradeScore" label="分数" min-width="80">
+            <template slot-scope="scope">
+              <span v-if="scope.row.isGraded === '1'">{{ scope.row.gradeScore }}</span>
+              <span v-else>未评分</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120">
+            <template slot-scope="scope">
+              <el-button type="primary" size="mini" @click="openGradeDialog(scope.row)">查看详情</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+
       <!-- 已完成作业区域 -->
       <el-card class="homework-section">
         <div slot="header" class="clearfix">
@@ -117,6 +159,10 @@
                 <span class="detail-item" v-if="homework.gradeScore">
                   <i class="el-icon-trophy"></i>
                   得分：{{ homework.gradeScore }}分
+                </span>
+                <span class="detail-item" v-else>
+                  <i class="el-icon-trophy"></i>
+                  得分：未评分
                 </span>
               </div>
               <div class="homework-desc" v-if="homework.homeworkDesc">
@@ -263,6 +309,7 @@
         <div slot="header" class="clearfix">
           <span>课程试卷</span>
           <el-button
+            v-hasRole="['admin','teacher']"
             style="float: right;"
             type="primary"
             plain
@@ -447,69 +494,207 @@
       </div>
     </el-dialog>
 
+    <!-- 评分弹窗 -->
+    <el-dialog title="作业评分" :visible.sync="gradeDialogVisible" width="700px" append-to-body>
+      <div v-if="currentGradeSubmission" class="grade-dialog-container">
+        <!-- 作业基本信息 -->
+        <div class="grade-info-section">
+          <div class="grade-header">
+            <h3 class="grade-title">{{ currentGradeSubmission.taskName }}</h3>
+            <div class="grade-status" v-if="currentGradeSubmission.gradeScore !== null">
+              <el-tag :type="getGradeStatusType(currentGradeSubmission.gradeScore)" size="medium">
+                已评分：{{ currentGradeSubmission.gradeScore }}分
+              </el-tag>
+            </div>
+            <div class="grade-meta">
+              <span class="meta-item">
+                <i class="el-icon-user"></i>
+                提交者：{{ currentGradeSubmission.studentName }}
+              </span>
+              <span class="meta-item">
+                <i class="el-icon-time"></i>
+                提交时间：{{ formatDate(currentGradeSubmission.submissionTime) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 提交内容 -->
+        <div class="grade-content-section">
+          <div class="content-card">
+            <div class="card-header">
+              <i class="el-icon-document"></i>
+              <span>提交内容</span>
+            </div>
+            <div class="card-body">
+              <div class="content-text">{{ currentGradeSubmission.submissionContent || '无提交内容' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 提交文件 -->
+        <div v-if="currentGradeSubmission.submissionFile" class="grade-file-section">
+          <div class="content-card">
+            <div class="card-header">
+              <i class="el-icon-folder"></i>
+              <span>提交文件</span>
+            </div>
+            <div class="card-body">
+              <div class="file-list">
+                <div v-for="(file, index) in getSubmissionFiles(currentGradeSubmission.submissionFile)" :key="index" class="file-item">
+                  <i class="el-icon-document"></i>
+                  <span class="file-name">{{ getFileName(file) }}</span>
+                  <el-button type="primary" size="mini" @click="downloadSubmissionFile(file)">
+                    <i class="el-icon-download"></i>
+                    下载
+                  </el-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 评分表单 -->
+        <div class="grade-form-section">
+          <div class="content-card">
+            <div class="card-header">
+              <i class="el-icon-edit"></i>
+              <span>评分信息</span>
+            </div>
+            <div class="card-body">
+              <el-form :model="gradeForm" label-width="80px">
+                <el-form-item label="评分">
+                  <el-input-number 
+                    v-model="gradeForm.gradeScore" 
+                    :min="0" 
+                    :max="100" 
+                    :precision="1"
+                    style="width: 200px;"
+                  />
+                  <span class="score-unit">分</span>
+                </el-form-item>
+                <el-form-item label="评语">
+                  <el-input 
+                    v-model="gradeForm.gradeComment" 
+                    type="textarea" 
+                    :rows="4"
+                    placeholder="请输入评语（可选）" 
+                  />
+                </el-form-item>
+              </el-form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="gradeDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitGrade">保 存</el-button>
+      </div>
+    </el-dialog>
+
     <!-- 提交作业弹窗 -->
     <el-dialog
       title="提交作业"
       :visible.sync="submitHomeworkVisible"
-      width="60%"
+      width="800px"
       append-to-body
       :close-on-click-modal="false"
     >
       <div v-if="currentSubmitHomework" class="submit-homework-container">
+        <!-- 作业信息区 -->
+        <div class="homework-info-section">
+          <div class="content-card">
+            <div class="card-header">
+              <i class="el-icon-document"></i>
+              <span>作业信息</span>
+            </div>
+            <div class="card-body">
+              <div class="homework-header">
+                <h3 class="homework-title">{{ currentSubmitHomework.homework ? currentSubmitHomework.homework.homeworkName : currentSubmitHomework.homeworkName }}</h3>
+                <div class="homework-meta">
+                  <span class="meta-item">
+                    <i class="el-icon-time"></i>
+                    截止时间：{{ formatDate(currentSubmitHomework.homework ? currentSubmitHomework.homework.dueDate : currentSubmitHomework.dueDate) }}
+                  </span>
+                  <span class="meta-item">
+                    <i class="el-icon-date"></i>
+                    创建时间：{{ formatDate(currentSubmitHomework.homework ? currentSubmitHomework.homework.createTime : currentSubmitHomework.createTime) }}
+                  </span>
+                </div>
+              </div>
+              
+              <div v-if="currentSubmitHomework.homework ? currentSubmitHomework.homework.homeworkDesc : currentSubmitHomework.homeworkDesc" class="homework-desc">
+                <div class="section-title">作业描述：</div>
+                <div class="content-text">{{ currentSubmitHomework.homework ? currentSubmitHomework.homework.homeworkDesc : currentSubmitHomework.homeworkDesc }}</div>
+              </div>
+              
+              <div v-if="getFilePaths((currentSubmitHomework.homework && currentSubmitHomework.homework.filePaths) || currentSubmitHomework.filePaths).length > 0" class="homework-files">
+                <div class="section-title">作业附件：</div>
+                <div class="file-list">
+                  <div v-for="(file, idx) in getFilePaths((currentSubmitHomework.homework && currentSubmitHomework.homework.filePaths) || currentSubmitHomework.filePaths)" :key="idx" class="file-item">
+                    <i class="el-icon-document"></i>
+                    <span class="file-name">{{ getFileName(file) }}</span>
+                    <el-button type="primary" size="mini" @click="downloadFile(file)">
+                      <i class="el-icon-download"></i>
+                      下载
+                    </el-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 提交表单区 -->
-        <el-form ref="submitHomeworkForm" :model="submitHomeworkForm" :rules="submitHomeworkRules" label-width="100px">
-          <el-form-item label="提交内容" prop="submissionContent">
-            <el-input 
-              v-model="submitHomeworkForm.submissionContent" 
-              type="textarea" 
-              :rows="6"
-              placeholder="请输入作业内容" 
-            />
-          </el-form-item>
-          <el-form-item label="提交文件">
-            <el-upload
-              ref="submitUpload"
-              :action="uploadUrl"
-              :headers="uploadHeaders"
-              :file-list="submitFileList"
-              :on-success="handleSubmitUploadSuccess"
-              :on-remove="handleSubmitFileRemove"
-              :before-upload="beforeSubmitUpload"
-              :data="uploadSubmitData"
-              multiple
-              :limit="3"
-              accept=".pdf,.doc,.docx,.txt"
-            >
-              <el-button size="small" type="primary">点击上传</el-button>
-              <div slot="tip" class="el-upload__tip">只能上传pdf/doc/docx/txt文件，且不超过10MB</div>
-            </el-upload>
-          </el-form-item>
-        </el-form>
-        <!-- 作业信息区（单独div，避免被背景遮挡） -->
-        <div class="submit-homework-info" style="margin-top: 24px; padding: 16px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e4e7ed;">
-          <h3 style="margin-bottom: 8px;">作业信息</h3>
-          <div><b>名称：</b>{{ currentSubmitHomework.homework ? currentSubmitHomework.homework.homeworkName : currentSubmitHomework.homeworkName }}</div>
-          <div><b>描述：</b>{{ currentSubmitHomework.homework ? currentSubmitHomework.homework.homeworkDesc : currentSubmitHomework.homeworkDesc }}</div>
-          <div><b>截止时间：</b>{{ formatDate(currentSubmitHomework.homework ? currentSubmitHomework.homework.dueDate : currentSubmitHomework.dueDate) }}</div>
-          <div><b>创建时间：</b>{{ formatDate(currentSubmitHomework.homework ? currentSubmitHomework.homework.createTime : currentSubmitHomework.createTime) }}</div>
-          <div v-if="getFilePaths((currentSubmitHomework.homework && currentSubmitHomework.homework.filePaths) || currentSubmitHomework.filePaths).length > 0" style="margin-top: 8px;">
-            <b>附件：</b>
-            <el-link
-              v-for="(file, idx) in getFilePaths((currentSubmitHomework.homework && currentSubmitHomework.homework.filePaths) || currentSubmitHomework.filePaths)"
-              :key="idx"
-              :underline="false"
-              type="primary"
-              @click="downloadFile(file)"
-              style="margin-right: 8px;"
-            >
-              {{ getFileName(file) }}
-            </el-link>
+        <div class="submit-form-section">
+          <div class="content-card">
+            <div class="card-header">
+              <i class="el-icon-edit"></i>
+              <span>提交内容</span>
+            </div>
+            <div class="card-body">
+              <el-form ref="submitHomeworkForm" :model="submitHomeworkForm" :rules="submitHomeworkRules" label-width="100px">
+                <el-form-item label="提交内容" prop="submissionContent">
+                  <el-input 
+                    v-model="submitHomeworkForm.submissionContent" 
+                    type="textarea" 
+                    :rows="6"
+                    placeholder="请输入作业内容（必填）" 
+                  />
+                </el-form-item>
+                <el-form-item label="提交文件">
+                  <el-upload
+                    ref="submitUpload"
+                    :action="uploadUrl"
+                    :headers="uploadHeaders"
+                    :file-list="submitFileList"
+                    :on-success="handleSubmitUploadSuccess"
+                    :on-remove="handleSubmitFileRemove"
+                    :before-upload="beforeSubmitUpload"
+                    :data="uploadSubmitData"
+                    multiple
+                    :limit="3"
+                    accept=".pdf,.doc,.docx,.txt"
+                    class="submit-upload"
+                  >
+                    <el-button size="small" type="primary">
+                      <i class="el-icon-upload"></i>
+                      点击上传
+                    </el-button>
+                    <div slot="tip" class="el-upload__tip">只能上传pdf/doc/docx/txt文件，且不超过10MB</div>
+                  </el-upload>
+                </el-form-item>
+              </el-form>
+            </div>
           </div>
         </div>
       </div>
       <div slot="footer" class="dialog-footer">
         <el-button @click="submitHomeworkVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitHomework" :loading="submitHomeworkLoading">提 交</el-button>
+        <el-button type="primary" @click="submitHomework" :loading="submitHomeworkLoading">
+          <i class="el-icon-upload"></i>
+          提 交
+        </el-button>
       </div>
     </el-dialog>
 
@@ -534,6 +719,40 @@
             <span v-if="currentScore">完成时间：{{ formatDate(currentScore.submitTime) }}</span>
           </div>
         </div>
+        
+        <!-- 学生作答详情 -->
+        <div v-if="currentScore && currentScore.answerDetails" class="answer-details-section">
+          <h3>作答详情</h3>
+          <div class="answer-summary">
+            <el-row :gutter="20">
+              <el-col :span="6">
+                <div class="summary-item">
+                  <div class="summary-label">总得分</div>
+                  <div class="summary-value">{{ parseAnswerDetails().totalScore }}分</div>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="summary-item">
+                  <div class="summary-label">正确题数</div>
+                  <div class="summary-value">{{ getCorrectCount() }}题</div>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="summary-item">
+                  <div class="summary-label">错误题数</div>
+                  <div class="summary-value">{{ getIncorrectCount() }}题</div>
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div class="summary-item">
+                  <div class="summary-label">正确率</div>
+                  <div class="summary-value">{{ getAccuracyRate() }}%</div>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+        </div>
+        
         <!-- 题目列表 -->
         <div class="question-list">
           <div
@@ -546,6 +765,9 @@
               <span class="question-type">{{ question.questionType }}</span>
               <span class="question-score">{{ question.score }}分</span>
               <span class="question-difficulty">{{ question.difficultyLevel }}</span>
+              <span v-if="currentScore && currentScore.answerDetails" class="question-result" :class="getQuestionResultClass(index)">
+                {{ getQuestionResultText(index) }}
+              </span>
             </div>
             <div class="question-content">
               <div class="content-text">{{ question.questionContent }}</div>
@@ -555,15 +777,31 @@
                   v-for="(option, optionIndex) in question.options"
                   :key="optionIndex"
                   class="option-item"
+                  :class="getOptionClass(index, optionIndex)"
                 >
                   <span class="option-label">{{ String.fromCharCode(65 + optionIndex) }}.</span>
                   <span class="option-content">{{ option }}</span>
                 </div>
               </div>
-              <!-- 答案 -->
-              <div class="answer-section">
-                <div class="answer-label">答案：</div>
-                <div class="answer-content">{{ question.answer }}</div>
+              
+              <!-- 学生作答详情 -->
+              <div v-if="currentScore && currentScore.answerDetails" class="answer-comparison">
+                <div class="answer-row">
+                  <div class="answer-label">你的答案：</div>
+                  <div class="answer-content" :class="getUserAnswerClass(index)">
+                    {{ getUserAnswer(index) }}
+                  </div>
+                </div>
+                <div class="answer-row">
+                  <div class="answer-label">正确答案：</div>
+                  <div class="answer-content correct">{{ question.answer }}</div>
+                </div>
+                <div class="answer-row">
+                  <div class="answer-label">得分：</div>
+                  <div class="answer-content" :class="getUserAnswerClass(index)">
+                    {{ getUserScore(index) }}分
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -618,22 +856,104 @@
                   :key="optionIndex"
                   class="option-item"
                 >
-                  <span class="option-label">{{ String.fromCharCode(65 + optionIndex) }}.</span>
-                  <span class="option-content">{{ option }}</span>
+                  <el-radio
+                    v-model="userAnswers[index]"
+                    :label="String.fromCharCode(65 + optionIndex)"
+                    class="option-radio"
+                  >
+                    <span class="option-label">{{ String.fromCharCode(65 + optionIndex) }}.</span>
+                    <span class="option-content">{{ option }}</span>
+                  </el-radio>
                 </div>
               </div>
-              <!-- 答案 -->
-              <div class="answer-section">
-                <div class="answer-label">答案：</div>
-                <div class="answer-content">{{ question.answer }}</div>
+              <!-- 填空题 -->
+              <div v-else class="fill-blank-section">
+                <el-input
+                  v-model="userAnswers[index]"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入你的答案"
+                  class="answer-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 答题结果 -->
+        <div v-else class="result-container">
+          <div class="result-header">
+            <h3>答题完成！</h3>
+            <div class="score-display">
+              <span class="score-label">你的得分：</span>
+              <span class="score-value">{{ finalScore }}分</span>
+              <span class="score-total">/ {{ currentPaper.totalScore }}分</span>
+            </div>
+          </div>
+          <div class="question-list">
+            <div
+              v-for="(question, index) in questionList"
+              :key="index"
+              class="question-item"
+            >
+              <div class="question-header">
+                <span class="question-number">{{ index + 1 }}.</span>
+                <span class="question-type">{{ question.questionType }}</span>
+                <span class="question-score">{{ question.score }}分</span>
+                <span class="question-difficulty">{{ question.difficultyLevel }}</span>
+                <span class="question-result" :class="getAnswerClass(index)">
+                  {{ getAnswerClass(index) === 'correct' ? '正确' : '错误' }}
+                </span>
+              </div>
+              <div class="question-content">
+                <div class="content-text">{{ question.questionContent }}</div>
+                <!-- 选择题选项 -->
+                <div v-if="question.options && question.options.length > 0" class="options-list">
+                  <div
+                    v-for="(option, optionIndex) in question.options"
+                    :key="optionIndex"
+                    class="option-item"
+                    :class="getOptionResultClass(index, optionIndex)"
+                  >
+                    <span class="option-label">{{ String.fromCharCode(65 + optionIndex) }}.</span>
+                    <span class="option-content">{{ option }}</span>
+                  </div>
+                </div>
+                <!-- 答案对比 -->
+                <div class="answer-comparison">
+                  <div class="answer-row">
+                    <div class="answer-label">你的答案：</div>
+                    <div class="answer-content" :class="getAnswerClass(index)">
+                      {{ userAnswers[index] || '未作答' }}
+                    </div>
+                  </div>
+                  <div class="answer-row">
+                    <div class="answer-label">正确答案：</div>
+                    <div class="answer-content correct">{{ question.answer }}</div>
+                  </div>
+                  <div class="answer-row">
+                    <div class="answer-label">得分：</div>
+                    <div class="answer-content" :class="getAnswerClass(index)">
+                      {{ getAnswerClass(index) === 'correct' ? question.score : 0 }}分
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="quizVisible = false">关 闭</el-button>
-        <el-button type="primary" :loading="isSubmitting" @click="submitQuiz">提交</el-button>
+        <el-button v-if="!isSubmitted" @click="cancelQuiz">取 消</el-button>
+        <el-button
+          v-if="!isSubmitted"
+          type="primary"
+          :loading="isSubmitting"
+          @click="submitQuiz"
+        >
+          提交答案
+        </el-button>
+        <el-button v-if="isSubmitted" @click="closeQuiz">关 闭</el-button>
       </div>
     </el-dialog>
   </div>
@@ -645,7 +965,7 @@ import { getScoreByUserAndCourse, addScore } from "@/api/system/score";
 import { getLearningRecordByUserAndCourse } from "@/api/system/learningRecord";
 import { addTask } from "@/api/system/task";
 import { addLearningRecord } from "@/api/system/learningRecord";
-import { addSubmission } from "@/api/system/submission";
+import { addSubmission, updateSubmission, listSubmission } from "@/api/system/submission";
 import { 
   listHomework, 
   addHomework, 
@@ -655,6 +975,7 @@ import {
   uploadHomeworkFile 
 } from "@/api/system/homework";
 import * as echarts from 'echarts';
+import { listTask } from '@/api/system/task';
 
 export default {
   name: "Quiz",
@@ -773,6 +1094,18 @@ export default {
       uploadHomeworkData: {},
       uploadSubmitData: {},
       realCourseId: '',
+      gradeFilter: {
+        taskName: '',
+        dueDate: '',
+        studentName: ''
+      },
+      filteredGradeList: [],
+      gradeDialogVisible: false,
+      currentGradeSubmission: null,
+      gradeForm: {
+        gradeScore: 0,
+        gradeComment: ''
+      }
     };
   },
   computed: {
@@ -1006,6 +1339,9 @@ export default {
     cancelQuiz() {
       this.$modal.confirm('确定要取消答题吗？已作答的内容将不会保存。').then(() => {
         this.quizVisible = false;
+        if (this.timer) {
+          clearInterval(this.timer);
+        }
       }).catch(() => {});
     },
     
@@ -1015,6 +1351,24 @@ export default {
       
       // 计算得分
       this.finalScore = this.calculateScore();
+      
+      // 构建详细的作答记录
+      const answerDetails = {
+        questions: this.questionList.map((question, index) => ({
+          questionNumber: index + 1,
+          questionText: question.questionContent,
+          questionType: question.questionType,
+          options: question.options || [],
+          correctAnswer: question.answer,
+          userAnswer: this.userAnswers[index] || '',
+          questionScore: question.score,
+          userScore: this.isAnswerCorrect(question, this.userAnswers[index]) ? question.score : 0,
+          isCorrect: this.isAnswerCorrect(question, this.userAnswers[index])
+        })),
+        totalScore: this.finalScore,
+        maxScore: this.currentPaper.totalScore,
+        submitTime: new Date().toISOString()
+      };
       
       const userId = this.id;
       let currentRecordId = null; // 保存学习记录ID，供后续Promise链使用
@@ -1036,24 +1390,11 @@ export default {
           paperId: this.currentPaper.paperId,
           score: this.finalScore,
           scoreDesc: `得分：${this.finalScore}/${this.currentPaper.totalScore}`,
+          answerDetails: JSON.stringify(answerDetails),
           submitTime: new Date()
         };
         return addScore(scoreData);
       }).then(() => {
-        // 创建任务提交记录，便于任务提交管理界面展示
-        const submissionPayload = {
-          recordId: currentRecordId,
-          taskId: this.currentPaper.paperId, // 使用试卷ID作为任务ID关联
-          submissionContent: `完成试卷 ${this.currentPaper.paperName}`,
-          submissionTime: this.formatDateTime(new Date()),
-          isGraded: '1',
-          score: this.finalScore,
-          gradeComment: '系统自动评分',
-          userId: userId,
-          createTime: this.formatDateTime(new Date())
-        };
-        return addSubmission(submissionPayload);
-      }).then(()=>{
         this.isSubmitted = true;
         this.isSubmitting = false;
         if (this.timer) {
@@ -1113,6 +1454,9 @@ export default {
     // 关闭答题弹窗
     closeQuiz() {
       this.quizVisible = false;
+      if (this.timer) {
+        clearInterval(this.timer);
+      }
       // 刷新试卷列表
       this.getPaperList();
       this.getScoreList();
@@ -1366,8 +1710,11 @@ export default {
       window.open(url, '_blank');
     },
     getHomeworkList() {
+      console.log('获取作业列表，courseId:', this.realCourseId);
       listHomework({ courseId: this.realCourseId }).then(response => {
-        this.homeworkList = response.data || response.rows || [];
+        console.log('作业列表响应:', response);
+        this.homeworkList = response.rows || response.data || [];
+        this.getUserHomeworkStatus();
       }).catch(error => {
         console.error('获取作业列表失败:', error);
         this.homeworkList = [];
@@ -1376,25 +1723,25 @@ export default {
     getUserHomeworkStatus() {
       const userId = this.id;
       if (!userId || !this.realCourseId) return;
-      getUserHomeworkStatus(this.realCourseId, userId).then(response => {
-        const data = response.data || {};
-        // 新结构：completed/uncompleted均为[{homework, task, submission}]，前端需适配
-        this.completedHomework = (data.completed || []).map(item => {
-          return {
-            ...item.task,
-            homework: item.homework,
-            submission: item.submission
-          };
-        });
-        this.uncompletedHomework = (data.uncompleted || []).map(item => {
-          // 保证taskId等任务字段在顶层
-          return {
-            ...item.task,
-            homework: item.homework
-          };
-        });
+      
+      // 获取学习记录
+      getLearningRecordByUserAndCourse(userId, this.realCourseId).then(record => {
+        if (record) {
+          // 获取作业提交记录 - 只获取当前课程相关的记录
+          listSubmission({ recordId: record.recordId, pageSize: 999 }).then(response => {
+            const allSubmissions = response.rows || response.data || [];
+            // 过滤出当前课程的提交记录
+            this.filterCurrentCourseSubmissions(allSubmissions);
+          }).catch(error => {
+            console.error('获取作业提交记录失败:', error);
+            this.processHomeworkStatus([]);
+          });
+        } else {
+          this.processHomeworkStatus([]);
+        }
       }).catch(error => {
-        console.error('获取作业状态失败:', error);
+        console.error('获取学习记录失败:', error);
+        this.processHomeworkStatus([]);
       });
     },
     initData() {
@@ -1484,6 +1831,363 @@ export default {
         this.submitHomeworkLoading = false;
       }
     },
+    applyGradeFilter() {
+      // 重新获取数据并应用筛选
+      this.getUserHomeworkStatus();
+      // 使用nextTick确保数据更新后再筛选
+      this.$nextTick(() => {
+        let arr = this.filteredGradeList;
+        if (this.gradeFilter.taskName) {
+          arr = arr.filter(s => s.taskName && s.taskName.includes(this.gradeFilter.taskName));
+        }
+        if (this.gradeFilter.dueDate) {
+          arr = arr.filter(s => s.dueDate && s.dueDate.startsWith(this.gradeFilter.dueDate));
+        }
+        if (this.gradeFilter.studentName) {
+          arr = arr.filter(s => s.studentName && s.studentName.includes(this.gradeFilter.studentName));
+        }
+        this.filteredGradeList = arr;
+      });
+    },
+    resetGradeFilter() {
+      this.gradeFilter = {
+        taskName: '',
+        dueDate: '',
+        studentName: ''
+      };
+      this.getUserHomeworkStatus(); // 重新获取数据
+    },
+    openGradeDialog(row) {
+      this.currentGradeSubmission = row;
+      this.gradeForm = {
+        gradeScore: row.gradeScore || 0,
+        gradeComment: row.gradeComment || ''
+      };
+      this.gradeDialogVisible = true;
+    },
+    submitGrade() {
+      if (!this.currentGradeSubmission) return;
+      
+      const submissionId = this.currentGradeSubmission.submissionId;
+      const updateData = {
+        submissionId,
+        gradeScore: this.gradeForm.gradeScore,
+        gradeComment: this.gradeForm.gradeComment,
+        isGraded: '1',
+        graderId: this.id
+      };
+      
+      this.$modal.loading('正在保存...');
+      updateSubmission(updateData).then(() => {
+        this.$modal.msgSuccess('评分已保存');
+        this.gradeDialogVisible = false;
+        this.getUserHomeworkStatus(); // 刷新数据
+      }).catch(() => {
+        this.$modal.msgError('保存失败');
+      }).finally(() => {
+        this.$modal.closeLoading();
+      });
+    },
+    fileUrl(filePath) {
+      if (!filePath) return '';
+      // 对于文件下载，需要直接使用后端地址，而不是代理路径
+      if (filePath.startsWith('/')) {
+        return 'http://localhost:8080' + filePath;
+      }
+      return filePath;
+    },
+    // 处理作业状态
+    processHomeworkStatus(submissions) {
+      // 获取当前课程的所有学习任务
+      this.getLearningTasks().then(tasks => {
+        // 过滤出作业类型的任务（排除资料阅读）
+        const homeworkTasks = tasks.filter(task => task.taskType !== '资料阅读');
+        const homeworkTaskIds = homeworkTasks.map(task => task.taskId);
+        
+        // 过滤出作业相关的提交记录
+        const homeworkSubmissions = submissions.filter(submission => 
+          homeworkTaskIds.includes(submission.taskId)
+        );
+        
+        // 创建task_id到homework_id的映射
+        const taskToHomeworkMap = {};
+        homeworkTasks.forEach(task => {
+          if (task.homeworkId) {
+            taskToHomeworkMap[task.taskId] = task.homeworkId;
+          }
+        });
+        
+        // 处理已完成作业
+        this.completedHomework = this.homeworkList.filter(homework => {
+          // 找到对应的task_id
+          const taskId = Object.keys(taskToHomeworkMap).find(key => 
+            taskToHomeworkMap[key] === homework.homeworkId
+          );
+          if (!taskId) return false;
+          
+          // 检查是否有对应的提交记录
+          const submission = homeworkSubmissions.find(s => s.taskId === parseInt(taskId));
+          return submission !== undefined; // 只要有提交记录就算完成，不依赖is_graded
+        }).map(homework => {
+          // 找到对应的task_id
+          const taskId = Object.keys(taskToHomeworkMap).find(key => 
+            taskToHomeworkMap[key] === homework.homeworkId
+          );
+          const submission = homeworkSubmissions.find(s => s.taskId === parseInt(taskId));
+          
+          return {
+            ...homework,
+            submitTime: submission ? submission.submissionTime : null,
+            submissionContent: submission ? submission.submissionContent : null,
+            submissionFile: submission ? submission.submissionFile : null,
+            gradeScore: submission ? submission.gradeScore : null,
+            gradeComment: submission ? submission.gradeComment : null,
+            isGraded: submission ? submission.isGraded : '0'
+          };
+        });
+        
+        // 处理未完成作业
+        this.uncompletedHomework = this.homeworkList.filter(homework => {
+          // 找到对应的task_id
+          const taskId = Object.keys(taskToHomeworkMap).find(key => 
+            taskToHomeworkMap[key] === homework.homeworkId
+          );
+          if (!taskId) return true; // 如果没有对应的task，认为是未完成
+          
+          // 检查是否有对应的提交记录
+          const submission = homeworkSubmissions.find(s => s.taskId === parseInt(taskId));
+          return submission === undefined; // 没有提交记录就算未完成
+        });
+        
+        // 更新评分列表 - 只包含作业类型的提交记录
+        this.updateGradeList(homeworkSubmissions, homeworkTasks);
+      }).catch(error => {
+        console.error('处理作业状态失败:', error);
+        // 如果获取任务失败，使用原始逻辑
+        const completedHomeworkIds = submissions.map(s => s.taskId);
+        
+        this.completedHomework = this.homeworkList.filter(homework => 
+          completedHomeworkIds.includes(homework.homeworkId)
+        ).map(homework => {
+          const submission = submissions.find(s => s.taskId === homework.homeworkId);
+          return {
+            ...homework,
+            submitTime: submission ? submission.submissionTime : null,
+            submissionContent: submission ? submission.submissionContent : null,
+            submissionFile: submission ? submission.submissionFile : null,
+            gradeScore: submission ? submission.gradeScore : null,
+            gradeComment: submission ? submission.gradeComment : null,
+            isGraded: submission ? submission.isGraded : '0'
+          };
+        });
+        
+        this.uncompletedHomework = this.homeworkList.filter(homework => 
+          !completedHomeworkIds.includes(homework.homeworkId)
+        );
+        
+        this.updateGradeList(submissions, []);
+      });
+    },
+    
+    // 获取学习任务
+    getLearningTasks() {
+      return new Promise((resolve) => {
+        listTask({ courseId: this.realCourseId, pageSize: 999 }).then(response => {
+          const tasks = response.rows || response.data || [];
+          resolve(tasks);
+        }).catch(error => {
+          console.error('获取学习任务失败:', error);
+          resolve([]);
+        });
+      });
+    },
+    
+    // 更新评分列表
+    updateGradeList(submissions, tasks) {
+      this.filteredGradeList = submissions.map(submission => {
+        const task = tasks.find(t => t.taskId === submission.taskId);
+        // 通过task的homeworkId找到对应的homework
+        const homework = task && task.homeworkId ? 
+          this.homeworkList.find(h => h.homeworkId === task.homeworkId) : null;
+        
+        return {
+          ...submission,
+          taskName: task ? task.taskName : (homework ? homework.homeworkName : '未知作业'),
+          dueDate: task ? task.dueDate : (homework ? homework.dueDate : null),
+          studentName: submission.studentName || '未知学生'
+        };
+      });
+    },
+    
+    // 过滤当前课程的提交记录
+    filterCurrentCourseSubmissions(allSubmissions) {
+      // 获取当前课程的所有学习任务
+      this.getLearningTasks().then(tasks => {
+        // 过滤出当前课程的任务ID
+        const currentCourseTaskIds = tasks.map(task => task.taskId);
+        
+        // 过滤出当前课程的提交记录
+        const currentCourseSubmissions = allSubmissions.filter(submission => 
+          currentCourseTaskIds.includes(submission.taskId)
+        );
+        
+        this.processHomeworkStatus(currentCourseSubmissions);
+      }).catch(error => {
+        console.error('过滤课程提交记录失败:', error);
+        this.processHomeworkStatus([]);
+      });
+    },
+    getSubmissionFiles(submissionFile) {
+      if (!submissionFile) return [];
+      try {
+        // 尝试解析JSON格式
+        if (submissionFile.startsWith('[') && submissionFile.endsWith(']')) {
+          return JSON.parse(submissionFile);
+        }
+        // 如果是单个文件路径，转换为数组
+        return [submissionFile];
+      } catch (error) {
+        console.error('解析提交文件失败:', error);
+        // 如果解析失败，按逗号分割
+        return submissionFile.split(',').map(file => file.trim()).filter(file => file);
+      }
+    },
+    downloadSubmissionFile(file) {
+      if (!file) return;
+      
+      // 构建下载URL
+      let url = file;
+      if (!/^https?:\/\//.test(file)) {
+        // 如果不是完整URL，添加后端地址
+        // 注意：这里需要直接使用后端地址，而不是代理路径
+        url = 'http://localhost:8080' + file;
+      }
+      
+      console.log('[DEBUG] 下载文件:', url);
+      
+      // 创建临时链接进行下载
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.download = this.getFileName(file);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+    getFileName(filePath) {
+      if (!filePath) return '未知文件';
+      const parts = filePath.split('/');
+      return parts[parts.length - 1] || '未知文件';
+    },
+    getGradeStatusType(gradeScore) {
+      if (gradeScore === null || gradeScore === undefined) return 'warning';
+      if (gradeScore >= 90) return 'success';
+      if (gradeScore >= 80) return 'primary';
+      if (gradeScore >= 70) return 'info';
+      if (gradeScore >= 60) return 'warning';
+      return 'danger';
+    },
+    getCorrectCount() {
+      if (!this.currentScore || !this.currentScore.answerDetails) return 0;
+      const answerDetails = JSON.parse(this.currentScore.answerDetails);
+      return answerDetails.questions ? answerDetails.questions.filter(q => q.isCorrect).length : 0;
+    },
+    getIncorrectCount() {
+      if (!this.currentScore || !this.currentScore.answerDetails) return 0;
+      const answerDetails = JSON.parse(this.currentScore.answerDetails);
+      return answerDetails.questions ? answerDetails.questions.filter(q => !q.isCorrect).length : 0;
+    },
+    getAccuracyRate() {
+      if (!this.currentScore || !this.currentScore.answerDetails) return 0;
+      const answerDetails = JSON.parse(this.currentScore.answerDetails);
+      const totalCount = answerDetails.questions ? answerDetails.questions.length : 0;
+      const correctCount = this.getCorrectCount();
+      return totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+    },
+    getQuestionResultClass(index) {
+      if (!this.currentScore || !this.currentScore.answerDetails) return '';
+      const answerDetails = JSON.parse(this.currentScore.answerDetails);
+      const question = answerDetails.questions ? answerDetails.questions[index] : null;
+      return question && question.isCorrect ? 'correct' : 'incorrect';
+    },
+    getQuestionResultText(index) {
+      if (!this.currentScore || !this.currentScore.answerDetails) return '';
+      const answerDetails = JSON.parse(this.currentScore.answerDetails);
+      const question = answerDetails.questions ? answerDetails.questions[index] : null;
+      return question && question.isCorrect ? '正确' : '错误';
+    },
+    getUserAnswer(index) {
+      if (!this.currentScore || !this.currentScore.answerDetails) return '';
+      const answerDetails = JSON.parse(this.currentScore.answerDetails);
+      const question = answerDetails.questions ? answerDetails.questions[index] : null;
+      return question ? question.userAnswer : '';
+    },
+    getUserScore(index) {
+      if (!this.currentScore || !this.currentScore.answerDetails) return 0;
+      const answerDetails = JSON.parse(this.currentScore.answerDetails);
+      const question = answerDetails.questions ? answerDetails.questions[index] : null;
+      return question ? question.userScore : 0;
+    },
+    getUserAnswerClass(index) {
+      if (!this.currentScore || !this.currentScore.answerDetails) return '';
+      const answerDetails = JSON.parse(this.currentScore.answerDetails);
+      const question = answerDetails.questions ? answerDetails.questions[index] : null;
+      return question && question.isCorrect ? 'correct' : 'incorrect';
+    },
+    parseAnswerDetails() {
+      if (!this.currentScore || !this.currentScore.answerDetails) {
+        return { totalScore: 0, questions: [] };
+      }
+      try {
+        const answerDetails = JSON.parse(this.currentScore.answerDetails);
+        return {
+          totalScore: answerDetails.totalScore || 0,
+          questions: answerDetails.questions || []
+        };
+      } catch (e) {
+        console.error('解析作答详情失败:', e);
+        return { totalScore: 0, questions: [] };
+      }
+    },
+    getOptionClass(index, optionIndex) {
+      if (!this.currentScore || !this.currentScore.answerDetails) return '';
+      const answerDetails = JSON.parse(this.currentScore.answerDetails);
+      const question = answerDetails.questions ? answerDetails.questions[index] : null;
+      if (!question) return '';
+      
+      const optionLabel = String.fromCharCode(65 + optionIndex);
+      const correctAnswer = question.correctAnswer;
+      const userAnswer = question.userAnswer;
+      
+      // 如果是正确答案
+      if (optionLabel === correctAnswer) {
+        return 'correct-option';
+      }
+      // 如果是用户选择的错误答案
+      if (optionLabel === userAnswer && userAnswer !== correctAnswer) {
+        return 'incorrect-option';
+      }
+      return '';
+    },
+    getOptionResultClass(index, optionIndex) {
+      const question = this.questionList[index];
+      const userAnswer = this.userAnswers[index];
+      const correctAnswer = question.answer;
+      
+      if (!question.options || question.options.length === 0) return '';
+      
+      const optionLabel = String.fromCharCode(65 + optionIndex);
+      
+      // 如果是正确答案
+      if (optionLabel === correctAnswer) {
+        return 'correct-option';
+      }
+      // 如果是用户选择的错误答案
+      if (optionLabel === userAnswer && userAnswer !== correctAnswer) {
+        return 'incorrect-option';
+      }
+      return '';
+    }
   }
 };
 </script>
@@ -1764,7 +2468,7 @@ export default {
 }
 
 .fill-blank-section {
-  margin: 15px 0;
+  margin-top: 15px;
 }
 
 .answer-input {
@@ -2035,27 +2739,39 @@ export default {
 .file-item {
   display: flex;
   align-items: center;
-  padding: 12px;
-  border: 1px solid #e4e7ed;
-  border-radius: 6px;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  padding: 10px;
   background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e4e7ed;
+  transition: all 0.3s ease;
 }
 
-.file-item:last-child {
-  margin-bottom: 0;
+.file-item:hover {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
 }
 
 .file-item i {
-  color: #409eff;
   margin-right: 8px;
-  font-size: 16px;
+  color: #409eff;
 }
 
 .file-name {
   flex: 1;
+  margin-right: 10px;
   color: #606266;
-  font-size: 14px;
+  word-break: break-all;
+}
+
+.file-item .el-button {
+  transition: all 0.3s ease;
+}
+
+.file-item .el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
 }
 
 /* 提交内容样式 */
@@ -2106,48 +2822,401 @@ export default {
 
 /* 提交作业容器样式 */
 .submit-homework-container {
-  padding: 20px 0;
-}
-
-.submit-homework-container .homework-info {
-  margin-bottom: 30px;
-  padding: 20px;
-  background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
-  color: white;
-  border-radius: 8px;
-}
-
-.submit-homework-container .homework-info h3 {
-  margin: 0 0 10px 0;
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.submit-homework-container .homework-info .homework-desc {
-  margin: 10px 0;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.submit-homework-container .homework-stats {
-  display: flex;
-  gap: 20px;
-  margin-top: 15px;
-  flex-wrap: wrap;
-}
-
-.submit-homework-container .homework-stats span {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 6px 12px;
-  border-radius: 15px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* 试卷内容样式 */
-.quiz-content {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.homework-info-section,
+.submit-form-section {
+  margin-bottom: 20px;
+}
+
+.homework-header {
+  margin-bottom: 15px;
+}
+
+.homework-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #303133;
+  margin: 0 0 10px 0;
+}
+
+.homework-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.homework-desc,
+.homework-files {
+  margin-top: 15px;
+}
+
+.section-title {
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.submit-upload {
+  width: 100%;
+}
+
+.submit-upload .el-upload {
+  width: 100%;
+}
+
+.submit-upload .el-upload-dragger {
+  width: 100%;
+  height: 120px;
+  border: 2px dashed #d9d9d9;
+  border-radius: 6px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.submit-upload .el-upload-dragger:hover {
+  border-color: #409eff;
+  background: #f0f9ff;
+}
+
+.submit-upload .el-upload__tip {
+  color: #909399;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+/* 表单样式优化 */
+.submit-form-section .el-form-item {
+  margin-bottom: 20px;
+}
+
+.submit-form-section .el-textarea .el-textarea__inner {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.submit-form-section .el-textarea .el-textarea__inner:focus {
+  border-color: #409eff;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
+.grade-dialog-container {
+  padding: 20px;
+}
+
+.grade-info-section {
+  margin-bottom: 20px;
+}
+
+.grade-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.grade-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #303133;
+  margin: 0;
+}
+
+.grade-status {
+  align-self: flex-start;
+}
+
+.grade-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #606266;
+  background: #f5f7fa;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+.meta-item i {
+  margin-right: 6px;
+  color: #409eff;
+}
+
+.grade-content-section,
+.grade-file-section,
+.grade-form-section {
+  margin-bottom: 20px;
+}
+
+.content-card {
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  background: #f8f9fa;
+  padding: 12px 15px;
+  border-bottom: 1px solid #e4e7ed;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: #303133;
+}
+
+.card-header i {
+  margin-right: 8px;
+  color: #409eff;
+}
+
+.card-body {
+  padding: 15px;
+}
+
+.content-text {
+  line-height: 1.6;
+  color: #606266;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e4e7ed;
+  transition: all 0.3s ease;
+}
+
+.file-item:hover {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+}
+
+.file-item i {
+  margin-right: 8px;
+  color: #409eff;
+}
+
+.file-name {
+  flex: 1;
+  margin-right: 10px;
+  color: #606266;
+  word-break: break-all;
+}
+
+.file-item .el-button {
+  transition: all 0.3s ease;
+}
+
+.file-item .el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
+}
+
+.score-unit {
+  margin-left: 10px;
+  color: #606266;
+  font-size: 14px;
+}
+
+/* 评分表单样式优化 */
+.grade-form-section .el-form-item {
+  margin-bottom: 20px;
+}
+
+.grade-form-section .el-input-number {
+  width: 200px;
+}
+
+.grade-form-section .el-input-number .el-input__inner {
+  text-align: center;
+  font-weight: bold;
+  color: #409eff;
+}
+
+.grade-form-section .el-textarea {
+  width: 100%;
+}
+
+.grade-form-section .el-textarea .el-textarea__inner {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.grade-form-section .el-textarea .el-textarea__inner:focus {
+  border-color: #409eff;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
+/* 弹窗按钮样式 */
+.dialog-footer {
+  text-align: right;
+  padding-top: 20px;
+}
+
+.dialog-footer .el-button {
+  margin-left: 10px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.dialog-footer .el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.answer-details-section {
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #409eff;
+}
+
+.answer-details-section h3 {
+  margin: 0 0 15px 0;
+  color: #303133;
+  font-size: 18px;
+}
+
+.answer-summary {
+  margin-bottom: 15px;
+}
+
+.summary-item {
+  text-align: center;
+  padding: 15px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.summary-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #409eff;
+}
+
+.answer-comparison {
+  margin-top: 15px;
+  padding: 15px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e4e7ed;
+}
+
+.answer-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 8px 0;
+}
+
+.answer-row:last-child {
+  margin-bottom: 0;
+}
+
+.answer-label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #303133;
+  min-width: 80px;
+  margin-right: 15px;
+}
+
+.answer-content {
+  font-size: 14px;
+  color: #606266;
+  flex: 1;
+  padding: 5px 10px;
+  border-radius: 4px;
+  background: #f5f7fa;
+}
+
+.answer-content.correct {
+  color: #67c23a;
+  font-weight: bold;
+  background: #f0f9ff;
+  border: 1px solid #b3e1ff;
+}
+
+.answer-content.incorrect {
+  color: #f56c6c;
+  font-weight: bold;
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+}
+
+.question-result {
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 12px;
+  margin-left: 10px;
+}
+
+.question-result.correct {
+  background-color: #f0f9ff;
+  color: #67c23a;
+  border: 1px solid #b3e1ff;
+}
+
+.question-result.incorrect {
+  background-color: #fff1f0;
+  color: #f56c6c;
+  border: 1px solid #ffa39e;
+}
+
+.option-item.correct-option {
+  background-color: #f0f9ff;
+  border: 2px solid #67c23a;
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+.option-item.incorrect-option {
+  background-color: #fff1f0;
+  border: 2px solid #f56c6c;
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+.option-item.correct-option .option-label,
+.option-item.correct-option .option-content {
+  color: #67c23a;
+  font-weight: bold;
+}
+
+.option-item.incorrect-option .option-label,
+.option-item.incorrect-option .option-content {
+  color: #f56c6c;
+  font-weight: bold;
 }
 </style>

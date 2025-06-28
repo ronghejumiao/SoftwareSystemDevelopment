@@ -136,19 +136,21 @@ export default {
     },
     handleAdd() {
       this.$router.push({ 
-        name: 'VideoAdd',
+        path: '/system/videoresource',
         query: { 
           courseId: this.course.courseId,
-          courseCode: this.course.courseCode
+          courseCode: this.course.courseCode,
+          returnPath: this.$route.fullPath
         }
       });
     },
     handleUpdate(video) {
       this.$router.push({ 
-        name: 'VideoEdit',
+        path: '/system/videoresource',
         query: { 
           videoId: video.videoId,
-          courseId: this.course.courseId
+          courseId: this.course.courseId,
+          returnPath: this.$route.fullPath
         }
       });
     },
