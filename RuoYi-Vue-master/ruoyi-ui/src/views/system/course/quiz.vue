@@ -835,6 +835,13 @@ export default {
       this.loading = true;
       console.log('开始获取试卷列表，courseId:', this.realCourseId);
       
+      if (!this.realCourseId) {
+        console.error('courseId不存在，无法获取试卷列表');
+        this.paperList = [];
+        this.loading = false;
+        return;
+      }
+      
       // 根据courseId查询试卷
       listPaperByCourseId(this.realCourseId).then(response => {
         console.log('API响应:', response);
@@ -852,6 +859,8 @@ export default {
           this.loading = false;
         }).catch(error2 => {
           console.error('回退API也失败:', error2);
+          this.paperList = [];
+          this.classifyPapers();
           this.loading = false;
         });
       });
@@ -1366,6 +1375,12 @@ export default {
       window.open(url, '_blank');
     },
     getHomeworkList() {
+      if (!this.realCourseId) {
+        console.error('courseId不存在，无法获取作业列表');
+        this.homeworkList = [];
+        return;
+      }
+      
       listHomework({ courseId: this.realCourseId }).then(response => {
         this.homeworkList = response.data || response.rows || [];
       }).catch(error => {
@@ -1375,7 +1390,13 @@ export default {
     },
     getUserHomeworkStatus() {
       const userId = this.id;
-      if (!userId || !this.realCourseId) return;
+      if (!userId || !this.realCourseId) {
+        console.error('userId或courseId不存在，无法获取作业状态');
+        this.completedHomework = [];
+        this.uncompletedHomework = [];
+        return;
+      }
+      
       getUserHomeworkStatus(this.realCourseId, userId).then(response => {
         const data = response.data || {};
         // 新结构：completed/uncompleted均为[{homework, task, submission}]，前端需适配
@@ -1395,6 +1416,8 @@ export default {
         });
       }).catch(error => {
         console.error('获取作业状态失败:', error);
+        this.completedHomework = [];
+        this.uncompletedHomework = [];
       });
     },
     initData() {

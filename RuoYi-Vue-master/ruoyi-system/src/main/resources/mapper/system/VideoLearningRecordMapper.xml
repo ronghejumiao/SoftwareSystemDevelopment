@@ -51,6 +51,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <!-- 完成率区间查询 -->
             <if test="completionRateStart != null"> and vlr.completion_rate &gt;= #{completionRateStart}</if>
             <if test="completionRateEnd != null"> and vlr.completion_rate &lt;= #{completionRateEnd}</if>
+            <!-- 完成状态查询 -->
+            <if test="completionStatus != null and completionStatus != ''">
+                <choose>
+                    <when test="completionStatus == 'not_started'">
+                        and (vlr.completion_rate = 0 or vlr.completion_rate is null)
+                    </when>
+                    <when test="completionStatus == 'in_progress'">
+                        and vlr.completion_rate > 0 and vlr.completion_rate &lt; 80
+                    </when>
+                    <when test="completionStatus == 'completed'">
+                        and vlr.completion_rate >= 100
+                    </when>
+                    <when test="completionStatus == 'paused'">
+                        and vlr.completion_rate >= 80 and vlr.completion_rate &lt; 100
+                    </when>
+                </choose>
+            </if>
             <!-- 观看时间范围(使用 BaseEntity params) -->
             <if test="params != null and params.beginTime != null and params.beginTime != ''"> and DATE(vlr.last_watch_time) &gt;= #{params.beginTime}</if>
             <if test="params != null and params.endTime != null and params.endTime != ''"> and DATE(vlr.last_watch_time) &lt;= #{params.endTime}</if>

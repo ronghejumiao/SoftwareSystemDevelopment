@@ -60,7 +60,7 @@
     <el-card class="search-card" shadow="never">
       <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="100px">
         <el-row :gutter="20">
-          <el-col :span="8">
+          <el-col :span="8" v-if="!isStudent">
             <el-form-item label="学生姓名" prop="studentName">
         <el-input
                 v-model="queryParams.studentName"
@@ -93,7 +93,7 @@
       </el-form-item>
           </el-col>
         </el-row>
-        <el-row :gutter="20">
+        <el-row :gutter="20" v-if="!isStudent">
           <el-col :span="8">
             <el-form-item label="观看时间" prop="lastWatchTime">
               <el-date-picker
@@ -150,13 +150,21 @@
             </div>
           </el-col>
         </el-row>
+        <el-row :gutter="20" v-if="isStudent">
+          <el-col :span="8">
+            <div class="search-buttons">
+              <el-button type="primary" icon="el-icon-search" @click="handleQuery">搜索</el-button>
+              <el-button icon="el-icon-refresh" @click="resetQuery">重置</el-button>
+            </div>
+          </el-col>
+        </el-row>
     </el-form>
     </el-card>
 
     <!-- 操作按钮区域 -->
     <el-card class="action-card" shadow="never">
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
+      <el-col :span="1.5" v-hasRole="['admin', 'teacher']">
         <el-button
           type="primary"
           icon="el-icon-plus"
@@ -165,7 +173,7 @@
             v-hasPermi="['system:record:add']"
           >新增记录</el-button>
       </el-col>
-      <el-col :span="1.5">
+      <el-col :span="1.5" v-hasRole="['admin', 'teacher']">
         <el-button
           type="success"
           icon="el-icon-edit"
@@ -175,7 +183,7 @@
             v-hasPermi="['system:record:edit']"
           >批量编辑</el-button>
         </el-col>
-        <el-col :span="1.5">
+        <el-col :span="1.5" v-hasRole="['admin', 'teacher']">
           <el-button
             type="warning"
             icon="el-icon-download"
@@ -184,7 +192,7 @@
             v-hasPermi="['system:record:export']"
           >导出数据</el-button>
       </el-col>
-      <el-col :span="1.5">
+      <el-col :span="1.5" v-hasRole="['admin', 'teacher']">
         <el-button
           type="danger"
           icon="el-icon-delete"
@@ -202,7 +210,7 @@
             @click="showAnalytics = true"
           >观看分析</el-button>
       </el-col>
-      <el-col :span="1.5">
+      <el-col :span="1.5" v-hasRole="['admin', 'teacher']">
         <el-button
           type="warning"
             icon="el-icon-refresh"
@@ -313,8 +321,8 @@
           </template>
         </el-table-column>
 
-        <!-- 操作 -->
-        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="200">
+        <!-- 操作 - 只对教师和管理员显示 -->
+        <el-table-column v-if="!isStudent" label="操作" align="center" class-name="small-padding fixed-width" width="200">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -333,7 +341,7 @@
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-              v-hasPermi="['system:record:remove']"
+              v-hasRole="['admin', 'teacher']"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -619,6 +627,7 @@
 import { listRecord, getRecord, delRecord, addRecord, updateRecord } from "@/api/system/videoLearningRecord"
 import { parseTime } from "@/utils/ruoyi"
 import * as echarts from 'echarts'
+import { isStudent, isTeacher } from "@/utils/roles"
 
 export default {
   name: "VideoLearningRecord",
@@ -638,42 +647,43 @@ export default {
       total: 0,
       // 视频学习记录表格数据
       recordList: [],
-
-      updateTimer: null, // 定时器引用
-      currentRecordId: null ,
-      // 弹出层标题
-      title: "",
-      // 是否显示弹出层
-      open: false,
-      // 是否显示详情
-      viewOpen: false,
-      // 是否显示分析
-      showAnalytics: false,
-      // 图表加载状态
-      chartsLoading: false,
-      // 详情数据
-      viewData: null,
       // 学习记录列表
       learningRecordList: [],
       // 资源列表
       resourceList: [],
-      // 图表实例
-      completionChart: null,
-      durationChart: null,
-      trendChart: null,
-
+      // 弹出层标题
+      title: "",
+      // 是否显示弹出层
+      open: false,
+      // 是否显示图表
+      showChart: false,
+      // 是否显示详情弹窗
+      viewOpen: false,
+      // 详情数据
+      viewData: null,
+      // 分析弹窗显示
+      showAnalytics: false,
+      // 分析图表对象
+      analyticChart: null,
+      // 当前分析记录
+      currentRecord: null,
+      // 总观看时长（秒）
+      totalWatchTime: 0,
+      // 平均完成率
+      avgCompletionRate: 0,
+      // 活跃学习者
+      activeLearners: 0,
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
+        learningRecordId: null,
+        resourceId: null,
         studentName: null,
         resourceName: null,
-        completionStatus: null,
-        lastWatchTime: null,
         completionRange: [0, 100],
-        completionRateStart: null,
-        completionRateEnd: null,
-        params: {}
+        completionStatus: null,
+        lastWatchTime: []
       },
       // 表单参数
       form: {},
@@ -683,18 +693,25 @@ export default {
           { required: true, message: "请选择学习记录", trigger: "change" }
         ],
         resourceId: [
-          { required: true, message: "请选择视频资源", trigger: "change" }
+          { required: true, message: "请选择资源ID", trigger: "change" }
         ],
         totalDuration: [
-          { required: true, message: "请输入视频总时长", trigger: "blur" }
+          { required: true, message: "请输入总时长", trigger: "blur" }
         ],
         watchedDuration: [
           { required: true, message: "请输入观看时长", trigger: "blur" }
         ],
+        completionRate: [
+          { required: true, message: "请选择完成率", trigger: "blur" }
+        ],
         lastWatchTime: [
           { required: true, message: "请选择最后观看时间", trigger: "blur" }
         ],
-      }
+      },
+      // 判断是否为学生
+      isStudent: false,
+      // 判断是否为教师
+      isTeacher: false
     }
   },
   computed: {
@@ -712,9 +729,11 @@ export default {
     }
   },
   created() {
-    this.getList()
-    this.getLearningRecordList()
-    this.getResourceList()
+    this.getList();
+    this.getLearningRecordList();
+    this.getResourceList();
+    this.isStudent = isStudent();
+    this.isTeacher = isTeacher();
   },
   mounted() {
     // 监听窗口大小变化，重绘图表

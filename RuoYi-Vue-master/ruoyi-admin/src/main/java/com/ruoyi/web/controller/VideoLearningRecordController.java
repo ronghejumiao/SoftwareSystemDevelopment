@@ -20,6 +20,7 @@ import com.ruoyi.system.domain.VideoLearningRecord;
 import com.ruoyi.system.service.IVideoLearningRecordService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.utils.SecurityUtils;
 
 /**
  * 视频学习记录，记录学生观看视频的行为数据Controller
@@ -42,6 +43,19 @@ public class VideoLearningRecordController extends BaseController
     public TableDataInfo list(VideoLearningRecord videoLearningRecord)
     {
         startPage();
+        // 判断当前用户角色，如果是学生角色，则只能查看自己的记录
+        if (SecurityUtils.isStudent()) {
+            // 设置查询条件为当前登录用户ID
+            videoLearningRecord.setUserId(SecurityUtils.getUserId());
+            
+            // 学生只能通过视频资源和完成状态进行搜索，清除其他搜索条件
+            // 保留resourceName和completionStatus相关字段，其他查询条件清空
+            // 不清空resourceName，允许学生通过视频资源名称搜索
+            
+            // 其他条件清空
+            videoLearningRecord.setStudentName(null);
+            videoLearningRecord.setLastWatchTime(null);
+        }
         List<VideoLearningRecord> list = videoLearningRecordService.selectVideoLearningRecordList(videoLearningRecord);
         return getDataTable(list);
     }
@@ -54,6 +68,11 @@ public class VideoLearningRecordController extends BaseController
     @PostMapping("/export")
     public void export(HttpServletResponse response, VideoLearningRecord videoLearningRecord)
     {
+        // 判断当前用户角色，如果是学生角色，则只能导出自己的记录
+        if (SecurityUtils.isStudent()) {
+            // 设置查询条件为当前登录用户ID
+            videoLearningRecord.setUserId(SecurityUtils.getUserId());
+        }
         List<VideoLearningRecord> list = videoLearningRecordService.selectVideoLearningRecordList(videoLearningRecord);
         ExcelUtil<VideoLearningRecord> util = new ExcelUtil<VideoLearningRecord>(VideoLearningRecord.class);
         util.exportExcel(response, list, "视频学习记录，记录学生观看视频的行为数据数据");
@@ -66,7 +85,14 @@ public class VideoLearningRecordController extends BaseController
     @GetMapping(value = "/{recordId}")
     public AjaxResult getInfo(@PathVariable("recordId") Long recordId)
     {
-        return success(videoLearningRecordService.selectVideoLearningRecordByRecordId(recordId));
+        VideoLearningRecord record = videoLearningRecordService.selectVideoLearningRecordByRecordId(recordId);
+        
+        // 判断当前用户角色，如果是学生角色，则只能查看自己的记录
+        if (SecurityUtils.isStudent() && !SecurityUtils.getUserId().equals(record.getUserId())) {
+            return AjaxResult.error("没有权限查看其他学生的学习记录");
+        }
+        
+        return success(record);
     }
 
     /**
@@ -77,6 +103,10 @@ public class VideoLearningRecordController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody VideoLearningRecord videoLearningRecord)
     {
+        // 学生只能添加自己的记录
+        if (SecurityUtils.isStudent()) {
+            videoLearningRecord.setUserId(SecurityUtils.getUserId());
+        }
         videoLearningRecordService.saveOrUpdate(videoLearningRecord);
         return success(videoLearningRecord);
     }
@@ -89,6 +119,14 @@ public class VideoLearningRecordController extends BaseController
     @PutMapping
     public AjaxResult edit(@RequestBody VideoLearningRecord videoLearningRecord)
     {
+        // 判断当前用户角色，如果是学生角色，则只能修改自己的记录
+        if (SecurityUtils.isStudent()) {
+            VideoLearningRecord original = videoLearningRecordService.selectVideoLearningRecordByRecordId(videoLearningRecord.getRecordId());
+            if (original != null && !SecurityUtils.getUserId().equals(original.getUserId())) {
+                return AjaxResult.error("没有权限修改其他学生的学习记录");
+            }
+        }
+        
         return toAjax(videoLearningRecordService.updateVideoLearningRecord(videoLearningRecord));
     }
 
@@ -100,6 +138,16 @@ public class VideoLearningRecordController extends BaseController
 	@DeleteMapping("/{recordIds}")
     public AjaxResult remove(@PathVariable Long[] recordIds)
     {
+        // 判断当前用户角色，如果是学生角色，则只能删除自己的记录
+        if (SecurityUtils.isStudent()) {
+            for (Long recordId : recordIds) {
+                VideoLearningRecord record = videoLearningRecordService.selectVideoLearningRecordByRecordId(recordId);
+                if (record != null && !SecurityUtils.getUserId().equals(record.getUserId())) {
+                    return AjaxResult.error("没有权限删除其他学生的学习记录");
+                }
+            }
+        }
+        
         return toAjax(videoLearningRecordService.deleteVideoLearningRecordByRecordIds(recordIds));
     }
 }

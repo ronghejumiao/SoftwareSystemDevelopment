@@ -260,6 +260,7 @@ import { getLearningRecordByUserAndCourse, addLearningRecord } from '@/api/syste
 import { listPaper, listPaperByCourseId } from '@/api/system/paper';
 import { listResource } from '@/api/system/resource';
 import { listHomework } from '@/api/system/homework';
+import { getUserHomeworkStatus } from '@/api/system/homework';
 import { mapState } from 'vuex';
 
 export default {
@@ -311,6 +312,13 @@ export default {
       homeworkFilterDialog: false,
       homeworkFilter: { homeworkName: '', dueDate: '' },
       realCourseId: '',
+      completedHomework: [],
+      uncompletedHomework: [],
+      uploadData: {
+        courseId: '',
+        userId: '',
+        role: 'teacher'
+      },
     };
   },
   computed: {
@@ -377,8 +385,7 @@ export default {
       handler(newVal) {
         if (newVal && newVal !== 'undefined') {
           this.realCourseId = newVal;
-          this.getPaperList();
-          this.getScoreList();
+          this.getTaskList();
           this.getHomeworkList();
           this.getUserHomeworkStatus();
           this.updateUploadData();
@@ -549,6 +556,45 @@ export default {
     fileUrl(path) {
       if (!path) return '';
       return process.env.VUE_APP_BASE_API + path;
+    },
+    async getHomeworkList() {
+      try {
+        const res = await listHomework({ courseId: this.realCourseId });
+        this.homeworkList = res.rows || res.data || [];
+      } catch (error) {
+        console.error('获取作业列表失败:', error);
+        this.homeworkList = [];
+      }
+    },
+    async getUserHomeworkStatus() {
+      if (!this.userId || !this.realCourseId) return;
+      
+      try {
+        const res = await getUserHomeworkStatus(this.realCourseId, this.userId);
+        const data = res.data || {};
+        // 处理已完成和未完成的作业
+        this.completedHomework = (data.completed || []).map(item => ({
+          ...item.task,
+          homework: item.homework,
+          submission: item.submission
+        }));
+        this.uncompletedHomework = (data.uncompleted || []).map(item => ({
+          ...item.task,
+          homework: item.homework
+        }));
+      } catch (error) {
+        console.error('获取用户作业状态失败:', error);
+        this.completedHomework = [];
+        this.uncompletedHomework = [];
+      }
+    },
+    updateUploadData() {
+      // 设置上传参数
+      this.uploadData = {
+        courseId: this.realCourseId,
+        userId: this.userId,
+        role: 'teacher'
+      };
     },
     handleHomeworkUploadSuccess(response, file, fileList) {
       console.log('[DEBUG] 上传成功 response:', response, 'file:', file, 'fileList:', fileList);

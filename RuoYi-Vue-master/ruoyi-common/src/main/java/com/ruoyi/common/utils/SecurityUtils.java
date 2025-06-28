@@ -175,4 +175,23 @@ public class SecurityUtils
                 .anyMatch(x -> Constants.SUPER_ADMIN.equals(x) || PatternMatchUtils.simpleMatch(x, role));
     }
 
+    /**
+     * 判断当前用户是否为学生角色
+     * 
+     * @return 当前用户是否为学生角色
+     */
+    public static boolean isStudent()
+    {
+        return hasRole("student");
+    }
+
+    /**
+     * 判断当前用户是否为教师角色
+     * 
+     * @return 当前用户是否为教师角色
+     */
+    public static boolean isTeacher()
+    {
+        return hasRole("teacher");
+    }
 }
