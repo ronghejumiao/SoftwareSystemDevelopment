@@ -221,7 +221,7 @@
           type="primary"
           icon="el-icon-plus"
             size="small"
-          @click="handleAdd"
+          @click="openAddDialog"
           v-hasPermi="['system:submission:add']"
           >新增提交</el-button>
       </el-col>
@@ -646,7 +646,9 @@ export default {
         submissionTime: null,
         isGraded: null,
       },
-      form: {},
+      form: {
+        userId: null
+      },
       rules: {
         recordId: [
           { required: true, message: "学习记录ID不能为空", trigger: "blur" }
@@ -1042,7 +1044,7 @@ export default {
         dueDate: null,
         submissionContent: null,
         submissionFile: null,
-        submissionTime: new Date(),
+        submissionTime: null,
         isGraded: '0',
         score: null,
         gradeComment: null,
@@ -1064,10 +1066,17 @@ export default {
       this.single = selection.length!==1
       this.multiple = !selection.length
     },
+    openAddDialog() {
+      this.form = { userId: this.$store.getters.id };
+      this.open = true;
+    },
     handleAdd() {
-      this.reset()
-      this.open = true
-      this.title = "新增任务提交记录"
+      this.form.userId = this.$store.getters.id;
+      addSubmission(this.form).then(() => {
+        this.$modal.msgSuccess('提交成功');
+        this.open = false;
+        this.getList();
+      });
     },
     handleView(row) {
       this.viewData = row

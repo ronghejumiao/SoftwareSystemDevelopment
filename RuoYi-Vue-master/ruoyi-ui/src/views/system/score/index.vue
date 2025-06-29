@@ -68,7 +68,7 @@
           <i :class="showSearch ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
         </el-button>
       </div>
-      
+
       <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="100px" class="search-form">
         <el-row :gutter="20">
           <el-col :span="8" v-if="!isStudent">
@@ -86,16 +86,6 @@
         <el-input
           v-model="queryParams.learningRecordId"
                 placeholder="请输入学习记录ID"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="任务ID" prop="taskId">
-        <el-input
-          v-model="queryParams.taskId"
-                placeholder="请输入任务ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -209,9 +199,9 @@
 
     <!-- 数据表格区域 -->
     <el-card class="table-card" shadow="never">
-      <el-table 
-        v-loading="loading" 
-        :data="scoreList" 
+      <el-table
+        v-loading="loading"
+        :data="scoreList"
         @selection-change="handleSelectionChange"
         stripe
         border
@@ -221,11 +211,10 @@
       <el-table-column type="selection" width="55" align="center" v-if="!isStudent"/>
         <el-table-column label="成绩ID" align="center" prop="scoreId" width="80" />
         <el-table-column label="学习记录ID" align="center" prop="learningRecordId" width="120" />
-        <el-table-column label="任务ID" align="center" prop="taskId" width="100" />
         <el-table-column label="试卷ID" align="center" prop="paperId" width="100" />
         <el-table-column label="得分" align="center" prop="score" width="100">
           <template slot-scope="scope">
-            <el-tag 
+            <el-tag
               :type="getScoreTagType(scope.row.score)"
               size="medium"
               effect="dark"
@@ -237,7 +226,7 @@
         <el-table-column label="成绩描述" align="center" prop="scoreDesc" min-width="200" show-overflow-tooltip />
         <el-table-column label="成绩状态" align="center" prop="scoreStatus" width="100">
         <template slot-scope="scope">
-            <el-tag 
+            <el-tag
               :type="scope.row.scoreStatus === '1' ? 'success' : 'danger'"
               size="medium"
             >
@@ -269,7 +258,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -288,11 +277,6 @@
               <el-input v-model="form.learningRecordId" placeholder="请输入学习记录ID" />
         </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="任务ID" prop="taskId">
-              <el-input v-model="form.taskId" placeholder="请输入任务ID" />
-        </el-form-item>
-          </el-col>
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
@@ -302,10 +286,10 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="得分" prop="score">
-              <el-input-number 
-                v-model="form.score" 
-                :min="0" 
-                :max="100" 
+              <el-input-number
+                v-model="form.score"
+                :min="0"
+                :max="100"
                 placeholder="请输入得分(0-100)"
                 style="width: 100%"
               />
@@ -313,11 +297,11 @@
           </el-col>
         </el-row>
         <el-form-item label="成绩描述" prop="scoreDesc">
-          <el-input 
-            v-model="form.scoreDesc" 
-            type="textarea" 
+          <el-input
+            v-model="form.scoreDesc"
+            type="textarea"
             :rows="3"
-            placeholder="请输入成绩描述" 
+            placeholder="请输入成绩描述"
           />
         </el-form-item>
         <el-row :gutter="20">
@@ -420,11 +404,12 @@ export default {
   computed: {
     // 有效成绩数量
     validCount() {
-      return this.scoreList.filter(item => item.scoreStatus === '1').length
+      // 只统计成绩状态为1且分数不为null/空的记录
+      return this.scoreList.filter(item => String(item.scoreStatus) === '1' && item.score !== null && item.score !== '' && !isNaN(item.score)).length
     },
     // 平均分
     averageScore() {
-      const validScores = this.scoreList.filter(item => item.scoreStatus === '1' && item.score)
+      const validScores = this.scoreList.filter(item => String(item.scoreStatus) === '1' && item.score !== null && item.score !== '' && !isNaN(item.score))
       if (validScores.length === 0) return 0
       const total = validScores.reduce((sum, item) => sum + parseFloat(item.score), 0)
       return (total / validScores.length).toFixed(1)
@@ -441,7 +426,7 @@ export default {
   created() {
     // 检查是否为学生角色
     this.isStudent = isStudent()
-    
+
     // 自动读取 query 参数
     if (this.$route.query.userId) {
       this.queryParams.userId = this.$route.query.userId
@@ -588,17 +573,17 @@ export default {
     display: flex;
     align-items: center;
     padding: 10px 0;
-    
+
     .stat-icon {
       font-size: 48px;
       margin-right: 20px;
       width: 60px;
       text-align: center;
     }
-    
+
     .stat-info {
       flex: 1;
-      
+
       .stat-number {
         font-size: 28px;
         font-weight: bold;
@@ -606,7 +591,7 @@ export default {
         line-height: 1;
         margin-bottom: 5px;
       }
-      
+
       .stat-label {
         font-size: 14px;
         color: #909399;
@@ -618,24 +603,24 @@ export default {
 // 搜索卡片样式
 .search-card {
   margin-bottom: 20px;
-  
+
   .search-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     .search-title {
       font-size: 16px;
       font-weight: 500;
       color: #303133;
-      
+
       i {
         margin-right: 8px;
         color: #409EFF;
       }
     }
   }
-  
+
   .search-form {
     .el-form-item {
       margin-bottom: 18px;
@@ -659,7 +644,7 @@ export default {
         font-weight: 500;
       }
     }
-    
+
     .el-table__body-wrapper {
       tr:hover {
         background-color: #f5f7fa;
@@ -673,17 +658,17 @@ export default {
   .app-container {
     padding: 10px;
   }
-  
+
   .stat-card .stat-content {
     flex-direction: column;
     text-align: center;
-    
+
     .stat-icon {
       margin-right: 0;
       margin-bottom: 10px;
     }
   }
-  
+
   .search-form .el-col {
     margin-bottom: 10px;
   }

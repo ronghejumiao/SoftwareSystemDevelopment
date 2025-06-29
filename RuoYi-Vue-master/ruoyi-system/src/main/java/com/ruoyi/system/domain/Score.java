@@ -47,13 +47,19 @@ public class Score extends BaseEntity
     private Long scoreStatus;
 
     /** 提交时间，默认当前时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "提交时间，默认当前时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "提交时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date submitTime;
 
     /** 试卷详情，存储学生作答情况 */
     @Excel(name = "试卷详情")
     private String answerDetails;
+
+    /** 课程ID */
+    private Long courseId;
+
+    /** 课程名称 */
+    private String courseName;
 
     public void setScoreId(Long scoreId) 
     {
@@ -145,6 +151,22 @@ public class Score extends BaseEntity
         return answerDetails;
     }
 
+    public Long getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(Long courseId) {
+        this.courseId = courseId;
+    }
+
+    public String getCourseName() {
+        return courseName;
+    }
+
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -156,6 +178,8 @@ public class Score extends BaseEntity
             .append("scoreDesc", getScoreDesc())
             .append("scoreStatus", getScoreStatus())
             .append("submitTime", getSubmitTime())
+            .append("courseId", getCourseId())
+            .append("courseName", getCourseName())
             .append("answerDetails", getAnswerDetails())
             .append("createTime", getCreateTime())
             .append("updateTime", getUpdateTime())

@@ -13,32 +13,41 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="scoreDesc"    column="score_desc"    />
         <result property="scoreStatus"    column="score_status"    />
         <result property="submitTime"    column="submit_time"    />
-        <result property="answerDetails"    column="answer_details"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateTime"    column="update_time"    />
+        <result property="courseId" column="course_id" />
+        <result property="courseName" column="course_name" />
     </resultMap>
 
     <sql id="selectScoreVo">
-        select score_id, learning_record_id, task_id, paper_id, score, score_desc, score_status, submit_time, answer_details, create_time, update_time from score
+        <!-- 引入 learning_record 关联，便于在通用列表查询中通过 user_id 过滤 -->
+        select s.score_id, s.learning_record_id, s.task_id, s.paper_id, s.score, s.score_desc, s.score_status, s.submit_time, s.create_time, s.update_time,
+               c.course_id, c.course_name
+        from score s
+        left join learning_record lr on lr.record_id = s.learning_record_id
+        left join test_paper tp on tp.paper_id = s.paper_id
+        left join course c on c.course_id = lr.course_id
     </sql>
 
     <select id="selectScoreList" parameterType="Score" resultMap="ScoreResult">
         <include refid="selectScoreVo"/>
         <where>  
-            <if test="scoreId != null "> and score_id = #{scoreId}</if>
-            <if test="learningRecordId != null "> and learning_record_id = #{learningRecordId}</if>
-            <if test="taskId != null "> and task_id = #{taskId}</if>
-            <if test="paperId != null "> and paper_id = #{paperId}</if>
-            <if test="score != null "> and score = #{score}</if>
-            <if test="scoreDesc != null  and scoreDesc != ''"> and score_desc like concat('%', #{scoreDesc}, '%')</if>
-            <if test="scoreStatus != null "> and score_status = #{scoreStatus}</if>
-            <if test="submitTime != null "> and submit_time = #{submitTime}</if>
+            <if test="scoreId != null "> and s.score_id = #{scoreId}</if>
+            <if test="learningRecordId != null "> and s.learning_record_id = #{learningRecordId}</if>
+            <if test="taskId != null "> and s.task_id = #{taskId}</if>
+            <if test="paperId != null "> and s.paper_id = #{paperId}</if>
+            <if test="score != null "> and s.score = #{score}</if>
+            <if test="scoreDesc != null  and scoreDesc != ''"> and s.score_desc like concat('%', #{scoreDesc}, '%')</if>
+            <if test="scoreStatus != null "> and s.score_status = #{scoreStatus}</if>
+            <if test="submitTime != null "> and s.submit_time = #{submitTime}</if>
+            <!-- 如果 params.userId 存在，则按 user_id 过滤 -->
+            <if test="params != null and params.userId != null"> and lr.user_id = #{params.userId}</if>
         </where>
     </select>
     
     <select id="selectScoreByScoreId" parameterType="Long" resultMap="ScoreResult">
         <include refid="selectScoreVo"/>
-        where score_id = #{scoreId}
+        where s.score_id = #{scoreId}
     </select>
 
     <insert id="insertScore" parameterType="Score" useGeneratedKeys="true" keyProperty="scoreId">
@@ -51,7 +60,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="scoreDesc != null and scoreDesc != ''">score_desc,</if>
             <if test="scoreStatus != null">score_status,</if>
             <if test="submitTime != null">submit_time,</if>
-            <if test="answerDetails != null and answerDetails != ''">answer_details,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateTime != null">update_time,</if>
          </trim>
@@ -63,7 +71,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="scoreDesc != null and scoreDesc != ''">#{scoreDesc},</if>
             <if test="scoreStatus != null">#{scoreStatus},</if>
             <if test="submitTime != null">#{submitTime},</if>
-            <if test="answerDetails != null and answerDetails != ''">#{answerDetails},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateTime != null">#{updateTime},</if>
          </trim>
@@ -79,7 +86,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="scoreDesc != null and scoreDesc != ''">score_desc = #{scoreDesc},</if>
             <if test="scoreStatus != null">score_status = #{scoreStatus},</if>
             <if test="submitTime != null">submit_time = #{submitTime},</if>
-            <if test="answerDetails != null and answerDetails != ''">answer_details = #{answerDetails},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </trim>
@@ -106,17 +112,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <!-- 根据用户ID和课程ID查询成绩 -->
     <select id="selectScoreByUserAndCourse" resultMap="ScoreResult">
-        select s.score_id, s.learning_record_id, s.task_id, s.paper_id, s.score, s.score_desc, s.submit_time, s.create_time, s.update_time
+        select s.score_id, s.learning_record_id, s.task_id, s.paper_id, s.score, s.score_desc, s.submit_time, s.create_time, s.update_time,
+               c.course_id, c.course_name
         from score s
         inner join learning_record lr on s.learning_record_id = lr.record_id
+        left join test_paper tp on tp.paper_id = s.paper_id
+        left join course c on c.course_id = lr.course_id
         where lr.user_id = #{userId} and lr.course_id = #{courseId}
     </select>
 
     <!-- 根据用户ID查询所有成绩 -->
     <select id="selectScoreByUserId" resultMap="ScoreResult">
-        select s.score_id, s.learning_record_id, s.task_id, s.paper_id, s.score, s.score_desc, s.submit_time, s.create_time, s.update_time
+        select s.score_id, s.learning_record_id, s.task_id, s.paper_id, s.score, s.score_desc, s.submit_time, s.create_time, s.update_time,
+               c.course_id, c.course_name
         from score s
         inner join learning_record lr on s.learning_record_id = lr.record_id
+        left join test_paper tp on tp.paper_id = s.paper_id
+        left join course c on c.course_id = lr.course_id
         where lr.user_id = #{userId}
     </select>
 </mapper>

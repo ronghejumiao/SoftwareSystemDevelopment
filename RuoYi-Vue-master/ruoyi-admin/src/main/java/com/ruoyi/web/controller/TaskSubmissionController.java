@@ -20,6 +20,7 @@ import com.ruoyi.system.domain.TaskSubmission;
 import com.ruoyi.system.service.ITaskSubmissionService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.utils.SecurityUtils;
 
 /**
  * 任务提交记录Controller
@@ -42,6 +43,10 @@ public class TaskSubmissionController extends BaseController
     public TableDataInfo list(TaskSubmission taskSubmission)
     {
         startPage();
+        // 学生用户只能查看自己的任务提交记录
+        if (SecurityUtils.isStudent()) {
+            taskSubmission.getParams().put("userId", SecurityUtils.getUserId());
+        }
         List<TaskSubmission> list = taskSubmissionService.selectTaskSubmissionList(taskSubmission);
         return getDataTable(list);
     }
@@ -54,6 +59,10 @@ public class TaskSubmissionController extends BaseController
     @PostMapping("/export")
     public void export(HttpServletResponse response, TaskSubmission taskSubmission)
     {
+        // 学生用户只能导出自己的记录
+        if (SecurityUtils.isStudent()) {
+            taskSubmission.getParams().put("userId", SecurityUtils.getUserId());
+        }
         List<TaskSubmission> list = taskSubmissionService.selectTaskSubmissionList(taskSubmission);
         ExcelUtil<TaskSubmission> util = new ExcelUtil<TaskSubmission>(TaskSubmission.class);
         util.exportExcel(response, list, "任务提交记录数据");

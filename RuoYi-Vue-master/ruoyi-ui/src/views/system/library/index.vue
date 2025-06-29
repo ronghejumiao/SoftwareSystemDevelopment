@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="课程ID，关联course表" prop="courseId">
+      <el-form-item label="课程ID" prop="courseId">
         <el-input
           v-model="queryParams.courseId"
-          placeholder="请输入课程ID，关联course表"
+          placeholder="请输入课程ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -71,8 +71,8 @@
 
     <el-table v-loading="loading" :data="libraryList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="试卷库ID，主键，自增" align="center" prop="libraryId" />
-      <el-table-column label="课程ID，关联course表" align="center" prop="courseId" />
+      <el-table-column label="试卷库ID" align="center" prop="libraryId" />
+      <el-table-column label="课程ID" align="center" prop="courseId" />
       <el-table-column label="试卷库名称" align="center" prop="libraryName" />
       <el-table-column label="试卷库描述" align="center" prop="libraryDesc" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -94,7 +94,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -106,8 +106,8 @@
     <!-- 添加或修改课程试卷库，一个课程对应一个试卷库对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="课程ID，关联course表" prop="courseId">
-          <el-input v-model="form.courseId" placeholder="请输入课程ID，关联course表" />
+        <el-form-item label="课程ID" prop="courseId">
+          <el-input v-model="form.courseId" placeholder="请输入课程ID" />
         </el-form-item>
         <el-form-item label="试卷库名称" prop="libraryName">
           <el-input v-model="form.libraryName" placeholder="请输入试卷库名称" />
@@ -162,7 +162,7 @@ export default {
       // 表单校验
       rules: {
         courseId: [
-          { required: true, message: "课程ID，关联course表不能为空", trigger: "blur" }
+          { required: true, message: "课程ID不能为空", trigger: "blur" }
         ],
         libraryName: [
           { required: true, message: "试卷库名称不能为空", trigger: "blur" }

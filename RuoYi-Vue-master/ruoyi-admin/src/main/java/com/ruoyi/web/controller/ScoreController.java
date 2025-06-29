@@ -123,10 +123,7 @@ public class ScoreController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody Score score)
     {
-        // 学生不允许添加成绩
-        if (SecurityUtils.isStudent()) {
-            return AjaxResult.error("学生用户无权添加成绩记录");
-        }
+        // 学生允许提交自己的成绩记录，其他角色按原权限控制 - 不做额外拦截
         
         return toAjax(scoreService.insertScore(score));
     }
@@ -139,8 +136,7 @@ public class ScoreController extends BaseController
     @PutMapping
     public AjaxResult edit(@RequestBody Score score)
     {
-        // 学生不允许修改成绩
-        if (SecurityUtils.isStudent()) {
+        if (SecurityUtils.isStudent() && !SecurityUtils.isTeacher() && !SecurityUtils.hasRole("admin")) {
             return AjaxResult.error("学生用户无权修改成绩记录");
         }
         
@@ -155,8 +151,7 @@ public class ScoreController extends BaseController
 	@DeleteMapping("/{scoreIds}")
     public AjaxResult remove(@PathVariable Long[] scoreIds)
     {
-        // 学生不允许删除成绩
-        if (SecurityUtils.isStudent()) {
+        if (SecurityUtils.isStudent() && !SecurityUtils.isTeacher() && !SecurityUtils.hasRole("admin")) {
             return AjaxResult.error("学生用户无权删除成绩记录");
         }
         

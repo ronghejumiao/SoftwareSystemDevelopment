@@ -1,11 +1,11 @@
 <template>
   <div class="app-container">
     <el-card>
-      <div slot="header">我的任务提交记录</div>
+      <div slot="header">个人任务提交记录</div>
       <el-table :data="submissions" v-loading="loading" style="width:100%">
         <el-table-column prop="submissionId" label="ID" width="70"/>
         <el-table-column prop="taskId" label="任务ID" width="100"/>
-        <el-table-column prop="courseId" label="课程ID" width="100"/>
+        <el-table-column prop="courseName" label="课程" width="120"/>
         <el-table-column prop="status" label="状态" width="100"/>
         <el-table-column prop="score" label="评分" width="80"/>
         <el-table-column prop="createTime" label="提交时间" />
@@ -47,4 +47,4 @@ export default {
     }
   }
 };
-</script> 
+</script>

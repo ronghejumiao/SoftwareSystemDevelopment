@@ -289,7 +289,7 @@ export default {
         totalDuration: Math.round(this.videoDetail.duration || this.videoElement?.duration || 0),
         watchedDuration: 0,
         completionRate: 0,
-        lastWatchTime: new Date()
+        // lastWatchTime 由后端自动生成
       };
       try {
         // Use addRecord, which now acts as get-or-create and returns the full record object
@@ -374,7 +374,7 @@ export default {
         this.videoRecord.totalDuration = totalDuration;
         this.videoRecord.completionRate = Math.round((currentTime / totalDuration) * 100);
       }
-      this.videoRecord.lastWatchTime = new Date();
+      // this.videoRecord.lastWatchTime = new Date(); // 移除由后端生成
       
       // 只有有recordId才发送
       if (this.videoRecord.recordId) {

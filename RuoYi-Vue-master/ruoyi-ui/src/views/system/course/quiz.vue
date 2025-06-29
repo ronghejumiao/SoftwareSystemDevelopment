@@ -1399,8 +1399,7 @@ export default {
           paperId: this.currentPaper.paperId,
           score: this.finalScore,
           scoreDesc: `得分：${this.finalScore}/${this.currentPaper.totalScore}`,
-          answerDetails: JSON.stringify(answerDetails),
-          submitTime: new Date()
+          answerDetails: JSON.stringify(answerDetails)
         };
         return addScore(scoreData);
       }).then(() => {

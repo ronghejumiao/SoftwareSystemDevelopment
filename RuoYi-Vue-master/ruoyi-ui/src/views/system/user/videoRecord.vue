@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-card>
-      <div slot="header">我的视频观看记录</div>
+      <div slot="header">个人视频观看记录</div>
       <el-table :data="records" v-loading="loading" style="width:100%">
         <el-table-column prop="recordId" label="记录ID" width="80"/>
         <el-table-column prop="resourceId" label="视频ID" width="100"/>
@@ -46,4 +46,4 @@ export default {
     }
   }
 };
-</script> 
+</script>

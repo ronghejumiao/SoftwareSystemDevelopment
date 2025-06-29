@@ -31,9 +31,9 @@
             <el-tab-pane label="基本资料" name="userinfo">
               <userInfo :user="user" />
               <div style="margin-top: 20px;">
-                <el-button type="primary" size="mini" icon="el-icon-video-camera" @click="goto('videos')">我的视频记录</el-button>
-                <el-button type="warning" size="mini" icon="el-icon-medal-1" @click="goto('scores')" style="margin-left: 8px;">我的成绩</el-button>
-                <el-button type="success" size="mini" icon="el-icon-document" @click="goto('tasks')" style="margin-left: 8px;">我的任务提交</el-button>
+                <el-button v-if="isStudentOnly" type="primary" size="mini" icon="el-icon-video-camera" @click="goto('videos')">我的视频记录</el-button>
+                <el-button v-if="isStudentOnly" type="warning" size="mini" icon="el-icon-medal-1" @click="goto('scores')" style="margin-left: 8px;">我的成绩</el-button>
+                <el-button v-if="isStudentOnly" type="success" size="mini" icon="el-icon-document" @click="goto('tasks')" style="margin-left: 8px;">我的任务提交</el-button>
               </div>
             </el-tab-pane>
             <el-tab-pane label="修改密码" name="resetPwd">
@@ -65,6 +65,12 @@ export default {
   },
   created() {
     this.getUser()
+  },
+  computed: {
+    isStudentOnly() {
+      const roles = this.$store.getters.roles || [];
+      return roles.includes('student') && !roles.includes('admin') && !roles.includes('teacher');
+    }
   },
   methods: {
     getUser() {

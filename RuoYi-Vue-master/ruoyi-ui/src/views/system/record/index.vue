@@ -91,14 +91,6 @@
         </el-row>
         <el-row :gutter="20" justify="end">
           <el-col :span="8">
-            <el-form-item label="课程进度" prop="courseProgress">
-              <el-input
-                v-model="queryParams.courseProgress"
-                placeholder="请输入课程进度"
-                clearable
-                @keyup.enter.native="handleQuery"
-              />
-            </el-form-item>
           </el-col>
           <el-col :span="8" :offset="8" style="text-align: right;">
             <el-form-item>
@@ -178,7 +170,6 @@
             <span>{{ parseTime(scope.row.joinTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="课程进度" align="center" prop="courseProgress" width="100" />
         <el-table-column label="总成绩" align="center" prop="totalScore" width="100" />
 
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="320">
@@ -232,9 +223,6 @@
             placeholder="请选择时间"
             style="width: 100%"
           />
-        </el-form-item>
-        <el-form-item label="课程进度" prop="courseProgress">
-          <el-input v-model="form.courseProgress" placeholder="请输入课程进度" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">

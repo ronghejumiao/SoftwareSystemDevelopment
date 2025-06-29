@@ -49,6 +49,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="submissionTime != null "> and ts.submission_time = #{submissionTime}</if>
             <if test="isGraded != null  and isGraded != ''"> and ts.is_graded = #{isGraded}</if>
             <if test="gradeComment != null  and gradeComment != ''"> and ts.grade_comment = #{gradeComment}</if>
+            <if test="params != null and params.userId != null"> and lr.user_id = #{params.userId}</if>
         </where>
     </select>
     
