@@ -88,7 +88,7 @@ public class VideoLearningRecordController extends BaseController
         VideoLearningRecord record = videoLearningRecordService.selectVideoLearningRecordByRecordId(recordId);
         
         // 判断当前用户角色，如果是学生角色，则只能查看自己的记录
-        if (SecurityUtils.isStudent() && !SecurityUtils.getUserId().equals(record.getUserId())) {
+        if (SecurityUtils.isStudent() && record.getUserId() != null && !SecurityUtils.getUserId().equals(record.getUserId())) {
             return AjaxResult.error("没有权限查看其他学生的学习记录");
         }
         
@@ -122,7 +122,7 @@ public class VideoLearningRecordController extends BaseController
         // 判断当前用户角色，如果是学生角色，则只能修改自己的记录
         if (SecurityUtils.isStudent()) {
             VideoLearningRecord original = videoLearningRecordService.selectVideoLearningRecordByRecordId(videoLearningRecord.getRecordId());
-            if (original != null && !SecurityUtils.getUserId().equals(original.getUserId())) {
+            if (original != null && original.getUserId() != null && !SecurityUtils.getUserId().equals(original.getUserId())) {
                 return AjaxResult.error("没有权限修改其他学生的学习记录");
             }
         }
@@ -142,7 +142,7 @@ public class VideoLearningRecordController extends BaseController
         if (SecurityUtils.isStudent()) {
             for (Long recordId : recordIds) {
                 VideoLearningRecord record = videoLearningRecordService.selectVideoLearningRecordByRecordId(recordId);
-                if (record != null && !SecurityUtils.getUserId().equals(record.getUserId())) {
+                if (record != null && record.getUserId() != null && !SecurityUtils.getUserId().equals(record.getUserId())) {
                     return AjaxResult.error("没有权限删除其他学生的学习记录");
                 }
             }

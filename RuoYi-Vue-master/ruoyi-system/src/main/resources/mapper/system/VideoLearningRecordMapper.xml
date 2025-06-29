@@ -16,6 +16,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="lastWatchTime"    column="last_watch_time"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateTime"    column="update_time"    />
+        <result property="userId"    column="user_id"    />
         <result property="studentName"    column="student_name"    />
         <result property="studentAvatar"    column="student_avatar"    />
         <result property="resourceName"    column="resource_name"    />
@@ -24,7 +25,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectVideoLearningRecordVo">
-        select vlr.*, su.user_name as student_name, su.avatar as student_avatar, vr.video_name as resource_name, vr.video_type as resource_category, c.course_name
+        select vlr.*, lr.user_id, su.user_name as student_name, su.avatar as student_avatar, vr.video_name as resource_name, vr.video_type as resource_category, c.course_name
         from video_learning_record vlr
         left join learning_record lr on lr.record_id = vlr.learning_record_id
         left join sys_user su on su.user_id = lr.user_id
@@ -75,7 +76,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
     
     <select id="selectVideoLearningRecordByRecordId" parameterType="Long" resultMap="VideoLearningRecordResult">
-        <include refid="selectVideoLearningRecordVo"/>
+        select vlr.*, lr.user_id, su.user_name as student_name, su.avatar as student_avatar, vr.video_name as resource_name, vr.video_type as resource_category, c.course_name
+        from video_learning_record vlr
+        inner join learning_record lr on lr.record_id = vlr.learning_record_id
+        left join sys_user su on su.user_id = lr.user_id
+        left join video_resource vr on vr.video_id = vlr.resource_id
+        left join course c on c.course_id = vr.course_id
         where vlr.record_id = #{recordId}
     </select>
 
@@ -136,13 +142,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <!-- 根据学习记录ID和资源ID查询 -->
     <select id="selectByLearningAndResourceId" resultMap="VideoLearningRecordResult">
-        <include refid="selectVideoLearningRecordVo"/>
+        select vlr.*, lr.user_id, su.user_name as student_name, su.avatar as student_avatar, vr.video_name as resource_name, vr.video_type as resource_category, c.course_name
+        from video_learning_record vlr
+        inner join learning_record lr on lr.record_id = vlr.learning_record_id
+        left join sys_user su on su.user_id = lr.user_id
+        left join video_resource vr on vr.video_id = vlr.resource_id
+        left join course c on c.course_id = vr.course_id
         where vlr.learning_record_id = #{learningRecordId} and vlr.resource_id = #{resourceId}
     </select>
 
     <!-- 根据学习记录ID和资源ID查询（新增方法） -->
     <select id="selectByLearningRecordIdAndResourceId" resultMap="VideoLearningRecordResult">
-        <include refid="selectVideoLearningRecordVo"/>
+        select vlr.*, lr.user_id, su.user_name as student_name, su.avatar as student_avatar, vr.video_name as resource_name, vr.video_type as resource_category, c.course_name
+        from video_learning_record vlr
+        inner join learning_record lr on lr.record_id = vlr.learning_record_id
+        left join sys_user su on su.user_id = lr.user_id
+        left join video_resource vr on vr.video_id = vlr.resource_id
+        left join course c on c.course_id = vr.course_id
         where vlr.learning_record_id = #{learningRecordId} and vlr.resource_id = #{resourceId}
     </select>
 </mapper>

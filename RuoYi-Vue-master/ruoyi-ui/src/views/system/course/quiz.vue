@@ -88,10 +88,17 @@
     </el-card>
 
       <!-- 作业评分区域 -->
-      <el-card class="homework-section" v-hasRole="['admin','teacher']">
+      <el-card class="homework-section">
         <div slot="header" class="clearfix">
           <span class="section-title">作业评分</span>
           <el-form :inline="true" :model="gradeFilter" class="filter-form" style="float: right;">
+            <el-form-item label="评分状态">
+              <el-select v-model="gradeFilter.gradeStatus" placeholder="选择状态" size="small" clearable style="width: 120px;">
+                <el-option label="全部" value=""></el-option>
+                <el-option label="已评分" value="graded"></el-option>
+                <el-option label="未评分" value="ungraded"></el-option>
+              </el-select>
+            </el-form-item>
             <el-form-item label="作业名称">
               <el-input v-model="gradeFilter.taskName" placeholder="作业名称" size="small" clearable />
             </el-form-item>
@@ -113,10 +120,13 @@
             <template slot-scope="scope">{{ formatDate(scope.row.dueDate) }}</template>
           </el-table-column>
           <el-table-column prop="studentName" label="提交者" min-width="100" />
+          <el-table-column prop="submissionTime" label="提交时间" min-width="120">
+            <template slot-scope="scope">{{ formatDate(scope.row.submissionTime) }}</template>
+          </el-table-column>
           <el-table-column prop="gradeScore" label="分数" min-width="80">
             <template slot-scope="scope">
               <span v-if="scope.row.isGraded === '1'">{{ scope.row.gradeScore }}</span>
-              <span v-else>未评分</span>
+              <span v-else style="color: #E6A23C;">未评分</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="120">
@@ -154,9 +164,13 @@
                 </span>
                 <span class="detail-item">
                   <i class="el-icon-date"></i>
-                  完成时间：{{ formatDate(homework.submitTime) }}
+                  完成时间：{{ formatDate(homework.submission ? homework.submission.submissionTime : homework.submitTime) }}
                 </span>
-                <span class="detail-item" v-if="homework.gradeScore">
+                <span class="detail-item" v-if="homework.submission && homework.submission.gradeScore">
+                  <i class="el-icon-trophy"></i>
+                  得分：{{ homework.submission.gradeScore }}分
+                </span>
+                <span class="detail-item" v-else-if="homework.gradeScore">
                   <i class="el-icon-trophy"></i>
                   得分：{{ homework.gradeScore }}分
                 </span>
@@ -572,6 +586,16 @@
                     style="width: 200px;"
                   />
                   <span class="score-unit">分</span>
+                  <el-button 
+                    type="success" 
+                    size="small" 
+                    icon="el-icon-magic-stick"
+                    @click="aiGrade"
+                    :loading="aiGradingLoading"
+                    style="margin-left: 10px;"
+                  >
+                    AI评分
+                  </el-button>
                 </el-form-item>
                 <el-form-item label="评语">
                   <el-input
@@ -976,6 +1000,7 @@ import {
 } from "@/api/system/homework";
 import * as echarts from 'echarts';
 import { listTask } from '@/api/system/task';
+import { aiGrade } from '@/api/system/course';
 
 export default {
   name: "Quiz",
@@ -1097,7 +1122,8 @@ export default {
       gradeFilter: {
         taskName: '',
         dueDate: '',
-        studentName: ''
+        studentName: '',
+        gradeStatus: ''
       },
       filteredGradeList: [],
       gradeDialogVisible: false,
@@ -1105,7 +1131,8 @@ export default {
       gradeForm: {
         gradeScore: 0,
         gradeComment: ''
-      }
+      },
+      aiGradingLoading: false
     };
   },
   computed: {
@@ -1115,7 +1142,10 @@ export default {
     isTeacher() {
       // 根据用户角色判断是否为教师
       const roles = this.$store.state.user.roles;
-      return roles && roles.includes('teacher');
+      console.log('[DEBUG] 用户角色信息:', roles);
+      const isTeacherRole = roles && roles.includes('teacher');
+      console.log('[DEBUG] 是否为教师角色:', isTeacherRole);
+      return isTeacherRole;
     },
     filteredResourceList() {
       if (this.addForm.submitMethod === '资料阅读') {
@@ -1137,6 +1167,9 @@ export default {
           this.getHomeworkList();
           this.getUserHomeworkStatus();
           this.updateUploadData();
+          // 临时：所有用户都获取所有提交的作业进行调试
+          console.log('[DEBUG] 调用getAllSubmissions进行调试');
+          this.getAllSubmissions();
         }
       },
       immediate: true
@@ -1151,6 +1184,9 @@ export default {
       this.getHomeworkList();
       this.getUserHomeworkStatus();
       this.updateUploadData();
+      // 临时：所有用户都获取所有提交的作业进行调试
+      console.log('[DEBUG] 调用getAllSubmissions进行调试');
+      this.getAllSubmissions();
     }
   },
   beforeDestroy() {
@@ -1745,21 +1781,31 @@ export default {
 
       getUserHomeworkStatus(this.realCourseId, userId).then(response => {
         const data = response.data || {};
+        console.log('[DEBUG] getUserHomeworkStatus 返回数据:', data);
+        
         // 新结构：completed/uncompleted均为[{homework, task, submission}]，前端需适配
         this.completedHomework = (data.completed || []).map(item => {
-          return {
+          const result = {
             ...item.task,
             homework: item.homework,
             submission: item.submission
           };
+          console.log('[DEBUG] 处理已完成作业:', result);
+          return result;
         });
+        
         this.uncompletedHomework = (data.uncompleted || []).map(item => {
           // 保证taskId等任务字段在顶层
-          return {
+          const result = {
             ...item.task,
             homework: item.homework
           };
+          console.log('[DEBUG] 处理未完成作业:', result);
+          return result;
         });
+        
+        console.log('[DEBUG] 最终已完成作业列表:', this.completedHomework);
+        console.log('[DEBUG] 最终未完成作业列表:', this.uncompletedHomework);
       }).catch(error => {
         console.error('获取作业状态失败:', error);
         this.completedHomework = [];
@@ -1853,31 +1899,111 @@ export default {
         this.submitHomeworkLoading = false;
       }
     },
+    // 获取所有提交的作业（教师功能）
+    getAllSubmissions() {
+      if (!this.realCourseId) return;
+      
+      console.log('[DEBUG] 开始获取所有提交记录，courseId:', this.realCourseId);
+      
+      // 获取当前课程的所有学习任务
+      this.getLearningTasks().then(tasks => {
+        console.log('[DEBUG] 获取到的所有任务:', tasks);
+        
+        // 过滤出作业类型的任务（排除资料阅读）
+        const homeworkTasks = tasks.filter(task => task.taskType !== '资料阅读');
+        const homeworkTaskIds = homeworkTasks.map(task => task.taskId);
+        
+        console.log('[DEBUG] 作业类型任务:', homeworkTasks);
+        console.log('[DEBUG] 作业任务ID列表:', homeworkTaskIds);
+        
+        if (homeworkTaskIds.length === 0) {
+          console.log('[DEBUG] 没有找到作业类型的任务');
+          this.filteredGradeList = [];
+          return;
+        }
+        
+        // 获取所有提交记录
+        listSubmission({ pageSize: 999 }).then(response => {
+          const allSubmissions = response.rows || response.data || [];
+          console.log('[DEBUG] 获取到的所有提交记录:', allSubmissions);
+          
+          // 过滤出当前课程的作业提交记录
+          const courseSubmissions = allSubmissions.filter(submission =>
+            homeworkTaskIds.includes(submission.taskId)
+          );
+          
+          console.log('[DEBUG] 当前课程的作业提交记录:', courseSubmissions);
+          
+          // 更新评分列表
+          this.updateGradeList(courseSubmissions, homeworkTasks);
+          
+          console.log('[DEBUG] 更新后的评分列表:', this.filteredGradeList);
+          
+          // 应用筛选
+          this.applyGradeFilterLogic();
+          
+          console.log('[DEBUG] 应用筛选后的最终列表:', this.filteredGradeList);
+        }).catch(error => {
+          console.error('获取所有提交记录失败:', error);
+          this.filteredGradeList = [];
+        });
+      }).catch(error => {
+        console.error('获取学习任务失败:', error);
+        this.filteredGradeList = [];
+      });
+    },
     applyGradeFilter() {
       // 重新获取数据并应用筛选
-      this.getUserHomeworkStatus();
-      // 使用nextTick确保数据更新后再筛选
-      this.$nextTick(() => {
-        let arr = this.filteredGradeList;
-        if (this.gradeFilter.taskName) {
-          arr = arr.filter(s => s.taskName && s.taskName.includes(this.gradeFilter.taskName));
-        }
-        if (this.gradeFilter.dueDate) {
-          arr = arr.filter(s => s.dueDate && s.dueDate.startsWith(this.gradeFilter.dueDate));
-        }
-        if (this.gradeFilter.studentName) {
-          arr = arr.filter(s => s.studentName && s.studentName.includes(this.gradeFilter.studentName));
-        }
-        this.filteredGradeList = arr;
-      });
+      this.getAllSubmissions();
+    },
+    // 应用筛选逻辑
+    applyGradeFilterLogic() {
+      let arr = [...this.filteredGradeList];
+      
+      
+      console.log('[DEBUG] 开始应用筛选，原始数据:', arr);
+      console.log('[DEBUG] 当前筛选条件:', this.gradeFilter);
+      
+      // 按评分状态筛选
+      if (this.gradeFilter.gradeStatus === 'graded') {
+        arr = arr.filter(s => s.isGraded === '1');
+        console.log('[DEBUG] 筛选已评分后:', arr);
+      } else if (this.gradeFilter.gradeStatus === 'ungraded') {
+        arr = arr.filter(s => s.isGraded !== '1');
+        console.log('[DEBUG] 筛选未评分后:', arr);
+      } else {
+        console.log('[DEBUG] 显示全部记录（不按评分状态筛选）');
+      }
+      
+      // 按作业名称筛选
+      if (this.gradeFilter.taskName) {
+        arr = arr.filter(s => s.taskName && s.taskName.includes(this.gradeFilter.taskName));
+        console.log('[DEBUG] 按作业名称筛选后:', arr);
+      }
+      
+      // 按截止时间筛选
+      if (this.gradeFilter.dueDate) {
+        arr = arr.filter(s => s.dueDate && s.dueDate.startsWith(this.gradeFilter.dueDate));
+        console.log('[DEBUG] 按截止时间筛选后:', arr);
+      }
+      
+      // 按提交者筛选
+      if (this.gradeFilter.studentName) {
+        arr = arr.filter(s => s.studentName && s.studentName.includes(this.gradeFilter.studentName));
+        console.log('[DEBUG] 按提交者筛选后:', arr);
+      }
+      
+      this.filteredGradeList = arr;
+      console.log('[DEBUG] 最终筛选结果:', this.filteredGradeList);
     },
     resetGradeFilter() {
       this.gradeFilter = {
         taskName: '',
         dueDate: '',
-        studentName: ''
+        studentName: '',
+        gradeStatus: ''
       };
-      this.getUserHomeworkStatus(); // 重新获取数据
+      this.getAllSubmissions(); // 重新获取数据
     },
     openGradeDialog(row) {
       this.currentGradeSubmission = row;
@@ -1903,7 +2029,11 @@ export default {
       updateSubmission(updateData).then(() => {
         this.$modal.msgSuccess('评分已保存');
         this.gradeDialogVisible = false;
-        this.getUserHomeworkStatus(); // 刷新数据
+        this.getUserHomeworkStatus(); // 刷新学生作业状态
+        // 如果是教师角色，刷新所有提交列表
+        if (this.isTeacher) {
+          this.getAllSubmissions();
+        }
       }).catch(() => {
         this.$modal.msgError('保存失败');
       }).finally(() => {
@@ -2026,19 +2156,36 @@ export default {
 
     // 更新评分列表
     updateGradeList(submissions, tasks) {
+      console.log('[DEBUG] updateGradeList 输入参数:', { submissions, tasks });
+      
       this.filteredGradeList = submissions.map(submission => {
         const task = tasks.find(t => t.taskId === submission.taskId);
         // 通过task的homeworkId找到对应的homework
         const homework = task && task.homeworkId ?
           this.homeworkList.find(h => h.homeworkId === task.homeworkId) : null;
 
-        return {
+        const result = {
           ...submission,
           taskName: task ? task.taskName : (homework ? homework.homeworkName : '未知作业'),
           dueDate: task ? task.dueDate : (homework ? homework.dueDate : null),
-          studentName: submission.studentName || '未知学生'
+          studentName: submission.studentName || '未知学生',
+          homeworkId: task ? task.homeworkId : null // 添加homeworkId字段
         };
+        
+        console.log('[DEBUG] 处理提交记录:', { 
+          submissionId: submission.submissionId, 
+          taskId: submission.taskId,
+          homeworkId: result.homeworkId, // 添加homeworkId日志
+          taskName: result.taskName,
+          studentName: result.studentName,
+          isGraded: submission.isGraded,
+          gradeScore: submission.gradeScore
+        });
+        
+        return result;
       });
+      
+      console.log('[DEBUG] updateGradeList 最终结果:', this.filteredGradeList);
     },
 
     // 过滤当前课程的提交记录
@@ -2209,6 +2356,43 @@ export default {
         return 'incorrect-option';
       }
       return '';
+    },
+    aiGrade() {
+      if (!this.currentGradeSubmission) {
+        this.$modal.msgError('请先选择要评分的作业');
+        return;
+      }
+      
+      console.log('[DEBUG] currentGradeSubmission:', this.currentGradeSubmission);
+      
+      this.aiGradingLoading = true;
+      
+      // 构建AI评分请求参数
+      const requestData = {
+        courseId: this.realCourseId,
+        homeworkId: this.currentGradeSubmission.homeworkId,
+        submissionId: this.currentGradeSubmission.submissionId
+      };
+      
+      console.log('[DEBUG] AI评分请求参数:', requestData);
+      
+      // 调用AI评分接口
+      aiGrade(requestData).then(response => {
+        console.log('[DEBUG] AI评分响应:', response);
+        if (response.code === 200) {
+          // 更新评分表单
+          this.gradeForm.gradeScore = response.score;
+          this.gradeForm.gradeComment = response.comment;
+          this.$modal.msgSuccess('AI评分完成');
+        } else {
+          this.$modal.msgError(response.msg || 'AI评分失败');
+        }
+      }).catch(error => {
+        console.error('AI评分失败:', error);
+        this.$modal.msgError('AI评分失败: ' + (error.message || '未知错误'));
+      }).finally(() => {
+        this.aiGradingLoading = false;
+      });
     }
   }
 };

@@ -129,3 +129,15 @@ xss:
   excludes: /system/notice/
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+# 火山方舟AI模型配置
+ark:
+  # API密钥（请从火山方舟平台获取）
+  api:
+    key: f012e79d-b029-4c45-81f6-91dc7a1f0e97
+  # 模型ID
+  model:
+    id: doubao-1-5-pro-256k-250115
+  # 基础URL
+  base:
+    url: https://ark.cn-beijing.volces.com/api/v3

@@ -1,6 +1,9 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Arrays;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -131,8 +134,44 @@ public int saveOrUpdate(VideoLearningRecord videoLearningRecord) {
     
     if (existRecord != null) {
         log.debug("[saveOrUpdate] 找到已存在记录 recordId={}, 执行更新", existRecord.getRecordId());
-        // 更新已存在的记录
+        // 更新已存在的记录，保留原有的观看进度
         videoLearningRecord.setRecordId(existRecord.getRecordId());
+        
+        // 如果传入的watchedDuration为0，保留原有的观看进度
+        if (videoLearningRecord.getWatchedDuration() == null || videoLearningRecord.getWatchedDuration() == 0) {
+            videoLearningRecord.setWatchedDuration(existRecord.getWatchedDuration());
+            videoLearningRecord.setCompletionRate(existRecord.getCompletionRate());
+        }
+        
+        // 合并跳过片段和重复观看片段
+        if (existRecord.getSkipSegments() != null && !existRecord.getSkipSegments().isEmpty()) {
+            String existingSkips = existRecord.getSkipSegments();
+            String newSkips = videoLearningRecord.getSkipSegments();
+            if (newSkips != null && !newSkips.isEmpty()) {
+                // 合并并去重
+                Set<String> allSkips = new HashSet<>();
+                allSkips.addAll(Arrays.asList(existingSkips.split(",")));
+                allSkips.addAll(Arrays.asList(newSkips.split(",")));
+                videoLearningRecord.setSkipSegments(String.join(",", allSkips));
+            } else {
+                videoLearningRecord.setSkipSegments(existingSkips);
+            }
+        }
+        
+        if (existRecord.getRepeatSegments() != null && !existRecord.getRepeatSegments().isEmpty()) {
+            String existingRepeats = existRecord.getRepeatSegments();
+            String newRepeats = videoLearningRecord.getRepeatSegments();
+            if (newRepeats != null && !newRepeats.isEmpty()) {
+                // 合并并去重
+                Set<String> allRepeats = new HashSet<>();
+                allRepeats.addAll(Arrays.asList(existingRepeats.split(",")));
+                allRepeats.addAll(Arrays.asList(newRepeats.split(",")));
+                videoLearningRecord.setRepeatSegments(String.join(",", allRepeats));
+            } else {
+                videoLearningRecord.setRepeatSegments(existingRepeats);
+            }
+        }
+        
         videoLearningRecord.setUpdateTime(DateUtils.getNowDate());
         return videoLearningRecordMapper.updateVideoLearningRecord(videoLearningRecord);
     } else {

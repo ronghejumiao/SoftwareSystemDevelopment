@@ -5,43 +5,30 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="15103167-dcc6-4bf1-80d8-00d1709219ee" name="变更" comment="">
-      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/utils/notificationControl.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/utils/roles.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/sql/paper_role_permissions.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/sql/score_role_permissions.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/sql/task_role_permissions.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/sql/videoLearningRecord_role_permissions.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/sql/videoresource_role_permissions.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SysMenuServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/AI评分功能使用说明.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/java/com/ruoyi/system/service/IAIGradingService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/java/com/ruoyi/system/service/IDocumentTextExtractor.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/java/com/ruoyi/system/service/impl/AIGradingServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/java/com/ruoyi/system/service/impl/DocumentTextExtractorImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_github_virtuald_curvesapi_1_06.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_commons_commons_compress_1_19.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_poi_poi_4_1_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_poi_poi_ooxml_4_1_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_poi_poi_ooxml_schemas_4_1_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_xmlbeans_xmlbeans_3_1_0.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/BACKEND_SUMMARY.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/VIDEO_LEARNING_RECORD_FIX.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/cleanup_video_data.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/fix_video_learning_record.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/LearningTaskController.java" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/LearningTaskController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/ScoreController.java" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/ScoreController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/TestPaperController.java" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/TestPaperController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/CourseController.java" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/CourseController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/VideoLearningRecordController.java" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/VideoLearningRecordController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/VideoResourceController.java" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/java/com/ruoyi/web/controller/VideoResourceController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/resources/application-druid.yml" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/resources/application-druid.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-common/src/main/java/com/ruoyi/common/utils/SecurityUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-common/src/main/java/com/ruoyi/common/utils/SecurityUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/java/com/ruoyi/system/domain/LearningRecord.java" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/java/com/ruoyi/system/domain/LearningRecord.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/java/com/ruoyi/system/domain/VideoLearningRecord.java" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/java/com/ruoyi/system/domain/VideoLearningRecord.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/resources/mapper/system/LearningRecordMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/resources/mapper/system/LearningRecordMapper.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-admin/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/java/com/ruoyi/system/service/impl/VideoLearningRecordServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/java/com/ruoyi/system/service/impl/VideoLearningRecordServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/resources/mapper/system/VideoLearningRecordMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-system/src/main/resources/mapper/system/VideoLearningRecordMapper.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/assets/images/login-background.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/assets/images/login-background.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/utils/request.js" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/utils/request.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/login.vue" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/login.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/register.vue" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/register.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/QuizAnswer.vue" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/QuizAnswer.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/detail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/detail.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/api/system/course.js" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/api/system/course.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/quiz.vue" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/quiz.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/task.vue" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/task.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/video-list.vue" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/video-list.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/record/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/record/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/score/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/score/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/videoLearningRecord/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/videoLearningRecord/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/test_backend_fix.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/video-play.vue" beforeDir="false" afterPath="$PROJECT_DIR$/RuoYi-Vue-master/ruoyi-ui/src/views/system/course/video-play.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
