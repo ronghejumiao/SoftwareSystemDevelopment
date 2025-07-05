@@ -56,18 +56,18 @@ public class AIGradingServiceImpl implements IAIGradingService {
     private String arkBaseUrl;
     
     @Override
-    public AIGradingResult gradeHomework(Long courseId, Long homeworkId, Long submissionId) {
+    public IAIGradingService.AIGradingResult gradeHomework(Long courseId, Long homeworkId, Long submissionId) {
         try {
             // 1. 获取课程信息
             Course course = courseMapper.selectCourseByCourseId(courseId);
             if (course == null) {
-                return new AIGradingResult("课程不存在");
+                return new IAIGradingService.AIGradingResult("课程不存在");
             }
             
             // 2. 获取提交信息
             TaskSubmission submission = taskSubmissionMapper.selectTaskSubmissionBySubmissionId(submissionId);
             if (submission == null) {
-                return new AIGradingResult("提交记录不存在");
+                return new IAIGradingService.AIGradingResult("提交记录不存在");
             }
             
             // 3. 通过taskId获取作业信息
@@ -87,7 +87,7 @@ public class AIGradingServiceImpl implements IAIGradingService {
             }
             
             if (homework == null) {
-                return new AIGradingResult("作业不存在");
+                return new IAIGradingService.AIGradingResult("作业不存在");
             }
             
             // 4. 提取作业文件文字
@@ -104,7 +104,7 @@ public class AIGradingServiceImpl implements IAIGradingService {
             
         } catch (Exception e) {
             log.error("AI评分失败", e);
-            return new AIGradingResult("AI评分失败: " + e.getMessage());
+            return new IAIGradingService.AIGradingResult("AI评分失败: " + e.getMessage());
         }
     }
     
@@ -179,9 +179,9 @@ public class AIGradingServiceImpl implements IAIGradingService {
     /**
      * 调用AI模型
      */
-    private AIGradingResult callAIModel(String prompt) {
+    IAIGradingService.AIGradingResult callAIModel(String prompt) {
         if (StringUtils.isEmpty(arkApiKey)) {
-            return new AIGradingResult("未配置AI模型API密钥");
+            return new IAIGradingService.AIGradingResult("未配置AI模型API密钥");
         }
         
         try {
@@ -220,14 +220,14 @@ public class AIGradingServiceImpl implements IAIGradingService {
             
         } catch (Exception e) {
             log.error("调用AI模型失败", e);
-            return new AIGradingResult("调用AI模型失败: " + e.getMessage());
+            return new IAIGradingService.AIGradingResult("调用AI模型失败: " + e.getMessage());
         }
     }
     
     /**
      * 解析AI响应
      */
-    private AIGradingResult parseAIResponse(String response) {
+    private IAIGradingService.AIGradingResult parseAIResponse(String response) {
         try {
             // 尝试解析JSON
             JSONObject json = JSON.parseObject(response);
@@ -235,7 +235,7 @@ public class AIGradingServiceImpl implements IAIGradingService {
             String comment = json.getString("comment");
             
             if (score != null && comment != null) {
-                return new AIGradingResult(score, comment);
+                return new IAIGradingService.AIGradingResult(score, comment);
             }
         } catch (Exception e) {
             log.warn("解析AI响应JSON失败，尝试提取数字和文本", e);
@@ -252,12 +252,12 @@ public class AIGradingServiceImpl implements IAIGradingService {
                 int score = Integer.parseInt(matcher.group(1));
                 // 移除分数部分，剩余作为评语
                 String comment = response.replaceAll(scorePattern, "").trim();
-                return new AIGradingResult(score, comment);
+                return new IAIGradingService.AIGradingResult(score, comment);
             }
         } catch (Exception e) {
             log.error("提取分数失败", e);
         }
         
-        return new AIGradingResult("无法解析AI响应");
+        return new IAIGradingService.AIGradingResult("无法解析AI响应");
     }
 } 
