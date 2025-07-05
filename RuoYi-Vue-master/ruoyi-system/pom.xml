@@ -46,7 +46,14 @@
             <groupId>com.squareup.retrofit2</groupId>
             <artifactId>retrofit</artifactId>
         </dependency>
-        
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>5.3.30</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- RxJava依赖 -->
         <dependency>
             <groupId>io.reactivex.rxjava2</groupId>
@@ -81,6 +88,11 @@
         <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-parsers-standard-package</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

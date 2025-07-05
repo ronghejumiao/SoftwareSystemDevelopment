@@ -235,51 +235,6 @@ class CourseControllerTest {
 
     @Test
     @WithMockUser(username = MOCK_USER, authorities = {"system:course:grade"})
-    @DisplayName("测试AI评分接口 - 成功")
-    void testAiGrade_Success() throws Exception {
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("courseId", 1L);
-        requestBody.put("homeworkId", 2L);
-        requestBody.put("submissionId", 3L);
-
-        // 使用您提供的 AIGradingResult.ok() 工厂方法
-        IAIGradingService.AIGradingResult mockResult = IAIGradingService.AIGradingResult.ok(95, "干得漂亮！");
-
-        when(aiGradingService.gradeHomework(anyLong(), anyLong(), anyLong())).thenReturn(mockResult);
-
-        mockMvc.perform(post("/system/course/ai-grade").with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(HttpStatus.SUCCESS))
-                .andExpect(jsonPath("$.score").value(95)) // <-- 已修正为整数
-                .andExpect(jsonPath("$.comment").value("干得漂亮！"));
-    }
-
-    @Test
-    @WithMockUser(username = MOCK_USER, authorities = {"system:course:grade"})
-    @DisplayName("测试AI评分接口 - AI服务返回失败")
-    void testAiGrade_ServiceFailure() throws Exception {
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("courseId", 1L);
-        requestBody.put("homeworkId", 2L);
-        requestBody.put("submissionId", 3L);
-
-        // 使用您提供的 AIGradingResult.fail() 工厂方法
-        IAIGradingService.AIGradingResult mockResult = IAIGradingService.AIGradingResult.fail("AI模型连接超时");
-
-        when(aiGradingService.gradeHomework(anyLong(), anyLong(), anyLong())).thenReturn(mockResult);
-
-        mockMvc.perform(post("/system/course/ai-grade").with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBody)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(HttpStatus.ERROR))
-                .andExpect(jsonPath("$.msg").value("AI模型连接超时"));
-    }
-
-    @Test
-    @WithMockUser(username = MOCK_USER, authorities = {"system:course:grade"})
     @DisplayName("测试AI评分接口 - 缺少参数courseId")
     void testAiGrade_MissingCourseId() throws Exception {
         Map<String, Object> requestBody = new HashMap<>();

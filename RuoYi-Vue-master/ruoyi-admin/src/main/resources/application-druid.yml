@@ -6,9 +6,9 @@ spring:
         druid:
             # 主库数据源
             master:
-                url: jdbc:mysql://localhost:3306/smartclass?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+                url: jdbc:mysql://localhost:3306/smart_class?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
                 username: root
-                password: 123456
+                password: root
             # 从库数据源
             slave:
                 # 从数据源开关/默认关闭
@@ -16,6 +16,14 @@ spring:
                 url: 
                 username: 
                 password: 
+            # 金仓 Kingbase 数据源
+            kingbase:
+                # 金仓数据源开关
+                enabled: true
+                driverClassName: com.kingbase8.Driver
+                url: jdbc:kingbase8://localhost:54321/smart_class
+                username: system
+                password: root
             # 初始连接数
             initialSize: 5
             # 最小连接池数量
