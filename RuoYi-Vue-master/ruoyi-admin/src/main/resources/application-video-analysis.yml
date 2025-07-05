@@ -28,8 +28,8 @@ volcengine:
     endpoint: https://tos-cn-beijing.volces.com
     region: cn-beijing
     bucket: videoresource
-    access-key: AKLTOTllNmFmNjk3OWExNDMxY2E0NTQ5MTdlZjQxYTc4MGI
-    secret-key: WXpNek1XSXhOR00yWWpkbU5EYzVaamhrWVRNMk16WTJZelptTVdNNU56QQ==
+    access-key:
+    secret-key:
   
   # 方舟大模型配置
   ark:
