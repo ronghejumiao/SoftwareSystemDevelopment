@@ -91,4 +91,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         and csr.course_id = #{courseId}
         order by csr.requirement_id
     </select>
+
+    <update id="updateStudentSkillScore">
+        UPDATE student_skill
+        SET skill_score = #{skillScore}, update_time = NOW(), update_reason = #{updateReason}
+        WHERE student_id = #{studentId} AND requirement_id = #{requirementId}
+    </update>
 </mapper>

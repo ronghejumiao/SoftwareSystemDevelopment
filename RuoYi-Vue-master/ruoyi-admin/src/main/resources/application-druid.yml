@@ -59,3 +59,12 @@ spring:
                 wall:
                     config:
                         multi-statement-allow: true
+volcengine.tos.endpoint: https://tos-cn-beijing.volces.com
+volcengine.tos.region: cn-beijing
+volcengine.tos.bucket: videoresource
+volcengine.tos.access-key: AKLTOTllNmFmNjk3OWExNDMxY2E0NTQ5MTdlZjQxYTc4MGI
+volcengine.tos.secret-key: WXpNek1XSXhOR00yWWpkbU5EYzVaamhrWVRNMk16WTJZelptTVdNNU56QQ==
+volcengine.ark.api-key: f012e79d-b029-4c45-81f6-91dc7a1f0e97
+volcengine.ark.model: doubao-1.5-vision-pro
+volcengine.ark.endpoint: https://ark.cn-beijing.volces.com/api/v1/ark/video/understanding/tasks
+

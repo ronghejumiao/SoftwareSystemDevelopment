@@ -64,6 +64,29 @@
             </div>
           </div>
 
+          <!-- AI课程智能推荐区域 -->
+          <div class="ai-recommend-section" v-if="aiRecommendations.length > 0">
+            <div class="block-title" style="margin-top: 24px; display: flex; align-items: center; gap: 12px;">
+              <i class="el-icon-magic-stick"></i> AI课程智能推荐
+              <el-button
+                type="primary"
+                size="mini"
+                :loading="aiRecommendLoading"
+                :disabled="aiRecommendLoading"
+                @click="handleChangeAIRecommend"
+                style="margin-left: 8px;"
+              >换一批</el-button>
+            </div>
+            <div class="recommend-scroll-wrapper">
+              <transition-group name="fade-recommend" tag="div" class="recommend-scroll-inner">
+                <div class="recommend-card" v-for="item in aiRecommendations" :key="item.id + '-' + (item.segmentId || '')" @click="handleRecommendCardClick(item)" style="cursor:pointer;">
+                  <div class="recommend-title">{{ item.name }}</div>
+                  <div class="recommend-summary">{{ item.summary }}</div>
+                </div>
+              </transition-group>
+            </div>
+          </div>
+
           <div v-else class="no-skill-data">
             <i class="el-icon-warning"></i>
             <span>暂无能力数据，请联系教师初始化</span>
@@ -313,6 +336,7 @@ import { getLearningRecordByUserAndCourse } from '@/api/system/learningRecord';
 import * as echarts from 'echarts';
 
 import { notificationState } from '@/utils/notificationControl';
+import { recommendResource } from '@/api/system/learningResource'
 
 
 export default {
@@ -398,6 +422,9 @@ export default {
           Authorization: "Bearer " + getToken()
         }
       },
+      aiRecommendations: [],
+      aiRecommendLoading: false,
+      courseId: null, // 新增，统一存储courseId
     };
   },
   computed: {
@@ -467,22 +494,35 @@ export default {
     // 初始化用户信息
     await this.initUserInfo();
 
-    notificationState.isErrorNotificationsEnabled = false; // 进入页面时关闭弹窗
-
+    // 获取课程ID
     const courseId = this.$route.params.courseId || this.$route.query.courseId;
-    if (courseId) {
-      this.getCourseDetails(courseId);
-      this.getResourceList(courseId);
-      this.getVideoList(courseId);
-      // 注意：getRequirementList会在getCourseDetails中调用，因为它依赖于course数据
-    } else {
+    if (!courseId) {
       this.$message.error('未找到课程ID参数');
+      return;
+    }
+    this.courseId = courseId;
+
+    // 检查studentId
+    if (!this.studentId) {
+      this.$message.error('未找到学生ID参数');
+      return;
     }
 
-    // 检查是否有tab参数，如果有则切换到相应的选项卡
+    // 只有都有效才调用
+    await this.getCourseDetails(this.courseId);
+    await this.getResourceList(this.courseId);
+    await this.getVideoList(this.courseId);
+
+    // 检查tab参数
     const tab = this.$route.query.tab;
     if (tab && ['requirements', 'resources', 'tasks', 'quiz', 'videos'].includes(tab)) {
       this.activeTab = tab;
+    }
+
+    // 只有都有效才调用
+    if (this.studentId && this.courseId) {
+      await this.checkAndInitStudentSkill();
+      await this.loadAIRecommendations();
     }
   },
 
@@ -1247,6 +1287,70 @@ export default {
         }
       });
     },
+    async checkAndInitStudentSkill() {
+      if (!this.studentId || !this.courseId) return;
+      const res = await getStudentSkillByStudentAndCourse(this.studentId, this.courseId)
+      if (!res.data || res.data.length === 0) {
+        await initStudentCourseSkills(this.studentId, this.courseId)
+      }
+    },
+    async loadAIRecommendations(forceRefresh = false) {
+      if (!this.studentId || !this.courseId) return;
+      this.aiRecommendLoading = true;
+      try {
+        const res = await recommendResource(this.studentId, this.courseId, forceRefresh)
+        if (res.data && Array.isArray(res.data)) {
+          // 先清空，触发动画
+          this.aiRecommendations = [];
+          await this.$nextTick();
+          this.aiRecommendations = await Promise.all(res.data.map(async (item) => {
+            let name = '', summary = ''
+            if (item.resourceType === 'ppt') {
+              const resource = this.resourceList.find(r => r.resourceId === item.id)
+              name = resource ? resource.resourceName : '资料资源'
+              summary = resource ? resource.contentSummary : ''
+            } else if (item.resourceType === 'video') {
+              const video = this.videoList.find(v => v.videoId === item.id)
+              name = video ? video.videoName : '视频资源'
+              if (video && video.segments && item.segmentId) {
+                const seg = video.segments.find(s => s.segmentId === item.segmentId)
+                summary = seg ? seg.contentSummary : ''
+              } else {
+                summary = video && video.summary ? video.summary : ''
+              }
+            }
+            return { ...item, name, summary }
+          }))
+        }
+      } finally {
+        this.aiRecommendLoading = false;
+      }
+    },
+    handleChangeAIRecommend() {
+      this.loadAIRecommendations(true);
+    },
+    handleRecommendCardClick(item) {
+      if (item.resourceType === 'ppt' || item.resourceType === 'pdf') {
+        // 跳转到学习资源tab
+        this.activeTab = 'resources';
+        this.$nextTick(() => {
+          // 可选：滚动到资源区域
+          const el = document.querySelector('.block-title i.el-icon-folder');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      } else if (item.resourceType === 'video') {
+        // 跳转到视频学习tab并自动跳转到视频播放
+        this.activeTab = 'videos';
+        this.$nextTick(() => {
+          // 跳转到视频播放页面
+          this.$router.push({
+            name: 'VideoPlay',
+            params: { videoId: item.id },
+            query: { courseId: this.courseId }
+          });
+        });
+      }
+    },
   },
 };
 </script>
@@ -1787,5 +1891,43 @@ export default {
   .ability-card {
     padding: 15px;
   }
+}
+
+.recommend-scroll-wrapper {
+  padding: 8px 0 16px 0;
+}
+.recommend-scroll-inner {
+  display: flex;
+  overflow-x: auto;
+}
+.recommend-card {
+  min-width: 220px;
+  max-width: 260px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  margin-right: 16px;
+  padding: 16px 18px 12px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.recommend-title {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #333;
+}
+.recommend-summary {
+  font-size: 13px;
+  color: #666;
+  white-space: normal;
+  word-break: break-all;
+}
+.fade-recommend-enter-active, .fade-recommend-leave-active {
+  transition: opacity 0.4s;
+}
+.fade-recommend-enter, .fade-recommend-leave-to {
+  opacity: 0;
 }
 </style>

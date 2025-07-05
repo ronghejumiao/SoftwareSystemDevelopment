@@ -58,4 +58,9 @@ public interface ICourseSkillRequirementService
      * @return 结果
      */
     public int deleteCourseSkillRequirementByRequirementId(Long requirementId);
+
+    /**
+     * 根据课程ID查询能力要求
+     */
+    java.util.List<com.ruoyi.system.domain.CourseSkillRequirement> selectCourseSkillRequirementByCourseId(Long courseId);
 }

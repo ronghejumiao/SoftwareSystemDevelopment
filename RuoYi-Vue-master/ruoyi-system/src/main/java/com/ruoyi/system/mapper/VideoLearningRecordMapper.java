@@ -60,6 +60,14 @@ public interface VideoLearningRecordMapper
     public int deleteVideoLearningRecordByRecordIds(Long[] recordIds);
 
     /**
+     * 根据记录ID数组查询视频学习记录列表
+     * 
+     * @param recordIds 记录ID数组
+     * @return 视频学习记录列表
+     */
+    public List<VideoLearningRecord> selectVideoLearningRecordByRecordIds(Long[] recordIds);
+
+    /**
      * 根据学习记录ID和资源ID查询记录，用于同步更新
      * @param learningRecordId 学习记录ID
      * @param resourceId 资源ID

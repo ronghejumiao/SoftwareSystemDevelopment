@@ -167,7 +167,7 @@ export default {
       // 保存当前视频进度（如果有）
       if (this.videoRecord) {
         try {
-          this.updateWatchRecord(true);
+          this.updateWatchRecord(true, true);
           console.log('[清理视频资源] 已保存视频进度');
         } catch (error) {
           console.warn('[清理视频资源] 保存视频进度时出错:', error);
@@ -277,7 +277,7 @@ export default {
           this.videoRecord.watchedDuration = this.videoElement.duration;
           this.videoRecord.completionRate = 100;
         }
-        this.updateWatchRecord(true);
+        this.updateWatchRecord(true, true);
       }
       
       // 检查是否还有下一个视频
@@ -398,7 +398,7 @@ export default {
         console.error("Failed to get or create video record", e);
       }
     },
-    updateWatchRecord(forceUpdate = false) {
+    updateWatchRecord(forceUpdate = false, isEnd = false) {
       // 检查组件是否已被销毁
       if (this.$isDestroyed || this.isDestroyed) {
         console.log('[视频进度刷新] 组件已销毁，跳过更新');
@@ -494,8 +494,13 @@ export default {
         this.isUpdating = true;
         this.lastUpdateTime = now;
         
-        // 添加防重复提交标记
-        updateVideoRecordApi(this.videoRecord, { headers: { repeatSubmit: false } }).then(() => {
+        // 传递 isEnd 参数
+        const data = { ...this.videoRecord };
+        if (isEnd) {
+          if (!data.params) data.params = {};
+          data.params.isEnd = true;
+        }
+        updateVideoRecordApi(data, { headers: { repeatSubmit: false } }).then(() => {
           this.$root.$emit('videoRecordUpdated');
           this.isUpdating = false;
         }).catch(error => {
@@ -508,8 +513,7 @@ export default {
     },
 
     handleBeforeUnload(event) {
-      // 页面卸载前同步更新进度
-      this.updateWatchRecord(true);
+      this.updateWatchRecord(true, true);
     },
     
     // 处理视频跳转事件

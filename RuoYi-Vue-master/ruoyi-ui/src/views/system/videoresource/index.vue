@@ -99,8 +99,22 @@
           v-hasPermi="['system:videoresource:export']"
         >导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-video-camera"
+          size="mini"
+          :disabled="multiple"
+          @click="handleBatchAnalyze"
+        >批量分析</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
+
+    <el-progress v-if="analysisLoading" :percentage="analysisProgress" status="active" style="margin-bottom: 20px;">
+      <span v-if="currentAnalyzing">正在分析视频ID: {{ currentAnalyzing }}</span>
+    </el-progress>
 
     <el-table v-loading="loading" :data="videoresourceList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
@@ -142,6 +156,13 @@
             @click="handleDelete(scope.row)"
             v-hasPermi="['system:videoresource:remove']"
           >删除</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-s-operation"
+            @click="handleAnalyze(scope.row)"
+            v-hasPermi="['system:videoresource:analyze']"
+          >分析</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -219,7 +240,7 @@
 </template>
 
 <script>
-import { listVideoresource, getVideoresource, delVideoresource, addVideoresource, updateVideoresource } from "@/api/system/videoresource"
+import { listVideoresource, getVideoresource, delVideoresource, addVideoresource, updateVideoresource, analyzeVideo } from "@/api/system/videoresource"
 import { listCourse } from "@/api/system/course"
 import { getToken } from "@/utils/auth"
 
@@ -304,7 +325,12 @@ export default {
       // 基础API地址
       baseApi: process.env.VUE_APP_BASE_API,
       // 返回路径
-      returnPath: null
+      returnPath: null,
+      analysisProgress: 0,
+      analysisLoading: false,
+      analysisVideoId: null,
+      analysisQueue: [],
+      currentAnalyzing: null
     }
   },
   created() {
@@ -594,6 +620,67 @@ export default {
     removeThumbnail() {
       this.imageUrl = '';
       this.form.thumbnail = '';
+    },
+    handleAnalyze(row) {
+      this.analysisQueue = [row.videoId];
+      this.startAnalysisQueue();
+    },
+    handleBatchAnalyze() {
+      if (!this.ids.length) {
+        this.$modal.msgError('请先选择要分析的视频');
+        return;
+      }
+      this.analysisQueue = [...this.ids];
+      this.startAnalysisQueue();
+    },
+    startAnalysisQueue() {
+      if (!this.analysisQueue.length) {
+        this.analysisLoading = false;
+        this.analysisProgress = 0;
+        this.currentAnalyzing = null;
+        this.$message.success('全部分析完成');
+        this.getList();
+        return;
+      }
+      const videoId = this.analysisQueue.shift();
+      this.currentAnalyzing = videoId;
+      this.analysisLoading = true;
+      this.analysisProgress = 0;
+      this.$message.info(`开始分析视频ID: ${videoId}`);
+      analyzeVideo(videoId).then(res => {
+        this.pollAnalysisProgress(videoId, () => {
+          // 分析完成后自动分析下一个
+          this.startAnalysisQueue();
+        });
+      }).catch(() => {
+        // 失败也继续下一个
+        this.startAnalysisQueue();
+      });
+    },
+    pollAnalysisProgress(videoId, callback) {
+      let tryCount = 0;
+      const maxTry = 180; // 最多轮询180次（6分钟）
+      const interval = setInterval(() => {
+        this.$axios.get(`/system/videoresource/progress/${videoId}`).then(res => {
+          this.analysisProgress = res.data;
+          if (res.data >= 100) {
+            clearInterval(interval);
+            this.analysisProgress = 100;
+            this.$message.success(`视频ID:${videoId}分析完成`);
+            if (callback) callback();
+          }
+        }).catch(() => {
+          clearInterval(interval);
+          this.$message.error(`视频ID:${videoId}分析进度获取失败`);
+          if (callback) callback();
+        });
+        tryCount++;
+        if (tryCount > maxTry) {
+          clearInterval(interval);
+          this.$message.warning(`视频ID:${videoId}分析超时`);
+          if (callback) callback();
+        }
+      }, 2000);
     },
   }
 }

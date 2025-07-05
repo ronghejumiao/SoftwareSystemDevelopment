@@ -61,6 +61,9 @@ public class Score extends BaseEntity
     /** 课程名称 */
     private String courseName;
 
+    /** 学习记录ID */
+    private Long recordId;
+
     public void setScoreId(Long scoreId) 
     {
         this.scoreId = scoreId;
@@ -165,6 +168,14 @@ public class Score extends BaseEntity
 
     public void setCourseName(String courseName) {
         this.courseName = courseName;
+    }
+
+    public void setRecordId(Long recordId) {
+        this.recordId = recordId;
+    }
+
+    public Long getRecordId() {
+        return recordId;
     }
 
     @Override

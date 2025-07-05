@@ -60,6 +60,14 @@ public interface LearningRecordMapper
     public int deleteLearningRecordByRecordIds(Long[] recordIds);
 
     /**
+     * 根据记录ID数组查询学习记录列表
+     * 
+     * @param recordIds 记录ID数组
+     * @return 学习记录列表
+     */
+    public List<LearningRecord> selectLearningRecordByRecordIds(Long[] recordIds);
+
+    /**
      * 根据用户ID和课程ID查询对应的学习记录（若存在返回一条即可）
      *
      * @param userId 用户ID

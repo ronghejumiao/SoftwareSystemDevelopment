@@ -76,4 +76,22 @@ public interface IStudentSkillService
      * @return 结果
      */
     public int initStudentCourseSkills(Long studentId, Long courseId);
+
+    /**
+     * 更新学生能力分数
+     * 
+     * @param studentId 学生ID
+     * @param requirementId 能力要求ID
+     * @param skillScore 能力分数
+     * @param updateReason 更新原因
+     * @return 结果
+     */
+    public int updateStudentSkillScore(Long studentId, Long requirementId, Double skillScore, String updateReason);
+
+    /**
+     * 根据学生ID查询全部能力
+     * @param studentId 学生ID
+     * @return 学生能力列表
+     */
+    public List<StudentSkill> selectStudentSkillByStudent(Long studentId);
 }

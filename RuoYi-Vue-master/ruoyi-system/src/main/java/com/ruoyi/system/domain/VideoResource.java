@@ -61,6 +61,18 @@ public class VideoResource extends BaseEntity
     @Excel(name = "视频简介")
     private String description;
 
+    /** 云存储URL */
+    private String cloudUrl;
+
+    /** 分析状态 */
+    private Integer analysisStatus;
+
+    /** 视频分析内容 */
+    private String videoAnalysis;
+
+    /** 分析时间 */
+    private java.util.Date analysisTime;
+
     public void setVideoId(Long videoId) 
     {
         this.videoId = videoId;
@@ -171,6 +183,18 @@ public class VideoResource extends BaseEntity
         return description;
     }
 
+    public String getCloudUrl() { return cloudUrl; }
+    public void setCloudUrl(String cloudUrl) { this.cloudUrl = cloudUrl; }
+
+    public Integer getAnalysisStatus() { return analysisStatus; }
+    public void setAnalysisStatus(Integer analysisStatus) { this.analysisStatus = analysisStatus; }
+
+    public String getVideoAnalysis() { return videoAnalysis; }
+    public void setVideoAnalysis(String videoAnalysis) { this.videoAnalysis = videoAnalysis; }
+
+    public java.util.Date getAnalysisTime() { return analysisTime; }
+    public void setAnalysisTime(java.util.Date analysisTime) { this.analysisTime = analysisTime; }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -185,6 +209,10 @@ public class VideoResource extends BaseEntity
             .append("uploadTime", getUploadTime())
             .append("thumbnail", getThumbnail())
             .append("description", getDescription())
+            .append("cloudUrl", getCloudUrl())
+            .append("analysisStatus", getAnalysisStatus())
+            .append("videoAnalysis", getVideoAnalysis())
+            .append("analysisTime", getAnalysisTime())
             .toString();
     }
 }

@@ -42,3 +42,11 @@ export function delVideoresource(videoId) {
     method: 'delete'
   })
 }
+
+// 分析视频内容
+export function analyzeVideo(videoId) {
+  return request({
+    url: '/system/videoresource/analyze/' + videoId,
+    method: 'post'
+  })
+}

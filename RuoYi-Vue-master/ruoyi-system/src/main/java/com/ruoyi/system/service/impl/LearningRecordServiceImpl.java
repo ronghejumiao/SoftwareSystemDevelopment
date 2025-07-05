@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.ruoyi.system.mapper.LearningRecordMapper;
 import com.ruoyi.system.domain.LearningRecord;
 import com.ruoyi.system.service.ILearningRecordService;
+import com.ruoyi.system.service.IStudentSkillAssessmentService;
 import com.ruoyi.system.mapper.ScoreMapper;
 
 /**
@@ -24,6 +25,9 @@ public class LearningRecordServiceImpl implements ILearningRecordService
 
     @Autowired
     private ScoreMapper scoreMapper;
+    
+    @Autowired
+    private IStudentSkillAssessmentService studentSkillAssessmentService;
 
     /**
      * 查询学习记录，记录学生的课程学习进度和关联信息
@@ -75,17 +79,24 @@ public class LearningRecordServiceImpl implements ILearningRecordService
         if (existing != null) {
             // 复用已有ID执行更新
             learningRecord.setRecordId(existing.getRecordId());
-            return learningRecordMapper.updateLearningRecord(learningRecord);
+            return updateLearningRecord(learningRecord);
         } else {
             try {
-                return learningRecordMapper.insertLearningRecord(learningRecord);
+                int result = learningRecordMapper.insertLearningRecord(learningRecord);
+                
+                // 触发能力评估
+                if (result > 0) {
+                    triggerAssessment(learningRecord.getUserId(), learningRecord.getCourseId());
+                }
+                
+                return result;
             } catch (org.springframework.dao.DuplicateKeyException e) {
                 // 并发场景下可能已被其他请求插入，转为更新
                 LearningRecord dup = learningRecordMapper.selectLearningRecordByUserIdAndCourseId(
                         learningRecord.getUserId(), learningRecord.getCourseId());
                 if (dup != null) {
                     learningRecord.setRecordId(dup.getRecordId());
-                    return learningRecordMapper.updateLearningRecord(learningRecord);
+                    return updateLearningRecord(learningRecord);
                 }
                 throw e;
             }
@@ -102,7 +113,15 @@ public class LearningRecordServiceImpl implements ILearningRecordService
     public int updateLearningRecord(LearningRecord learningRecord)
     {
         learningRecord.setUpdateTime(DateUtils.getNowDate());
-        return learningRecordMapper.updateLearningRecord(learningRecord);
+        
+        int result = learningRecordMapper.updateLearningRecord(learningRecord);
+        
+        // 触发能力评估
+        if (result > 0) {
+            triggerAssessment(learningRecord.getUserId(), learningRecord.getCourseId());
+        }
+        
+        return result;
     }
 
     /**
@@ -114,13 +133,26 @@ public class LearningRecordServiceImpl implements ILearningRecordService
     @Override
     public int deleteLearningRecordByRecordIds(Long[] recordIds)
     {
+        // 获取要删除的记录信息，用于触发评估
+        List<LearningRecord> records = learningRecordMapper.selectLearningRecordByRecordIds(recordIds);
+        
         // 先删除关联成绩等子表记录，避免外键约束
         if (recordIds != null && recordIds.length > 0)
         {
             scoreMapper.deleteScoreByLearningRecordIds(recordIds);
             // TODO: 如果还有其他关联表（如 video_learning_record、task_submission），在此处一并删除
         }
-        return learningRecordMapper.deleteLearningRecordByRecordIds(recordIds);
+        
+        int result = learningRecordMapper.deleteLearningRecordByRecordIds(recordIds);
+        
+        // 触发能力评估
+        if (result > 0 && records != null) {
+            for (LearningRecord record : records) {
+                triggerAssessment(record.getUserId(), record.getCourseId());
+            }
+        }
+        
+        return result;
     }
 
     /**
@@ -132,11 +164,54 @@ public class LearningRecordServiceImpl implements ILearningRecordService
     @Override
     public int deleteLearningRecordByRecordId(Long recordId)
     {
-        return learningRecordMapper.deleteLearningRecordByRecordId(recordId);
+        // 获取要删除的记录信息，用于触发评估
+        LearningRecord record = learningRecordMapper.selectLearningRecordByRecordId(recordId);
+        
+        int result = learningRecordMapper.deleteLearningRecordByRecordId(recordId);
+        
+        // 触发能力评估
+        if (result > 0 && record != null) {
+            triggerAssessment(record.getUserId(), record.getCourseId());
+        }
+        
+        return result;
     }
 
     @Override
     public com.ruoyi.system.domain.LearningRecord selectByUserIdAndCourseId(Long userId, Long courseId) {
         return learningRecordMapper.selectLearningRecordByUserIdAndCourseId(userId, courseId);
+    }
+    
+    @Override
+    public List<LearningRecord> selectLearningRecordListByUserAndCourse(Long userId, Long courseId) {
+        LearningRecord query = new LearningRecord();
+        query.setUserId(userId);
+        query.setCourseId(courseId);
+        return learningRecordMapper.selectLearningRecordList(query);
+    }
+    
+    @Override
+    public List<Long> selectAllStudentIdsByCourseId(Long courseId) {
+        LearningRecord query = new LearningRecord();
+        query.setCourseId(courseId);
+        List<LearningRecord> records = learningRecordMapper.selectLearningRecordList(query);
+        return records.stream()
+                .map(LearningRecord::getUserId)
+                .distinct()
+                .collect(java.util.stream.Collectors.toList());
+    }
+    
+    /**
+     * 触发能力评估
+     * @param userId 用户ID
+     * @param courseId 课程ID
+     */
+    private void triggerAssessment(Long userId, Long courseId) {
+        try {
+            studentSkillAssessmentService.triggerAssessmentOnDataChange(userId, courseId);
+        } catch (Exception e) {
+            // 记录日志但不影响主业务流程
+            System.err.println("触发能力评估失败: userId=" + userId + ", courseId=" + courseId + ", error=" + e.getMessage());
+        }
     }
 }

@@ -58,4 +58,12 @@ public interface LearningResourceMapper
      * @return 结果
      */
     public int deleteLearningResourceByResourceIds(Long[] resourceIds);
+
+    /**
+     * 查询学习资源列表
+     * 
+     * @param courseId 课程ID
+     * @return 学习资源集合
+     */
+    public List<LearningResource> selectLearningResourceListByCourseId(Long courseId);
 }

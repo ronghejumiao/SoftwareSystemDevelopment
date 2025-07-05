@@ -156,4 +156,30 @@ public class StudentSkillServiceImpl implements IStudentSkillService
         
         return createdCount;
     }
+
+    /**
+     * 更新学生能力分数
+     * 
+     * @param studentId 学生ID
+     * @param requirementId 能力要求ID
+     * @param skillScore 能力分数
+     * @param updateReason 更新原因
+     * @return 结果
+     */
+    @Override
+    public int updateStudentSkillScore(Long studentId, Long requirementId, Double skillScore, String updateReason) {
+        return studentSkillMapper.updateStudentSkillScore(studentId, requirementId, skillScore, updateReason);
+    }
+
+    /**
+     * 根据学生ID查询全部能力
+     * @param studentId 学生ID
+     * @return 学生能力列表
+     */
+    @Override
+    public List<StudentSkill> selectStudentSkillByStudent(Long studentId) {
+        StudentSkill query = new StudentSkill();
+        query.setStudentId(studentId);
+        return studentSkillMapper.selectStudentSkillList(query);
+    }
 }

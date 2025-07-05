@@ -90,6 +90,15 @@
           v-hasPermi="['system:resource:export']"
         >导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="el-icon-cpu"
+          size="mini"
+          @click="handleBatchAnalyze"
+        >批量AI分析</el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -176,6 +185,24 @@
         <el-form-item label="上传者ID" prop="uploaderId">
           <el-input v-model="form.uploaderId" placeholder="请输入上传者ID" />
         </el-form-item>
+        <el-form-item label="内容摘要">
+          <el-input
+            type="textarea"
+            v-model="form.contentSummary"
+            :rows="4"
+            readonly
+            placeholder="暂无AI分析内容"
+          />
+          <el-button
+            size="mini"
+            type="primary"
+            icon="el-icon-cpu"
+            style="margin-top: 8px;"
+            @click="handleAnalyzeResource(form.resourceId)"
+          >
+            AI分析
+          </el-button>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -192,6 +219,8 @@ import { listCourse, getCourse } from "@/api/system/course"
 import { addSubmission } from '@/api/system/submission'
 import { listTask } from '@/api/system/task'
 import { getLearningRecordByUserAndCourse } from '@/api/system/learningRecord'
+import { getResourceAnalysis, analyzeResource, batchAnalyzeResource } from "@/api/system/learningResource"
+import { listAllResource } from "@/api/system/resource"
 
 export default {
   name: "Resource",
@@ -259,8 +288,26 @@ export default {
   },
   created() {
     console.log('[DEBUG] Resource页面created钩子执行');
-    // 只要进入页面就加载全部资源
     this.getList();
+    // 确保courseId有效，优先用queryParams.courseId，否则用第一页资源的courseId
+    setTimeout(() => {
+      let courseId = this.queryParams.courseId;
+      if (!courseId && this.resourceList.length > 0) {
+        courseId = this.resourceList[0].courseId;
+      }
+      if (courseId) {
+        listAllResource({ courseId }).then(res => {
+          console.log('[DEBUG] allList资源数:', res.data?.length);
+          (res.data || []).forEach(resource => {
+            getResourceAnalysis(resource.resourceId).catch(() => {
+              analyzeResource(resource.resourceId)
+            })
+          })
+        })
+      } else {
+        console.warn('[DEBUG] 未能获取有效的courseId，无法初始化全部资源analysis');
+      }
+    }, 1000);
   },
   methods: {
     getFileName(path) {
@@ -275,13 +322,18 @@ export default {
       return '';
     },
     /** 查询学习资源列表 */
-    getList() {
-      console.log('[DEBUG] getList方法调用');
+    getList(pagination) {
+      console.log('[DEBUG] getList方法调用', pagination);
+      if (pagination) {
+        // 兼容分页组件的事件参数
+        if (pagination.page) this.queryParams.pageNum = pagination.page;
+        if (pagination.limit) this.queryParams.pageSize = pagination.limit;
+      }
       this.loading = true
       listResource(this.queryParams).then(response => {
         // 过滤掉video类型的资源，因为视频资源现在单独管理
         this.resourceList = (response.rows || []).filter(resource => resource.resourceType !== 'video');
-        this.total = this.resourceList.length;
+        this.total = response.total || 0; // 必须用后端返回的total
         this.loading = false
         console.log('[DEBUG] getList响应', response);
       })
@@ -364,6 +416,15 @@ export default {
           getCourse(this.form.courseId).then(courseResponse => {
             this.$set(this.form, 'courseCode', courseResponse.data.courseCode);
           });
+        }
+        // 查询内容摘要
+        if (this.form.resourceId) {
+          getResourceAnalysis(this.form.resourceId).then(res => {
+            this.form.contentSummary = res.data?.contentSummary || ''
+          }).catch(() => {
+            this.form.contentSummary = ''
+            this.$message.warning('暂无AI内容摘要')
+          })
         }
         this.open = true
         this.title = "修改学习资源"
@@ -517,6 +578,37 @@ export default {
         return false;
       }
       return true;
+    },
+    // 手动触发AI分析
+    handleAnalyzeResource(resourceId) {
+      this.$modal.loading('AI分析中...')
+      analyzeResource(resourceId).then(() => {
+        this.$modal.closeLoading()
+        this.$message.success('AI分析已触发，请稍后刷新')
+        // 分析后自动刷新内容摘要
+        getResourceAnalysis(resourceId).then(res => {
+          this.form.contentSummary = res.data?.contentSummary || ''
+        }).catch(() => {
+          this.form.contentSummary = ''
+          this.$message.warning('暂无AI内容摘要')
+        })
+      }).catch(() => {
+        this.$modal.closeLoading()
+      })
+    },
+    handleBatchAnalyze() {
+      this.$confirm('确定要批量分析所有待分析的学习资源吗？', '批量AI分析', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$message.info('已触发批量分析，任务将按队列排队执行');
+        batchAnalyzeResource().then(res => {
+          this.$modal.msgSuccess(res.msg || '批量分析已触发');
+        }).catch(err => {
+          this.$modal.msgError('批量分析触发失败: ' + (err.message || '未知错误'));
+        });
+      });
     }
   },
   computed: {

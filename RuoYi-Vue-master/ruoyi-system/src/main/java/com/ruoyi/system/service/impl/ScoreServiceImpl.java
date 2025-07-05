@@ -1,6 +1,7 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
+import java.util.ArrayList;
 import com.ruoyi.common.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,9 @@ import org.springframework.stereotype.Service;
 import com.ruoyi.system.mapper.ScoreMapper;
 import com.ruoyi.system.domain.Score;
 import com.ruoyi.system.service.IScoreService;
+import com.ruoyi.system.service.IStudentSkillAssessmentService;
+import com.ruoyi.system.service.ILearningRecordService;
+import com.ruoyi.system.domain.LearningRecord;
 
 /**
  * 成绩管理Service业务层处理
@@ -23,6 +27,12 @@ public class ScoreServiceImpl implements IScoreService
 
     @Autowired
     private ScoreMapper scoreMapper;
+    
+    @Autowired
+    private IStudentSkillAssessmentService studentSkillAssessmentService;
+    
+    @Autowired
+    private ILearningRecordService learningRecordService;
 
     /**
      * 查询成绩管理
@@ -72,6 +82,12 @@ public class ScoreServiceImpl implements IScoreService
         log.debug("[insertScore] 预插入对象: {}", score);
         int rows = scoreMapper.insertScore(score);
         log.debug("[insertScore] 插入影响行数:{}, 生成scoreId:{}", rows, score.getScoreId());
+        
+        // 触发能力评估
+        if (rows > 0) {
+            triggerAssessment(score.getRecordId());
+        }
+        
         return rows;
     }
 
@@ -85,7 +101,15 @@ public class ScoreServiceImpl implements IScoreService
     public int updateScore(Score score)
     {
         score.setUpdateTime(DateUtils.getNowDate());
-        return scoreMapper.updateScore(score);
+        
+        int result = scoreMapper.updateScore(score);
+        
+        // 触发能力评估
+        if (result > 0) {
+            triggerAssessment(score.getRecordId());
+        }
+        
+        return result;
     }
 
     /**
@@ -97,7 +121,19 @@ public class ScoreServiceImpl implements IScoreService
     @Override
     public int deleteScoreByScoreIds(Long[] scoreIds)
     {
-        return scoreMapper.deleteScoreByScoreIds(scoreIds);
+        // 获取要删除的成绩信息，用于触发评估
+        List<Score> scores = scoreMapper.selectScoreByScoreIds(scoreIds);
+        
+        int result = scoreMapper.deleteScoreByScoreIds(scoreIds);
+        
+        // 触发能力评估
+        if (result > 0 && scores != null) {
+            for (Score score : scores) {
+                triggerAssessment(score.getRecordId());
+            }
+        }
+        
+        return result;
     }
 
     /**
@@ -109,7 +145,17 @@ public class ScoreServiceImpl implements IScoreService
     @Override
     public int deleteScoreByScoreId(Long scoreId)
     {
-        return scoreMapper.deleteScoreByScoreId(scoreId);
+        // 获取要删除的成绩信息，用于触发评估
+        Score score = scoreMapper.selectScoreByScoreId(scoreId);
+        
+        int result = scoreMapper.deleteScoreByScoreId(scoreId);
+        
+        // 触发能力评估
+        if (result > 0 && score != null) {
+            triggerAssessment(score.getRecordId());
+        }
+        
+        return result;
     }
 
     /**
@@ -138,5 +184,37 @@ public class ScoreServiceImpl implements IScoreService
         List<Score> list = scoreMapper.selectScoreByUserId(userId);
         log.debug("[selectScoreByUserId] 记录数:{} 示例:{}", list.size(), list.isEmpty()?null:list.get(0));
         return list;
+    }
+
+    @Override
+    public List<Score> selectScoreListByLearningRecords(List<Long> recordIds) {
+        if (recordIds == null || recordIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        List<Score> result = new ArrayList<>();
+        for (Long recordId : recordIds) {
+            Score query = new Score();
+            query.setRecordId(recordId);
+            List<Score> scores = scoreMapper.selectScoreList(query);
+            result.addAll(scores);
+        }
+        return result;
+    }
+    
+    /**
+     * 触发能力评估
+     * @param recordId 学习记录ID
+     */
+    private void triggerAssessment(Long recordId) {
+        try {
+            LearningRecord record = learningRecordService.selectLearningRecordByRecordId(recordId);
+            if (record != null) {
+                studentSkillAssessmentService.triggerAssessmentOnDataChange(record.getUserId(), record.getCourseId());
+            }
+        } catch (Exception e) {
+            // 记录日志但不影响主业务流程
+            log.error("触发能力评估失败: recordId=" + recordId + ", error=" + e.getMessage());
+        }
     }
 }

@@ -90,4 +90,23 @@ public class VideoResourceServiceImpl implements IVideoResourceService
     {
         return videoResourceMapper.deleteVideoResourceByVideoId(videoId);
     }
+
+    @Override
+    public java.util.List<com.ruoyi.system.domain.VideoResource> selectPendingAnalysisVideos() {
+        com.ruoyi.system.domain.VideoResource query = new com.ruoyi.system.domain.VideoResource();
+        query.setAnalysisStatus(0); // 0-未分析
+        return videoResourceMapper.selectVideoResourceList(query);
+    }
+
+    @Override
+    public com.ruoyi.system.domain.VideoResource selectVideoResourceById(Long videoId) {
+        return videoResourceMapper.selectVideoResourceByVideoId(videoId);
+    }
+
+    @Override
+    public java.util.List<com.ruoyi.system.domain.VideoResource> selectVideoResourceListByCourseId(Long courseId) {
+        com.ruoyi.system.domain.VideoResource query = new com.ruoyi.system.domain.VideoResource();
+        query.setCourseId(courseId);
+        return videoResourceMapper.selectVideoResourceList(query);
+    }
 }
