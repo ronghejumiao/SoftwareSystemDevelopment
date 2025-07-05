@@ -158,6 +158,10 @@ public class SecurityUtils
     public static boolean hasRole(String role)
     {
         List<SysRole> roleList = getLoginUser().getUser().getRoles();
+        if (roleList == null || roleList.isEmpty()) {
+            // 当前用户没有角色信息，直接返回 false，避免空指针
+            return false;
+        }
         Collection<String> roles = roleList.stream().map(SysRole::getRoleKey).collect(Collectors.toSet());
         return hasRole(roles, role);
     }

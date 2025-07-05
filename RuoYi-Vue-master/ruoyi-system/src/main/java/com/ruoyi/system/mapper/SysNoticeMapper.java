@@ -2,12 +2,15 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import com.ruoyi.system.domain.SysNotice;
+import com.ruoyi.common.annotation.DataSource;
+import com.ruoyi.common.enums.DataSourceType;
 
 /**
  * 通知公告表 数据层
  * 
  * @author ruoyi
  */
+@DataSource(DataSourceType.KINGBASE)
 public interface SysNoticeMapper
 {
     /**

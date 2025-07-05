@@ -15,5 +15,10 @@ public enum DataSourceType
     /**
      * 从库
      */
-    SLAVE
+    SLAVE,
+
+    /**
+     * 金仓 Kingbase 数据源
+     */
+    KINGBASE
 }
