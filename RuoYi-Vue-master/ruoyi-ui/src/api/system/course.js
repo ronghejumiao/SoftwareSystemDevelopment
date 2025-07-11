@@ -42,3 +42,12 @@ export function delCourse(courseId) {
     method: 'delete'
   })
 }
+
+// AI评分
+export function aiGrade(data) {
+  return request({
+    url: '/system/course/ai-grade',
+    method: 'post',
+    data: data
+  })
+}

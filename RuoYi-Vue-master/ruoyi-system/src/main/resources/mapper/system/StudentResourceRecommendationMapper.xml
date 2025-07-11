@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.StudentResourceRecommendationMapper">
+    <resultMap id="StudentResourceRecommendationResult" type="com.ruoyi.system.domain.StudentResourceRecommendation">
+        <id property="id" column="id" />
+        <result property="studentId" column="student_id" />
+        <result property="courseId" column="course_id" />
+        <result property="recommendJson" column="recommend_json" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <select id="selectByStudentAndCourse" resultMap="StudentResourceRecommendationResult">
+        select * from student_resource_recommendation where student_id = #{studentId} and course_id = #{courseId} limit 1
+    </select>
+
+    <insert id="insertStudentResourceRecommendation" parameterType="com.ruoyi.system.domain.StudentResourceRecommendation" useGeneratedKeys="true" keyProperty="id">
+        insert into student_resource_recommendation (student_id, course_id, recommend_json, update_time)
+        values (#{studentId}, #{courseId}, #{recommendJson}, now())
+    </insert>
+
+    <update id="updateStudentResourceRecommendation" parameterType="com.ruoyi.system.domain.StudentResourceRecommendation">
+        update student_resource_recommendation
+        set recommend_json = #{recommendJson}, update_time = now()
+        where student_id = #{studentId} and course_id = #{courseId}
+    </update>
+</mapper> 

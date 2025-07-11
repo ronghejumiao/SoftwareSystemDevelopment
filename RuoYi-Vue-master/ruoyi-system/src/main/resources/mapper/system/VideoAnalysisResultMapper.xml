@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.system.mapper.VideoAnalysisResultMapper">
+
+    <resultMap id="VideoAnalysisResultMap" type="com.ruoyi.system.domain.VideoAnalysisResult">
+        <id property="analysisId" column="analysis_id"/>
+        <result property="videoId" column="video_id"/>
+        <result property="analysisStatus" column="analysis_status"/>
+        <result property="videoAnalysis" column="video_analysis"/>
+        <result property="analysisTime" column="analysis_time"/>
+        <result property="totalDuration" column="total_duration"/>
+        <result property="segmentsCount" column="segments_count"/>
+        <result property="modelUsed" column="model_used"/>
+        <result property="errorMessage" column="error_message"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <insert id="insertVideoAnalysisResult" parameterType="com.ruoyi.system.domain.VideoAnalysisResult">
+        INSERT INTO video_analysis_result
+        (video_id, analysis_status, video_analysis, analysis_time, total_duration, segments_count, model_used, error_message, create_time, update_time)
+        VALUES
+        (#{videoId}, #{analysisStatus}, #{videoAnalysis}, #{analysisTime}, #{totalDuration}, #{segmentsCount}, #{modelUsed}, #{errorMessage}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="selectVideoAnalysisResultById" resultMap="VideoAnalysisResultMap">
+        SELECT * FROM video_analysis_result WHERE analysis_id = #{analysisId}
+    </select>
+
+    <select id="selectVideoAnalysisResultByVideoId" resultMap="VideoAnalysisResultMap">
+        SELECT * FROM video_analysis_result WHERE video_id = #{videoId}
+    </select>
+
+    <select id="selectVideoAnalysisResultList" resultMap="VideoAnalysisResultMap">
+        SELECT * FROM video_analysis_result
+        <where>
+            <if test="videoId != null">AND video_id = #{videoId}</if>
+            <if test="analysisStatus != null">AND analysis_status = #{analysisStatus}</if>
+            <if test="modelUsed != null">AND model_used = #{modelUsed}</if>
+        </where>
+    </select>
+
+    <update id="updateVideoAnalysisResult" parameterType="com.ruoyi.system.domain.VideoAnalysisResult">
+        UPDATE video_analysis_result
+        <set>
+            <if test="videoId != null">video_id = #{videoId},</if>
+            <if test="analysisStatus != null">analysis_status = #{analysisStatus},</if>
+            <if test="videoAnalysis != null">video_analysis = #{videoAnalysis},</if>
+            <if test="analysisTime != null">analysis_time = #{analysisTime},</if>
+            <if test="totalDuration != null">total_duration = #{totalDuration},</if>
+            <if test="segmentsCount != null">segments_count = #{segmentsCount},</if>
+            <if test="modelUsed != null">model_used = #{modelUsed},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            update_time = NOW()
+        </set>
+        WHERE analysis_id = #{analysisId}
+    </update>
+
+    <delete id="deleteVideoAnalysisResultById" parameterType="Long">
+        DELETE FROM video_analysis_result WHERE analysis_id = #{analysisId}
+    </delete>
+
+    <delete id="deleteVideoAnalysisResultByIds" parameterType="Long[]">
+        DELETE FROM video_analysis_result WHERE analysis_id IN
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper> 

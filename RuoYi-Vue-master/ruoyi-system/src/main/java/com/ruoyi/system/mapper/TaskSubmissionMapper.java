@@ -64,4 +64,12 @@ public interface TaskSubmissionMapper
      */
     TaskSubmission selectByRecordAndTaskId(@org.apache.ibatis.annotations.Param("recordId") Long recordId,
                                            @org.apache.ibatis.annotations.Param("taskId") Long taskId);
+
+    /**
+     * 根据提交ID数组查询任务提交记录列表
+     * 
+     * @param submissionIds 提交ID数组
+     * @return 任务提交记录列表
+     */
+    public List<TaskSubmission> selectTaskSubmissionBySubmissionIds(Long[] submissionIds);
 }

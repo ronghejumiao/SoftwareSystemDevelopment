@@ -66,4 +66,19 @@ public interface ILearningRecordService
      * @return 学习记录
      */
     public com.ruoyi.system.domain.LearningRecord selectByUserIdAndCourseId(Long userId, Long courseId);
+
+    /**
+     * 根据用户ID和课程ID查询学习记录列表
+     * @param userId 用户ID
+     * @param courseId 课程ID
+     * @return 学习记录列表
+     */
+    public List<LearningRecord> selectLearningRecordListByUserAndCourse(Long userId, Long courseId);
+
+    /**
+     * 根据课程ID查询所有学生ID
+     * @param courseId 课程ID
+     * @return 学生ID列表
+     */
+    public List<Long> selectAllStudentIdsByCourseId(Long courseId);
 }

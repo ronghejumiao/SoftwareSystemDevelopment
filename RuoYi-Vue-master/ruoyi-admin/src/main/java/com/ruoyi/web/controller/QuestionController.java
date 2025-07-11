@@ -43,7 +43,7 @@ public class QuestionController extends BaseController
     /**
      * 查询题目，存储题库中的题目信息列表
      */
-    @PreAuthorize("@ss.hasPermi('system:question:list')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping("/list")
     public TableDataInfo list(Question question)
     {
@@ -55,7 +55,7 @@ public class QuestionController extends BaseController
     /**
      * 导出题目，存储题库中的题目信息列表
      */
-    @PreAuthorize("@ss.hasPermi('system:question:export')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "题目，存储题库中的题目信息", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, Question question)
@@ -68,7 +68,7 @@ public class QuestionController extends BaseController
     /**
      * 获取题目，存储题库中的题目信息详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:question:query')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping(value = "/{questionId}")
     public AjaxResult getInfo(@PathVariable("questionId") Long questionId)
     {
@@ -78,7 +78,7 @@ public class QuestionController extends BaseController
     /**
      * 新增题目，存储题库中的题目信息
      */
-    @PreAuthorize("@ss.hasPermi('system:question:add')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "题目，存储题库中的题目信息", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody Question question)
@@ -89,7 +89,7 @@ public class QuestionController extends BaseController
     /**
      * 修改题目，存储题库中的题目信息
      */
-    @PreAuthorize("@ss.hasPermi('system:question:edit')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "题目，存储题库中的题目信息", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody Question question)
@@ -100,8 +100,7 @@ public class QuestionController extends BaseController
     /**
      * 删除题目，存储题库中的题目信息
      */
-    @PreAuthorize("@ss.hasPermi('system:question:remove')")
-    @Log(title = "题目，存储题库中的题目信息", businessType = BusinessType.DELETE)
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
 	@DeleteMapping("/{questionIds}")
     public AjaxResult remove(@PathVariable Long[] questionIds)
     {
@@ -111,7 +110,7 @@ public class QuestionController extends BaseController
     /**
      * 根据课程ID获取题目列表
      */
-    @PreAuthorize("@ss.hasPermi('system:question:list')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping("/course/{courseId}")
     public AjaxResult getQuestionsByCourseId(@PathVariable("courseId") Long courseId)
     {
@@ -122,7 +121,7 @@ public class QuestionController extends BaseController
     /**
      * 生成试卷
      */
-    @PreAuthorize("@ss.hasPermi('system:question:generate')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "生成试卷", businessType = BusinessType.INSERT)
     @PostMapping("/generate")
     public AjaxResult generatePaper(@RequestBody PaperGenerateRequest request)

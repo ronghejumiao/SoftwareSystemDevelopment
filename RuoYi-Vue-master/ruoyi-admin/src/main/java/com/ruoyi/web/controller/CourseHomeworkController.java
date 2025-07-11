@@ -47,7 +47,7 @@ public class CourseHomeworkController extends BaseController
     /**
      * 查询课程作业列表
      */
-    @PreAuthorize("@ss.hasPermi('system:homework:list')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping("/list")
     public TableDataInfo list(CourseHomework courseHomework)
     {
@@ -59,7 +59,7 @@ public class CourseHomeworkController extends BaseController
     /**
      * 导出课程作业列表
      */
-    @PreAuthorize("@ss.hasPermi('system:homework:export')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "课程作业", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, CourseHomework courseHomework)
@@ -72,7 +72,7 @@ public class CourseHomeworkController extends BaseController
     /**
      * 获取课程作业详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:homework:query')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping(value = "/{homeworkId}")
     public AjaxResult getInfo(@PathVariable("homeworkId") Long homeworkId)
     {
@@ -82,13 +82,19 @@ public class CourseHomeworkController extends BaseController
     /**
      * 新增课程作业
      */
-    @PreAuthorize("@ss.hasPermi('system:homework:add')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "课程作业", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody CourseHomework courseHomework)
     {
         System.out.println("[DEBUG] 新增作业请求: " + courseHomework);
         System.out.println("[DEBUG] 新增作业请求 filePaths: " + courseHomework.getFilePaths());
+        // 设置创建者
+        courseHomework.setCreateBy(getUsername());
+        // 设置默认状态为启用
+        if (courseHomework.getStatus() == null) {
+            courseHomework.setStatus("0");
+        }
         int result = courseHomeworkService.insertCourseHomework(courseHomework);
         System.out.println("[DEBUG] 插入作业后 filePaths: " + courseHomework.getFilePaths());
         return toAjax(result);
@@ -97,18 +103,20 @@ public class CourseHomeworkController extends BaseController
     /**
      * 修改课程作业
      */
-    @PreAuthorize("@ss.hasPermi('system:homework:edit')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "课程作业", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody CourseHomework courseHomework)
     {
+        // 设置更新者
+        courseHomework.setUpdateBy(getUsername());
         return toAjax(courseHomeworkService.updateCourseHomework(courseHomework));
     }
 
     /**
      * 删除课程作业
      */
-    @PreAuthorize("@ss.hasPermi('system:homework:remove')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "课程作业", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{homeworkIds}")
     public AjaxResult remove(@PathVariable Long[] homeworkIds)

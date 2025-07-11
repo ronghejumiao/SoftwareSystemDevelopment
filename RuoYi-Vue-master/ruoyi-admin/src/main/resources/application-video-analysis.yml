@@ -1,0 +1,48 @@
+# 视频分析配置
+video:
+  analysis:
+    # 分段配置
+    segment:
+      duration: 600  # 分段时长（秒），默认10分钟
+      overlap: 30    # 重叠时长（秒），默认30秒
+    # 文件大小限制
+    max:
+      file:
+        size: 47185920  # 最大文件大小（字节），默认45M
+    # 并发配置
+    concurrent:
+      max: 3  # 最大并发分析数
+    # 重试配置
+    retry:
+      max: 3      # 最大重试次数
+      interval: 5000  # 重试间隔（毫秒）
+
+
+
+# 火山引擎配置
+volcengine.tos.endpoint: https://tos-cn-beijing.volces.com
+
+volcengine:
+  # 对象存储配置
+  tos:
+    endpoint: https://tos-cn-beijing.volces.com
+    region: cn-beijing
+    bucket: videoresource
+    access-key: AKLTOTllNmFmNjk3OWExNDMxY2E0NTQ5MTdlZjQxYTc4MGI
+    secret-key: WXpNek1XSXhOR00yWWpkbU5EYzVaamhrWVRNMk16WTJZelptTVdNNU56QQ==
+  
+  # 方舟大模型配置
+  ark:
+    api-key: f012e79d-b029-4c45-81f6-91dc7a1f0e97
+    model: doubao-1.5-vision-pro
+    endpoint: https://ark.cn-beijing.volces.com/api/v1/ark/video/understanding/tasks
+# 异步任务配置
+spring:
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 25
+        keep-alive: 60s
+      thread-name-prefix: video-analysis- 

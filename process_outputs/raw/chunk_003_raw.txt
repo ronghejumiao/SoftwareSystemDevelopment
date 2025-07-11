@@ -1,0 +1,63 @@
+```json
+[
+    {
+        "subject": "方程",
+        "subject_type": "数学对象",
+        "predicate": "solve",
+        "object": "一元二次方程",
+        "object_type": "数学对象"
+    },
+    {
+        "subject": "定理",
+        "subject_type": "数学概念",
+        "predicate": "prove",
+        "object": "勾股定理",
+        "object_type": "数学定理"
+    },
+    {
+        "subject": "矩阵",
+        "subject_type": "数学对象",
+        "predicate": "transform",
+        "object": "线性变换",
+        "object_type": "数学概念"
+    },
+    {
+        "subject": "定律",
+        "subject_type": "物理对象",
+        "predicate": "quantize",
+        "object": "量子力学定律",
+        "object_type": "物理概念"
+    },
+    {
+        "subject": "粒子",
+        "subject_type": "物理对象",
+        "predicate": "observe",
+        "object": "夸克",
+        "object_type": "物理对象"
+    },
+    {
+        "subject": "测量",
+        "subject_type": "物理概念",
+        "predicate": "calculate",
+        "object": "波长",
+        "object_type": "物理对象"
+    },
+    {
+        "subject": "基因",
+        "subject_type": "生物对象",
+        "predicate": "transcribe",
+        "object": "DNA",
+        "object_type": "生物对象"
+    },
+    {
+        "subject": "表达",
+        "subject_type": "生物概念",
+        "predicate": "regulate",
+        "object": "基因表达",
+        "object_type": "生物概念"
+    }
+]
+```
+
+请注意，这里提供的例子是根据您所给定的类别和操作关系构造的。由于实际教材内容未给出，这些实例只是示例性质。您可以根据具体文本调整上述结构以提取更多五元组信息。
+

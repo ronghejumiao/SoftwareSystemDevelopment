@@ -46,6 +46,11 @@ module.exports = {
       '^/v3/api-docs/(.*)': {
         target: baseUrl,
         changeOrigin: true
+      },
+      '/api/kg': {
+        target: 'http://127.0.0.1:5005', // Flask 服务地址
+        changeOrigin: true,
+        pathRewrite: { '^/api/kg': '/api/kg' }
       }
     },
     disableHostCheck: true

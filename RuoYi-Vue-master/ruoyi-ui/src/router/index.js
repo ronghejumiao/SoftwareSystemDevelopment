@@ -212,7 +212,21 @@ export const constantRoutes = [
     redirect: '/user/videos',
     hidden: true
   },
-
+  {
+    path: '/pdf-viewer',
+    name: 'PdfViewer',
+    component: () => import('@/views/system/course/PdfViewer.vue')
+  },
+  {
+    path: '/pdf-kg',
+    name: 'PdfKnowledgeGraph',
+    component: () => import('@/views/system/course/PdfKnowledgeGraph.vue')
+  },
+  {
+    path: '/system/course/detail',
+    name: 'CourseDetail',
+    component: () => import('@/views/system/course/detail.vue')
+  },
 ]
 
 // 动态路由，基于用户权限动态去加载

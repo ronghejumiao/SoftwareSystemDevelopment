@@ -61,6 +61,14 @@ public interface ScoreMapper
     public int deleteScoreByScoreIds(Long[] scoreIds);
 
     /**
+     * 根据成绩ID数组查询成绩列表
+     * 
+     * @param scoreIds 成绩ID数组
+     * @return 成绩列表
+     */
+    public List<Score> selectScoreByScoreIds(Long[] scoreIds);
+
+    /**
      * 根据用户ID和课程ID查询成绩
      * 
      * @param userId 用户ID

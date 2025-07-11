@@ -65,4 +65,11 @@ public interface ITaskSubmissionService
      * @return 任务提交集合
      */
     public java.util.List<com.ruoyi.system.domain.TaskSubmission> selectByRecordId(Long recordId);
+
+    /**
+     * 根据学习记录ID列表查询任务提交列表
+     * @param recordIds 学习记录ID列表
+     * @return 任务提交列表
+     */
+    public List<TaskSubmission> selectTaskSubmissionListByLearningRecords(List<Long> recordIds);
 }

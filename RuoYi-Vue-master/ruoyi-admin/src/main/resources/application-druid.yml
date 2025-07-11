@@ -6,9 +6,9 @@ spring:
         druid:
             # 主库数据源
             master:
-                url: jdbc:mysql://localhost:3306/smartclass?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+                url: jdbc:mysql://localhost:3306/smart_class?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
                 username: root
-                password: 848306
+                password: root
             # 从库数据源
             slave:
                 # 从数据源开关/默认关闭
@@ -16,6 +16,14 @@ spring:
                 url: 
                 username: 
                 password: 
+            # 金仓 Kingbase 数据源
+            kingbase:
+                # 金仓数据源开关
+                enabled: true
+                driverClassName: com.kingbase8.Driver
+                url: jdbc:kingbase8://localhost:54321/smartclass
+                username: system
+                password: root
             # 初始连接数
             initialSize: 5
             # 最小连接池数量
@@ -59,3 +67,12 @@ spring:
                 wall:
                     config:
                         multi-statement-allow: true
+volcengine.tos.endpoint: https://tos-cn-beijing.volces.com
+volcengine.tos.region: cn-beijing
+volcengine.tos.bucket: videoresource
+volcengine.tos.access-key: AKLTOTllNmFmNjk3OWExNDMxY2E0NTQ5MTdlZjQxYTc4MGI
+volcengine.tos.secret-key: WXpNek1XSXhOR00yWWpkbU5EYzVaamhrWVRNMk16WTJZelptTVdNNU56QQ==
+volcengine.ark.api-key: f012e79d-b029-4c45-81f6-91dc7a1f0e97
+volcengine.ark.model: doubao-1.5-vision-pro
+volcengine.ark.endpoint: https://ark.cn-beijing.volces.com/api/v1/ark/video/understanding/tasks
+

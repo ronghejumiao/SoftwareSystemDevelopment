@@ -65,4 +65,11 @@ public interface IVideoLearningRecordService
      * @return 影响行数
      */
     int saveOrUpdate(VideoLearningRecord videoLearningRecord);
+
+    /**
+     * 根据学习记录ID查询视频学习记录列表
+     * @param learningRecordId 学习记录ID
+     * @return 视频学习记录列表
+     */
+    public List<VideoLearningRecord> selectVideoLearningRecordByLearningRecord(Long learningRecordId);
 }

@@ -38,7 +38,7 @@ public class VideoLearningRecordController extends BaseController
     /**
      * 查询视频学习记录，记录学生观看视频的行为数据列表
      */
-    @PreAuthorize("@ss.hasPermi('system:videoLearningRecord:list')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping("/list")
     public TableDataInfo list(VideoLearningRecord videoLearningRecord)
     {
@@ -81,14 +81,14 @@ public class VideoLearningRecordController extends BaseController
     /**
      * 获取视频学习记录，记录学生观看视频的行为数据详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:videoLearningRecord:query')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping(value = "/{recordId}")
     public AjaxResult getInfo(@PathVariable("recordId") Long recordId)
     {
         VideoLearningRecord record = videoLearningRecordService.selectVideoLearningRecordByRecordId(recordId);
         
         // 判断当前用户角色，如果是学生角色，则只能查看自己的记录
-        if (SecurityUtils.isStudent() && !SecurityUtils.getUserId().equals(record.getUserId())) {
+        if (SecurityUtils.isStudent() && record.getUserId() != null && !SecurityUtils.getUserId().equals(record.getUserId())) {
             return AjaxResult.error("没有权限查看其他学生的学习记录");
         }
         
@@ -98,7 +98,7 @@ public class VideoLearningRecordController extends BaseController
     /**
      * 新增视频学习记录，记录学生观看视频的行为数据
      */
-    @PreAuthorize("@ss.hasPermi('system:videoLearningRecord:add')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @Log(title = "视频学习记录，记录学生观看视频的行为数据", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody VideoLearningRecord videoLearningRecord)
@@ -114,7 +114,7 @@ public class VideoLearningRecordController extends BaseController
     /**
      * 修改视频学习记录，记录学生观看视频的行为数据
      */
-    @PreAuthorize("@ss.hasPermi('system:videoLearningRecord:edit')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @Log(title = "视频学习记录，记录学生观看视频的行为数据", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody VideoLearningRecord videoLearningRecord)
@@ -122,7 +122,7 @@ public class VideoLearningRecordController extends BaseController
         // 判断当前用户角色，如果是学生角色，则只能修改自己的记录
         if (SecurityUtils.isStudent()) {
             VideoLearningRecord original = videoLearningRecordService.selectVideoLearningRecordByRecordId(videoLearningRecord.getRecordId());
-            if (original != null && !SecurityUtils.getUserId().equals(original.getUserId())) {
+            if (original != null && original.getUserId() != null && !SecurityUtils.getUserId().equals(original.getUserId())) {
                 return AjaxResult.error("没有权限修改其他学生的学习记录");
             }
         }
@@ -133,7 +133,7 @@ public class VideoLearningRecordController extends BaseController
     /**
      * 删除视频学习记录，记录学生观看视频的行为数据
      */
-    @PreAuthorize("@ss.hasPermi('system:videoLearningRecord:remove')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @Log(title = "视频学习记录，记录学生观看视频的行为数据", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{recordIds}")
     public AjaxResult remove(@PathVariable Long[] recordIds)
@@ -142,7 +142,7 @@ public class VideoLearningRecordController extends BaseController
         if (SecurityUtils.isStudent()) {
             for (Long recordId : recordIds) {
                 VideoLearningRecord record = videoLearningRecordService.selectVideoLearningRecordByRecordId(recordId);
-                if (record != null && !SecurityUtils.getUserId().equals(record.getUserId())) {
+                if (record != null && record.getUserId() != null && !SecurityUtils.getUserId().equals(record.getUserId())) {
                     return AjaxResult.error("没有权限删除其他学生的学习记录");
                 }
             }

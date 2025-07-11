@@ -1,12 +1,16 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
+import java.util.ArrayList;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.mapper.TaskSubmissionMapper;
 import com.ruoyi.system.domain.TaskSubmission;
 import com.ruoyi.system.service.ITaskSubmissionService;
+import com.ruoyi.system.service.IStudentSkillAssessmentService;
+import com.ruoyi.system.service.ILearningRecordService;
+import com.ruoyi.system.domain.LearningRecord;
 
 /**
  * 任务提交记录Service业务层处理
@@ -19,6 +23,12 @@ public class TaskSubmissionServiceImpl implements ITaskSubmissionService
 {
     @Autowired
     private TaskSubmissionMapper taskSubmissionMapper;
+    
+    @Autowired
+    private IStudentSkillAssessmentService studentSkillAssessmentService;
+    
+    @Autowired
+    private ILearningRecordService learningRecordService;
 
     /**
      * 查询任务提交记录
@@ -76,7 +86,14 @@ public class TaskSubmissionServiceImpl implements ITaskSubmissionService
             taskSubmission.setIsGraded("0"); // 默认未评分
         }
         
-        return taskSubmissionMapper.insertTaskSubmission(taskSubmission);
+        int result = taskSubmissionMapper.insertTaskSubmission(taskSubmission);
+        
+        // 触发能力评估
+        if (result > 0) {
+            triggerAssessment(taskSubmission.getRecordId());
+        }
+        
+        return result;
     }
 
     /**
@@ -91,7 +108,15 @@ public class TaskSubmissionServiceImpl implements ITaskSubmissionService
         if (taskSubmission.getScore() != null) {
             taskSubmission.setGradeScore(taskSubmission.getScore());
         }
-        return taskSubmissionMapper.updateTaskSubmission(taskSubmission);
+        
+        int result = taskSubmissionMapper.updateTaskSubmission(taskSubmission);
+        
+        // 触发能力评估（特别是评分变更时）
+        if (result > 0) {
+            triggerAssessment(taskSubmission.getRecordId());
+        }
+        
+        return result;
     }
 
     /**
@@ -103,7 +128,19 @@ public class TaskSubmissionServiceImpl implements ITaskSubmissionService
     @Override
     public int deleteTaskSubmissionBySubmissionIds(Long[] submissionIds)
     {
-        return taskSubmissionMapper.deleteTaskSubmissionBySubmissionIds(submissionIds);
+        // 获取要删除的记录信息，用于触发评估
+        List<TaskSubmission> submissions = taskSubmissionMapper.selectTaskSubmissionBySubmissionIds(submissionIds);
+        
+        int result = taskSubmissionMapper.deleteTaskSubmissionBySubmissionIds(submissionIds);
+        
+        // 触发能力评估
+        if (result > 0 && submissions != null) {
+            for (TaskSubmission submission : submissions) {
+                triggerAssessment(submission.getRecordId());
+            }
+        }
+        
+        return result;
     }
 
     /**
@@ -115,7 +152,17 @@ public class TaskSubmissionServiceImpl implements ITaskSubmissionService
     @Override
     public int deleteTaskSubmissionBySubmissionId(Long submissionId)
     {
-        return taskSubmissionMapper.deleteTaskSubmissionBySubmissionId(submissionId);
+        // 获取要删除的记录信息，用于触发评估
+        TaskSubmission submission = taskSubmissionMapper.selectTaskSubmissionBySubmissionId(submissionId);
+        
+        int result = taskSubmissionMapper.deleteTaskSubmissionBySubmissionId(submissionId);
+        
+        // 触发能力评估
+        if (result > 0 && submission != null) {
+            triggerAssessment(submission.getRecordId());
+        }
+        
+        return result;
     }
 
     @Override
@@ -123,5 +170,35 @@ public class TaskSubmissionServiceImpl implements ITaskSubmissionService
         com.ruoyi.system.domain.TaskSubmission query = new com.ruoyi.system.domain.TaskSubmission();
         query.setRecordId(recordId);
         return taskSubmissionMapper.selectTaskSubmissionList(query);
+    }
+    
+    @Override
+    public List<TaskSubmission> selectTaskSubmissionListByLearningRecords(List<Long> recordIds) {
+        if (recordIds == null || recordIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        List<TaskSubmission> result = new ArrayList<>();
+        for (Long recordId : recordIds) {
+            List<TaskSubmission> submissions = selectByRecordId(recordId);
+            result.addAll(submissions);
+        }
+        return result;
+    }
+    
+    /**
+     * 触发能力评估
+     * @param recordId 学习记录ID
+     */
+    private void triggerAssessment(Long recordId) {
+        try {
+            LearningRecord record = learningRecordService.selectLearningRecordByRecordId(recordId);
+            if (record != null) {
+                studentSkillAssessmentService.triggerAssessmentOnDataChange(record.getUserId(), record.getCourseId());
+            }
+        } catch (Exception e) {
+            // 记录日志但不影响主业务流程
+            System.err.println("触发能力评估失败: recordId=" + recordId + ", error=" + e.getMessage());
+        }
     }
 }

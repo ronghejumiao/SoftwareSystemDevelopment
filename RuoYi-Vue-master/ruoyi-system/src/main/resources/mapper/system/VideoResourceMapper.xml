@@ -16,10 +16,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="uploadTime"    column="upload_time"    />
         <result property="thumbnail"    column="thumbnail"    />
         <result property="description"    column="description"    />
+        <result property="cloudUrl"    column="cloud_url"    />
+        <result property="analysisStatus"    column="analysis_status"    />
+        <result property="videoAnalysis"    column="video_analysis"    />
+        <result property="analysisTime"    column="analysis_time"    />
     </resultMap>
 
     <sql id="selectVideoResourceVo">
-        select video_id, course_id, video_name, video_type, video_path, file_size, duration, suploader_id, upload_time, thumbnail, description from video_resource
+        select video_id, course_id, video_name, video_type, video_path, file_size, duration, suploader_id, upload_time, thumbnail, description,
+               cloud_url, analysis_status, video_analysis, analysis_time
+        from video_resource
     </sql>
 
     <select id="selectVideoResourceList" parameterType="VideoResource" resultMap="VideoResourceResult">
@@ -72,7 +78,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <update id="updateVideoResource" parameterType="VideoResource">
         update video_resource
-        <trim prefix="SET" suffixOverrides=",">
+        <set>
             <if test="courseId != null">course_id = #{courseId},</if>
             <if test="videoName != null and videoName != ''">video_name = #{videoName},</if>
             <if test="videoType != null and videoType != ''">video_type = #{videoType},</if>
@@ -83,7 +89,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="uploadTime != null">upload_time = #{uploadTime},</if>
             <if test="thumbnail != null">thumbnail = #{thumbnail},</if>
             <if test="description != null">description = #{description},</if>
-        </trim>
+            <if test="cloudUrl != null">cloud_url = #{cloudUrl},</if>
+            <if test="videoAnalysis != null">video_analysis = #{videoAnalysis},</if>
+            <if test="analysisStatus != null">analysis_status = #{analysisStatus},</if>
+            <if test="analysisTime != null">analysis_time = #{analysisTime},</if>
+        </set>
         where video_id = #{videoId}
     </update>
 

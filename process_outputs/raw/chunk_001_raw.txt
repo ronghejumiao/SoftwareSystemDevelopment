@@ -1,0 +1,25 @@
+由于您没有提供具体的文本内容，我将基于一个假设的数学命题示例来生成结构化五元组。例如：
+
+“对于任意实数a、b（a≠0），一元二次方程ax^2+bx+c=0的根可以用求根公式来求解。”
+
+根据这段话，可以构建以下JSON数组：
+
+[
+  {
+    "subject": "一元二次方程",
+    "subject_type": "Equation",
+    "predicate": "solve(求解)",
+    "object": "ax^2+bx+c=0的根",
+    "object_type": "Concept"
+  },
+  {
+    "subject": "求根公式",
+    "subject_type": "Method",
+    "predicate": "apply(应用)",
+    "object": "ax^2+bx+c=0的根",
+    "object_type": "Concept"
+  }
+]
+
+如果您能提供具体的文本内容，我将能够根据该段落生成相应的结构化五元组。
+

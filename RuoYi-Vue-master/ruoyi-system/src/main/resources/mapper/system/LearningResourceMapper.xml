@@ -83,4 +83,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{resourceId}
         </foreach>
     </delete>
+
+    <select id="selectLearningResourceListByCourseId" resultType="com.ruoyi.system.domain.LearningResource">
+        SELECT * FROM learning_resource WHERE course_id = #{courseId}
+    </select>
 </mapper>

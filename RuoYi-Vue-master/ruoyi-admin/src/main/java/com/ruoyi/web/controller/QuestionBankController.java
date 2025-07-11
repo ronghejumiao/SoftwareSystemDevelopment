@@ -37,7 +37,7 @@ public class QuestionBankController extends BaseController
     /**
      * 查询题库，存储课程的题库信息列表
      */
-    @PreAuthorize("@ss.hasPermi('system:bank:list')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @GetMapping("/list")
     public TableDataInfo list(QuestionBank questionBank)
     {
@@ -49,7 +49,7 @@ public class QuestionBankController extends BaseController
     /**
      * 导出题库，存储课程的题库信息列表
      */
-    @PreAuthorize("@ss.hasPermi('system:bank:export')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "题库，存储课程的题库信息", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, QuestionBank questionBank)
@@ -62,7 +62,7 @@ public class QuestionBankController extends BaseController
     /**
      * 获取题库，存储课程的题库信息详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:bank:query')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @GetMapping(value = "/{bankId}")
     public AjaxResult getInfo(@PathVariable("bankId") Long bankId)
     {
@@ -72,7 +72,7 @@ public class QuestionBankController extends BaseController
     /**
      * 新增题库，存储课程的题库信息
      */
-    @PreAuthorize("@ss.hasPermi('system:bank:add')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "题库，存储课程的题库信息", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody QuestionBank questionBank)
@@ -83,7 +83,7 @@ public class QuestionBankController extends BaseController
     /**
      * 修改题库，存储课程的题库信息
      */
-    @PreAuthorize("@ss.hasPermi('system:bank:edit')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "题库，存储课程的题库信息", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody QuestionBank questionBank)
@@ -94,7 +94,7 @@ public class QuestionBankController extends BaseController
     /**
      * 删除题库，存储课程的题库信息
      */
-    @PreAuthorize("@ss.hasPermi('system:bank:remove')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "题库，存储课程的题库信息", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{bankIds}")
     public AjaxResult remove(@PathVariable Long[] bankIds)

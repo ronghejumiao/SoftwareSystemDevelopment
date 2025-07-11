@@ -1,11 +1,13 @@
 package com.ruoyi.web.controller;
 
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import com.ruoyi.common.config.RuoYiConfig;
 import com.ruoyi.common.utils.file.FileUploadUtils;
 import com.ruoyi.framework.config.ServerConfig;
+import com.ruoyi.system.service.IAIGradingService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +43,9 @@ public class CourseController extends BaseController
 
     @Autowired
     private ServerConfig serverConfig;
+
+    @Autowired
+    private IAIGradingService aiGradingService;
 
     /**
      * 查询课程信息，存储课程的基本信息列表
@@ -132,6 +137,51 @@ public class CourseController extends BaseController
         catch (Exception e)
         {
             return AjaxResult.error(e.getMessage());
+        }
+    }
+
+    /**
+     * AI评分接口
+     */
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
+    @Log(title = "AI评分", businessType = BusinessType.UPDATE)
+    @PostMapping("/ai-grade")
+    public AjaxResult aiGrade(@RequestBody Map<String, Object> request)
+    {
+        try
+        {
+            Object courseIdObj = request.get("courseId");
+            Object homeworkIdObj = request.get("homeworkId");
+            Object submissionIdObj = request.get("submissionId");
+
+            if (courseIdObj == null) {
+                return AjaxResult.error("参数courseId缺失");
+            }
+            if (homeworkIdObj == null) {
+                return AjaxResult.error("参数homeworkId缺失");
+            }
+            if (submissionIdObj == null) {
+                return AjaxResult.error("参数submissionId缺失");
+            }
+
+            Long courseId = Long.valueOf(courseIdObj.toString());
+            Long homeworkId = Long.valueOf(homeworkIdObj.toString());
+            Long submissionId = Long.valueOf(submissionIdObj.toString());
+            
+            IAIGradingService.AIGradingResult result = aiGradingService.gradeHomework(courseId, homeworkId, submissionId);
+            
+            if (result.isSuccess()) {
+                AjaxResult ajax = AjaxResult.success();
+                ajax.put("score", result.getScore());
+                ajax.put("comment", result.getComment());
+                return ajax;
+            } else {
+                return AjaxResult.error(result.getError());
+            }
+        }
+        catch (Exception e)
+        {
+            return AjaxResult.error("AI评分失败: " + e.getMessage());
         }
     }
 }

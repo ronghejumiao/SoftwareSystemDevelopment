@@ -64,6 +64,29 @@
             </div>
           </div>
 
+          <!-- AI课程智能推荐区域 -->
+          <div class="ai-recommend-section" v-if="aiRecommendations.length > 0">
+            <div class="block-title" style="margin-top: 24px; display: flex; align-items: center; gap: 12px;">
+              <i class="el-icon-magic-stick"></i> AI课程智能推荐
+              <el-button
+                type="primary"
+                size="mini"
+                :loading="aiRecommendLoading"
+                :disabled="aiRecommendLoading"
+                @click="handleChangeAIRecommend"
+                style="margin-left: 8px;"
+              >换一批</el-button>
+            </div>
+            <div class="recommend-scroll-wrapper">
+              <transition-group name="fade-recommend" tag="div" class="recommend-scroll-inner">
+                <div class="recommend-card" v-for="item in aiRecommendations" :key="item.id + '-' + (item.segmentId || '')" @click="handleRecommendCardClick(item)" style="cursor:pointer;">
+                  <div class="recommend-title">{{ item.name }}</div>
+                  <div class="recommend-summary">{{ item.summary }}</div>
+                </div>
+              </transition-group>
+            </div>
+          </div>
+
           <div v-else class="no-skill-data">
             <i class="el-icon-warning"></i>
             <span>暂无能力数据，请联系教师初始化</span>
@@ -140,20 +163,19 @@
         <div v-if="Object.keys(groupedResources).length === 0" style="text-align: center; color: #909399;">
           暂无学习资源
         </div>
-        <el-card class="box-card" v-for="(resources, groupName) in groupedResources" :key="groupName" style="margin-bottom: 20px;">
-          <div slot="header" class="clearfix">
-            <span>{{ groupName }}</span>
-          </div>
-          <div v-for="resource in resources" :key="resource.resourceId" class="resource-item">
-            <el-link type="primary" class="resource-name" @click="handleDownloadAndSubmit(resource)">
-              <i class="el-icon-document" /> {{ resource.displayName }}
-            </el-link>
-            <div class="actions" v-if="isTeacherOrAdmin">
-              <el-button size="mini" type="text" @click.stop="handleUpdate(resource)" v-hasPermi="['system:resource:edit']">修改</el-button>
-              <el-button size="mini" type="text" @click.stop="handleDelete(resource)" v-hasPermi="['system:resource:remove']">删除</el-button>
+        <el-collapse v-model="activeCollapseNames">
+          <el-collapse-item v-for="(resources, groupName) in sortedGroupedResources" :key="groupName" :title="groupName" :name="groupName">
+            <div v-for="resource in resources" :key="resource.resourceId" class="resource-item">
+              <el-link type="primary" class="resource-name" @click="handleDownloadAndSubmit(resource)">
+                <i class="el-icon-document" /> {{ resource.displayName }}
+              </el-link>
+              <div class="actions" v-if="isTeacherOrAdmin">
+                <el-button size="mini" type="text" @click.stop="handleUpdate(resource)" v-hasPermi="['system:resource:edit']">修改</el-button>
+                <el-button size="mini" type="text" @click.stop="handleDelete(resource)" v-hasPermi="['system:resource:remove']">删除</el-button>
+              </div>
             </div>
-          </div>
-        </el-card>
+          </el-collapse-item>
+        </el-collapse>
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
           <el-form ref="form" :model="form" :rules="rules" label-width="80px">
             <el-form-item label="资源名称" prop="resourceName">
@@ -168,6 +190,10 @@
             <el-button @click="cancel">取 消</el-button>
           </div>
         </el-dialog>
+        <!-- 知识图谱区域 -->
+        <div style="margin-top: 30px;">
+          <KnowledgeGraph v-if="activeTab==='resources' && course.courseId" :courseId="course.courseId" />
+        </div>
       </el-tab-pane>
 
       <el-tab-pane label="学习任务" name="tasks">
@@ -314,10 +340,13 @@ import * as echarts from 'echarts';
 
 import { notificationState } from '@/utils/notificationControl';
 
+import KnowledgeGraph from './KnowledgeGraph.vue';
+import { recommendResource } from '@/api/system/learningResource'
+
 
 export default {
   name: "CourseDetailPage",
-  components: { FileUpload, CourseQuiz, CourseTask },
+  components: { FileUpload, CourseQuiz, CourseTask, KnowledgeGraph },
   data() {
     return {
       activeTab: 'requirements',
@@ -398,6 +427,12 @@ export default {
           Authorization: "Bearer " + getToken()
         }
       },
+
+      activeCollapseNames: [], // 添加折叠面板的激活状态数组
+      aiRecommendations: [],
+      aiRecommendLoading: false,
+      courseId: null, // 新增，统一存储courseId
+
     };
   },
   computed: {
@@ -460,6 +495,60 @@ export default {
     isStudent() {
       const roles = this.$store.getters.roles || [];
       return roles.includes('student');
+    },
+
+    sortedGroupedResources() {
+      const groups = this.groupedResources;
+
+      // 中文数字映射
+      const chineseNumbers = {
+        '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+        '六': 6, '七': 7, '八': 8, '九': 9, '十': 10
+      };
+
+      // 处理章节标题，将中文数字转换为阿拉伯数字
+      const processTitle = (title) => {
+        // 提取章节号
+        const match = title.match(/第(.*?)章/);
+        if (match) {
+          const chineseNum = match[1];
+          if (chineseNumbers[chineseNum]) {
+            // 替换中文数字为阿拉伯数字
+            return title.replace(/第(.*?)章/, `第${chineseNumbers[chineseNum]}章`);
+          }
+        }
+        return title;
+      };
+
+      // 对分组名称进行排序
+      const sortedKeys = Object.keys(groups).sort((a, b) => {
+        const processedA = processTitle(a);
+        const processedB = processTitle(b);
+
+        // 提取数字部分
+        const numA = processedA.match(/第(\d+)章/);
+        const numB = processedB.match(/第(\d+)章/);
+
+        // 如果都有章节号，按章节号排序
+        if (numA && numB) {
+          const chapterA = parseInt(numA[1]);
+          const chapterB = parseInt(numB[1]);
+          if (chapterA !== chapterB) {
+            return chapterA - chapterB;
+          }
+        }
+
+        // 如果章节号相同或者没有章节号，按完整字符串排序
+        return processedA.localeCompare(processedB, 'zh-CN');
+      });
+
+      // 返回排序后的对象
+      const sortedGroups = {};
+      sortedKeys.forEach(key => {
+        sortedGroups[key] = groups[key];
+      });
+
+      return sortedGroups;
     }
   },
 
@@ -467,23 +556,43 @@ export default {
     // 初始化用户信息
     await this.initUserInfo();
 
-    notificationState.isErrorNotificationsEnabled = false; // 进入页面时关闭弹窗
-
+    // 获取课程ID
     const courseId = this.$route.params.courseId || this.$route.query.courseId;
-    if (courseId) {
-      this.getCourseDetails(courseId);
-      this.getResourceList(courseId);
-      this.getVideoList(courseId);
-      // 注意：getRequirementList会在getCourseDetails中调用，因为它依赖于course数据
-    } else {
+    if (!courseId) {
       this.$message.error('未找到课程ID参数');
+      return;
+    }
+    this.courseId = courseId;
+
+    // 检查studentId
+    if (!this.studentId) {
+      this.$message.error('未找到学生ID参数');
+      return;
     }
 
-    // 检查是否有tab参数，如果有则切换到相应的选项卡
+    // 只有都有效才调用
+    await this.getCourseDetails(this.courseId);
+    await this.getResourceList(this.courseId);
+    await this.getVideoList(this.courseId);
+
+    // 检查tab参数
     const tab = this.$route.query.tab;
     if (tab && ['requirements', 'resources', 'tasks', 'quiz', 'videos'].includes(tab)) {
       this.activeTab = tab;
     }
+
+
+    // 默认展开所有折叠面板
+    this.$nextTick(() => {
+      this.activeCollapseNames = Object.keys(this.groupedResources);
+    });
+
+    // 只有都有效才调用
+    if (this.studentId && this.courseId) {
+      await this.checkAndInitStudentSkill();
+      await this.loadAIRecommendations();
+    }
+
   },
 
   beforeDestroy() {
@@ -1247,6 +1356,70 @@ export default {
         }
       });
     },
+    async checkAndInitStudentSkill() {
+      if (!this.studentId || !this.courseId) return;
+      const res = await getStudentSkillByStudentAndCourse(this.studentId, this.courseId)
+      if (!res.data || res.data.length === 0) {
+        await initStudentCourseSkills(this.studentId, this.courseId)
+      }
+    },
+    async loadAIRecommendations(forceRefresh = false) {
+      if (!this.studentId || !this.courseId) return;
+      this.aiRecommendLoading = true;
+      try {
+        const res = await recommendResource(this.studentId, this.courseId, forceRefresh)
+        if (res.data && Array.isArray(res.data)) {
+          // 先清空，触发动画
+          this.aiRecommendations = [];
+          await this.$nextTick();
+          this.aiRecommendations = await Promise.all(res.data.map(async (item) => {
+            let name = '', summary = ''
+            if (item.resourceType === 'ppt') {
+              const resource = this.resourceList.find(r => r.resourceId === item.id)
+              name = resource ? resource.resourceName : '资料资源'
+              summary = resource ? resource.contentSummary : ''
+            } else if (item.resourceType === 'video') {
+              const video = this.videoList.find(v => v.videoId === item.id)
+              name = video ? video.videoName : '视频资源'
+              if (video && video.segments && item.segmentId) {
+                const seg = video.segments.find(s => s.segmentId === item.segmentId)
+                summary = seg ? seg.contentSummary : ''
+              } else {
+                summary = video && video.summary ? video.summary : ''
+              }
+            }
+            return { ...item, name, summary }
+          }))
+        }
+      } finally {
+        this.aiRecommendLoading = false;
+      }
+    },
+    handleChangeAIRecommend() {
+      this.loadAIRecommendations(true);
+    },
+    handleRecommendCardClick(item) {
+      if (item.resourceType === 'ppt' || item.resourceType === 'pdf') {
+        // 跳转到学习资源tab
+        this.activeTab = 'resources';
+        this.$nextTick(() => {
+          // 可选：滚动到资源区域
+          const el = document.querySelector('.block-title i.el-icon-folder');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      } else if (item.resourceType === 'video') {
+        // 跳转到视频学习tab并自动跳转到视频播放
+        this.activeTab = 'videos';
+        this.$nextTick(() => {
+          // 跳转到视频播放页面
+          this.$router.push({
+            name: 'VideoPlay',
+            params: { videoId: item.id },
+            query: { courseId: this.courseId }
+          });
+        });
+      }
+    },
   },
 };
 </script>
@@ -1787,5 +1960,112 @@ export default {
   .ability-card {
     padding: 15px;
   }
+}
+
+
+/* 添加折叠面板样式 */
+.el-collapse {
+  border: none;
+  margin-bottom: 20px;
+}
+
+.el-collapse-item {
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.el-collapse-item:last-child {
+  margin-bottom: 0;
+}
+
+.el-collapse-item__header {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 0 20px;
+  height: 50px;
+  line-height: 50px;
+  border-bottom: none;
+}
+
+.el-collapse-item__content {
+  padding: 15px 20px;
+}
+
+.el-collapse-item__wrap {
+  border-bottom: none;
+}
+
+.resource-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #EBEEF5;
+}
+
+.resource-item:last-child {
+  border-bottom: none;
+}
+
+.resource-name {
+  cursor: pointer;
+  color: #303133;
+  transition: color 0.2s;
+}
+
+.resource-name:hover {
+  color: #1890ff;
+}
+
+.resource-name i {
+  margin-right: 6px;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+.recommend-scroll-wrapper {
+  padding: 8px 0 16px 0;
+}
+.recommend-scroll-inner {
+  display: flex;
+  overflow-x: auto;
+}
+.recommend-card {
+  min-width: 220px;
+  max-width: 260px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  margin-right: 16px;
+  padding: 16px 18px 12px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.recommend-title {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #333;
+}
+.recommend-summary {
+  font-size: 13px;
+  color: #666;
+  white-space: normal;
+  word-break: break-all;
+}
+.fade-recommend-enter-active, .fade-recommend-leave-active {
+  transition: opacity 0.4s;
+}
+.fade-recommend-enter, .fade-recommend-leave-to {
+  opacity: 0;
 }
 </style>

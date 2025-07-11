@@ -68,4 +68,18 @@ public interface StudentSkillMapper
      * @return 学生能力列表
      */
     public List<StudentSkill> selectStudentSkillByStudentAndCourse(@Param("studentId") Long studentId, @Param("courseId") Long courseId);
+
+    /**
+     * 更新学生能力分数
+     * 
+     * @param studentId 学生ID
+     * @param requirementId 能力要求ID
+     * @param skillScore 能力分数
+     * @param updateReason 更新原因
+     * @return 结果
+     */
+    public int updateStudentSkillScore(@Param("studentId") Long studentId, 
+                                       @Param("requirementId") Long requirementId, 
+                                       @Param("skillScore") Double skillScore, 
+                                       @Param("updateReason") String updateReason);
 }

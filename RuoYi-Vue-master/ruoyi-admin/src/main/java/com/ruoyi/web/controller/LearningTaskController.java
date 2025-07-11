@@ -37,6 +37,7 @@ public class LearningTaskController extends BaseController
     /**
      * 查询学习任务，存储课程的学习任务信息列表
      */
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping("/list")
     public TableDataInfo list(LearningTask learningTask)
     {
@@ -48,7 +49,7 @@ public class LearningTaskController extends BaseController
     /**
      * 导出学习任务，存储课程的学习任务信息列表
      */
-    @PreAuthorize("@ss.hasPermi('system:task:export')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "学习任务，存储课程的学习任务信息", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, LearningTask learningTask)
@@ -61,6 +62,7 @@ public class LearningTaskController extends BaseController
     /**
      * 获取学习任务，存储课程的学习任务信息详细信息
      */
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping(value = "/{taskId}")
     public AjaxResult getInfo(@PathVariable("taskId") Long taskId)
     {
@@ -70,7 +72,7 @@ public class LearningTaskController extends BaseController
     /**
      * 新增学习任务，存储课程的学习任务信息
      */
-    @PreAuthorize("@ss.hasPermi('system:task:add')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "学习任务，存储课程的学习任务信息", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody LearningTask learningTask)
@@ -81,7 +83,7 @@ public class LearningTaskController extends BaseController
     /**
      * 修改学习任务，存储课程的学习任务信息
      */
-    @PreAuthorize("@ss.hasPermi('system:task:edit')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "学习任务，存储课程的学习任务信息", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody LearningTask learningTask)
@@ -92,7 +94,7 @@ public class LearningTaskController extends BaseController
     /**
      * 删除学习任务，存储课程的学习任务信息
      */
-    @PreAuthorize("@ss.hasPermi('system:task:remove')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "学习任务，存储课程的学习任务信息", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{taskIds}")
     public AjaxResult remove(@PathVariable Long[] taskIds)

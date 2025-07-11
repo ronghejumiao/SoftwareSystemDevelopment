@@ -1,0 +1,11 @@
+2025-07-01 18:31:11,076 [INFO] Logs will be saved to C:/SoftwareSystemDevelopment/process_outputs\extract_20250701_183111.log
+2025-07-01 18:31:11,076 [INFO] Extracting text from PDF...
+2025-07-01 18:31:11,140 [INFO] Splitting text into chunks...
+2025-07-01 18:31:11,141 [INFO] Total chunks: 3
+2025-07-01 18:31:11,143 [INFO] Saved chunks list to C:/SoftwareSystemDevelopment/process_outputs/chunks_list.json
+2025-07-01 18:35:22,062 [ERROR] JSON decode error for chunk 001: Expecting value: line 1 column 1 (char 0)
+2025-07-01 18:35:38,875 [ERROR] JSON decode error for chunk 002: Expecting value: line 1 column 1 (char 0)
+2025-07-01 18:38:36,946 [ERROR] JSON decode error for chunk 003: Extra data: line 62 column 1 (char 1274)
+2025-07-01 18:38:36,949 [INFO] Saved all quintuples (0) to C:/SoftwareSystemDevelopment/process_outputs/all_quintuples.json
+2025-07-01 18:38:36,949 [INFO] Uploading quintuples to Neo4j...
+2025-07-01 18:38:36,963 [INFO] Upload complete.

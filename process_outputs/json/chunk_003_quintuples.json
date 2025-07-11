@@ -1,0 +1,51 @@
+[
+  {
+    "subject": "勾股定理",
+    "subject_type": "Theorem",
+    "predicate": "prove_by",
+    "object": "几何图形法",
+    "object_type": "Method"
+  },
+  {
+    "subject": "欧拉公式",
+    "subject_type": "Equation",
+    "predicate": "derive_from",
+    "object": "复数的指数形式",
+    "object_type": "Concept"
+  },
+  {
+    "subject": "牛顿运动定律",
+    "subject_type": "Law",
+    "predicate": "apply_to",
+    "object": "质点动力学问题",
+    "object_type": "ApplicationContext"
+  },
+  {
+    "subject": "薛定谔方程",
+    "subject_type": "Equation",
+    "predicate": "solve_by",
+    "object": "量子力学方法",
+    "object_type": "Method"
+  },
+  {
+    "subject": "哈伯循环",
+    "subject_type": "Reaction",
+    "predicate": "involve",
+    "object": "氮气和氢气",
+    "object_type": "ChemicalObject"
+  },
+  {
+    "subject": "中心法则",
+    "subject_type": "Concept",
+    "predicate": "describe",
+    "object": "遗传信息的传递过程",
+    "object_type": "Interpretation"
+  },
+  {
+    "subject": "哈夫曼编码",
+    "subject_type": "Algorithm",
+    "predicate": "optimize_for",
+    "object": "数据压缩效率",
+    "object_type": "OptimizationContext"
+  }
+]

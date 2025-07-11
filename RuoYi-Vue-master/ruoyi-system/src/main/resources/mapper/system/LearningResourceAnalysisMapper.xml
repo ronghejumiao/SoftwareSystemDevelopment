@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.LearningResourceAnalysisMapper">
+    <resultMap id="LearningResourceAnalysisResultMap" type="com.ruoyi.system.domain.LearningResourceAnalysis">
+        <id property="analysisId" column="analysis_id" />
+        <result property="resourceId" column="resource_id" />
+        <result property="status" column="status" />
+        <result property="contentSummary" column="content_summary" />
+        <result property="modelUsed" column="model_used" />
+        <result property="analysisTime" column="analysis_time" />
+        <result property="errorMessage" column="error_message" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <insert id="insertLearningResourceAnalysis" parameterType="com.ruoyi.system.domain.LearningResourceAnalysis">
+        INSERT INTO learning_resource_analysis
+        (resource_id, status, content_summary, model_used, analysis_time, error_message, create_time, update_time)
+        VALUES
+        (#{resourceId}, #{status}, #{contentSummary}, #{modelUsed}, #{analysisTime}, #{errorMessage}, NOW(), NOW())
+    </insert>
+
+    <update id="updateLearningResourceAnalysis" parameterType="com.ruoyi.system.domain.LearningResourceAnalysis">
+        UPDATE learning_resource_analysis
+        SET status = #{status},
+            content_summary = #{contentSummary},
+            model_used = #{modelUsed},
+            analysis_time = #{analysisTime},
+            error_message = #{errorMessage},
+            update_time = NOW()
+        WHERE resource_id = #{resourceId}
+    </update>
+
+    <select id="selectPendingResources" resultMap="LearningResourceAnalysisResultMap">
+        SELECT * FROM learning_resource_analysis WHERE status = 0
+    </select>
+
+    <select id="selectLearningResourceAnalysisByResourceId" resultMap="LearningResourceAnalysisResultMap">
+        SELECT * FROM learning_resource_analysis WHERE resource_id = #{resourceId}
+    </select>
+</mapper> 

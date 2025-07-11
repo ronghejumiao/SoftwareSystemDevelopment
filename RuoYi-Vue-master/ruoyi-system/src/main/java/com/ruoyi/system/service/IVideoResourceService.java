@@ -58,4 +58,19 @@ public interface IVideoResourceService
      * @return 结果
      */
     public int deleteVideoResourceByVideoId(Long videoId);
+
+    /**
+     * 根据课程ID查询视频资源
+     */
+    java.util.List<com.ruoyi.system.domain.VideoResource> selectVideoResourceListByCourseId(Long courseId);
+
+    /**
+     * 根据ID查询视频资源
+     */
+    com.ruoyi.system.domain.VideoResource selectVideoResourceById(Long videoId);
+
+    /**
+     * 查询待分析的视频资源
+     */
+    java.util.List<com.ruoyi.system.domain.VideoResource> selectPendingAnalysisVideos();
 }

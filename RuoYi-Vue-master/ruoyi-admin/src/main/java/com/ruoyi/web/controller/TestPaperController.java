@@ -49,7 +49,7 @@ public class TestPaperController extends BaseController
     /**
      * 导出试卷，一个试卷库包含多个试卷列表
      */
-    @PreAuthorize("@ss.hasPermi('system:paper:export')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "试卷，一个试卷库包含多个试卷", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, TestPaper testPaper)
@@ -71,7 +71,7 @@ public class TestPaperController extends BaseController
     /**
      * 新增试卷，一个试卷库包含多个试卷
      */
-    @PreAuthorize("@ss.hasPermi('system:paper:add')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "试卷，一个试卷库包含多个试卷", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody TestPaper testPaper)
@@ -82,7 +82,7 @@ public class TestPaperController extends BaseController
     /**
      * 修改试卷，一个试卷库包含多个试卷
      */
-    @PreAuthorize("@ss.hasPermi('system:paper:edit')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "试卷，一个试卷库包含多个试卷", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody TestPaper testPaper)
@@ -93,7 +93,7 @@ public class TestPaperController extends BaseController
     /**
      * 删除试卷，一个试卷库包含多个试卷
      */
-    @PreAuthorize("@ss.hasPermi('system:paper:remove')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "试卷，一个试卷库包含多个试卷", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{paperIds}")
     public AjaxResult remove(@PathVariable Long[] paperIds)
@@ -104,7 +104,7 @@ public class TestPaperController extends BaseController
     /**
      * 生成试卷
      */
-    @PreAuthorize("@ss.hasPermi('system:paper:add')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "生成试卷", businessType = BusinessType.INSERT)
     @PostMapping("/generate")
     public AjaxResult generatePaper(@RequestBody PaperGenerateRequest request)

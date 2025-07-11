@@ -248,6 +248,16 @@
         <el-form-item label="课程进度" prop="courseProgress">
           <el-input v-model="form.courseProgress" placeholder="请输入课程进度" />
         </el-form-item>
+        <el-form-item label="内容摘要">
+          <el-input
+            type="textarea"
+            v-model="form.contentSummary"
+            :rows="4"
+            readonly
+            placeholder="暂无AI分析内容"
+          />
+          <el-button size="mini" @click="handleAnalyzeResource(form.resourceId)">AI分析</el-button>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -259,6 +269,7 @@
 
 <script>
 import { listLearningRecord, getLearningRecord, delLearningRecord, addLearningRecord, updateLearningRecord } from "@/api/system/learningRecord"
+import { getResourceAnalysis, analyzeResource } from "@/api/system/learningResource"
 
 export default {
   name: "LearningRecord",
@@ -404,6 +415,12 @@ export default {
       const recordId = row.recordId || this.ids
       getLearningRecord(recordId).then(response => {
         this.form = response.data
+        // 查询内容摘要
+        if (this.form.resourceId) {
+          getResourceAnalysis(this.form.resourceId).then(res => {
+            this.form.contentSummary = res.data?.contentSummary || ''
+          })
+        }
         this.open = true
         this.title = "修改学习记录"
       })
@@ -446,6 +463,20 @@ export default {
     },
     handleSwitchTab() {
       // 预留 tab 切换回调，后续需要时再实现
+    },
+    // 手动触发AI分析
+    handleAnalyzeResource(resourceId) {
+      this.$modal.loading('AI分析中...')
+      analyzeResource(resourceId).then(() => {
+        this.$modal.closeLoading()
+        this.$message.success('AI分析已触发，请稍后刷新')
+        // 分析后自动刷新内容摘要
+        getResourceAnalysis(resourceId).then(res => {
+          this.form.contentSummary = res.data?.contentSummary || ''
+        })
+      }).catch(() => {
+        this.$modal.closeLoading()
+      })
     }
   }
 }

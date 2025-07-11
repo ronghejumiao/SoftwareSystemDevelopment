@@ -93,4 +93,11 @@ public class CourseSkillRequirementServiceImpl implements ICourseSkillRequiremen
     {
         return courseSkillRequirementMapper.deleteCourseSkillRequirementByRequirementId(requirementId);
     }
+
+    @Override
+    public java.util.List<com.ruoyi.system.domain.CourseSkillRequirement> selectCourseSkillRequirementByCourseId(Long courseId) {
+        com.ruoyi.system.domain.CourseSkillRequirement query = new com.ruoyi.system.domain.CourseSkillRequirement();
+        query.setCourseId(courseId);
+        return courseSkillRequirementMapper.selectCourseSkillRequirementList(query);
+    }
 }

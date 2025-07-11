@@ -73,7 +73,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['system:question:add']"
+          v-hasRole="['admin','teacher']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -84,7 +84,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['system:question:edit']"
+          v-hasRole="['admin','teacher']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -95,7 +95,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['system:question:remove']"
+          v-hasRole="['admin','teacher']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -105,7 +105,7 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['system:question:export']"
+          v-hasRole="['admin','teacher']"
         >导出</el-button>
 
       </el-col>
@@ -116,7 +116,7 @@
 
           size="mini"
           @click="jumpToLibrary"
-          v-hasPermi="['system:library']"
+          v-hasRole="['admin','teacher']"
         >试卷库</el-button>
 
       </el-col>
@@ -127,7 +127,7 @@
           plain
           size="mini"
           @click="handleGeneratePaper"
-          v-hasPermi="['system:library']"
+          v-hasRole="['admin','teacher']"
         >生成试卷</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getQuestionsByCourse"></right-toolbar>
@@ -151,14 +151,14 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:question:edit']"
+            v-hasRole="['admin','teacher']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['system:question:remove']"
+            v-hasRole="['admin','teacher']"
           >删除</el-button>
         </template>
       </el-table-column>
@@ -343,7 +343,7 @@
               <el-card class="selected-card">
                 <div slot="header">
                   <span>已选题目 ({{ selectedQuestions.length }})</span>
-                  <el-button style="float: right; padding: 3px 0" type="text" @click="clearSelected">清空</el-button>
+                  <el-button style="float: right; padding: 3px 0" type="text" @click="clearSelected" v-hasRole="['admin','teacher']">清空</el-button>
                 </div>
                 <div class="selected-list">
                   <div
@@ -359,6 +359,7 @@
                         type="text"
                         size="mini"
                         @click="removeQuestion(questionId)"
+                        v-hasRole="['admin','teacher']"
                       >删除</el-button>
                     </div>
                     <div class="selected-content">{{ getQuestionById(questionId).questionContent }}</div>
@@ -564,7 +565,7 @@
       </div>
 
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="generatePaper">生成试卷</el-button>
+        <el-button type="primary" @click="generatePaper" v-hasRole="['admin','teacher']">生成试卷</el-button>
         <el-button @click="closePaperDialog">取 消</el-button>
       </div>
     </el-dialog>

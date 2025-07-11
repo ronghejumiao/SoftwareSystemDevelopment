@@ -38,7 +38,7 @@ public class TaskSubmissionController extends BaseController
     /**
      * 查询任务提交记录列表
      */
-    @PreAuthorize("@ss.hasPermi('system:submission:list')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping("/list")
     public TableDataInfo list(TaskSubmission taskSubmission)
     {
@@ -54,7 +54,7 @@ public class TaskSubmissionController extends BaseController
     /**
      * 导出任务提交记录列表
      */
-    @PreAuthorize("@ss.hasPermi('system:submission:export')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "任务提交记录", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, TaskSubmission taskSubmission)
@@ -71,7 +71,7 @@ public class TaskSubmissionController extends BaseController
     /**
      * 获取任务提交记录详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:submission:query')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping(value = "/{submissionId}")
     public AjaxResult getInfo(@PathVariable("submissionId") Long submissionId)
     {
@@ -81,7 +81,7 @@ public class TaskSubmissionController extends BaseController
     /**
      * 新增任务提交记录
      */
-    @PreAuthorize("@ss.hasPermi('system:submission:add')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @Log(title = "任务提交记录", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody TaskSubmission taskSubmission)
@@ -95,7 +95,7 @@ public class TaskSubmissionController extends BaseController
     /**
      * 修改任务提交记录
      */
-    @PreAuthorize("@ss.hasPermi('system:submission:edit')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "任务提交记录", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody TaskSubmission taskSubmission)
@@ -106,7 +106,7 @@ public class TaskSubmissionController extends BaseController
     /**
      * 删除任务提交记录
      */
-    @PreAuthorize("@ss.hasPermi('system:submission:remove')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher')")
     @Log(title = "任务提交记录", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{submissionIds}")
     public AjaxResult remove(@PathVariable Long[] submissionIds)

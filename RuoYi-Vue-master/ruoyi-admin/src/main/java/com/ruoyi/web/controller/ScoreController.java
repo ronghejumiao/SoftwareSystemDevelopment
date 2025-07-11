@@ -40,7 +40,7 @@ public class ScoreController extends BaseController
     /**
      * 查询成绩管理列表
      */
-    @PreAuthorize("@ss.hasPermi('system:score:list')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping("/list")
     public TableDataInfo list(Score score)
     {
@@ -94,7 +94,7 @@ public class ScoreController extends BaseController
     /**
      * 获取成绩管理详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:score:query')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping(value = "/{scoreId}")
     public AjaxResult getInfo(@PathVariable("scoreId") Long scoreId)
     {
@@ -118,7 +118,7 @@ public class ScoreController extends BaseController
     /**
      * 新增成绩管理
      */
-    @PreAuthorize("@ss.hasPermi('system:score:add')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @Log(title = "成绩管理", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody Score score)
@@ -161,7 +161,7 @@ public class ScoreController extends BaseController
     /**
      * 根据用户ID和课程ID查询成绩
      */
-    @PreAuthorize("@ss.hasPermi('system:score:list')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping("/user/{userId}/course/{courseId}")
     public AjaxResult getScoreByUserAndCourse(@PathVariable("userId") Long userId, @PathVariable("courseId") Long courseId)
     {
@@ -177,7 +177,7 @@ public class ScoreController extends BaseController
     /**
      * 根据用户ID查询所有成绩
      */
-    @PreAuthorize("@ss.hasPermi('system:score:list')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping("/user/{userId}")
     public AjaxResult getScoreByUserId(@PathVariable("userId") Long userId)
     {

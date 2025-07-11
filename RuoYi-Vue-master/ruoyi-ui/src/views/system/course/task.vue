@@ -269,8 +269,8 @@
           <el-input v-model="resourceFilter.uploaderId" placeholder="输入上传者ID" clearable />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" size="mini" icon="el-icon-search">搜索</el-button>
-          <el-button size="mini" @click="resourceFilter.resourceName='';resourceFilter.resourceType='';resourceFilter.uploaderId=''">重置</el-button>
+          <el-button type="primary" size="mini" icon="el-icon-search" @click="applyResourceFilter">搜索</el-button>
+          <el-button size="mini" @click="resetResourceFilter">重置</el-button>
         </el-form-item>
       </el-form>
       <el-table :data="filteredResourceTable" highlight-current-row @row-click="selectResourceRow" height="350" style="width:100%;">
@@ -445,10 +445,27 @@ export default {
       return arr;
     },
     filteredResourceTable() {
-      // 只展示类型为ppt的资源
-      let arr = this.resourceList.filter(r => r.resourceType && r.resourceType.toLowerCase() === 'ppt');
-      if (this.resourceFilter.resourceName) arr = arr.filter(r => r.resourceName && r.resourceName.includes(this.resourceFilter.resourceName));
-      if (this.resourceFilter.uploaderId) arr = arr.filter(r => String(r.uploaderId) === String(this.resourceFilter.uploaderId));
+      // 根据提交方式筛选资源类型
+      let arr = this.resourceList;
+      if (this.addForm.submitMethod === '资料阅读') {
+        // 资料阅读：展示PPT和PDF类型
+        arr = arr.filter(r => r.resourceType && 
+          (r.resourceType.toLowerCase() === 'ppt' || r.resourceType.toLowerCase() === 'pdf'));
+      } else if (this.addForm.submitMethod === '视频观看') {
+        // 视频观看：展示视频类型
+        arr = arr.filter(r => r.resourceType && r.resourceType.toLowerCase() === '视频');
+      }
+      
+      // 应用筛选条件
+      if (this.resourceFilter.resourceName) {
+        arr = arr.filter(r => r.resourceName && r.resourceName.includes(this.resourceFilter.resourceName));
+      }
+      if (this.resourceFilter.resourceType) {
+        arr = arr.filter(r => r.resourceType && r.resourceType.toLowerCase() === this.resourceFilter.resourceType.toLowerCase());
+      }
+      if (this.resourceFilter.uploaderId) {
+        arr = arr.filter(r => String(r.uploaderId) === String(this.resourceFilter.uploaderId));
+      }
       return arr;
     },
     filteredHomeworkTable() {
@@ -752,6 +769,13 @@ export default {
     },
     openHomeworkFilterDialog() {
       this.homeworkFilterDialog = true;
+    },
+    applyResourceFilter() {
+      // 触发computed刷新
+      this.resourceFilter = { ...this.resourceFilter };
+    },
+    resetResourceFilter() {
+      this.resourceFilter = { resourceName: '', resourceType: '', uploaderId: '' };
     },
     applyHomeworkFilter() {
       this.homeworkFilter = { ...this.homeworkFilter };

@@ -42,3 +42,12 @@ export function delResource(resourceId) {
     method: 'delete'
   })
 }
+
+// 获取全部资源（不分页）
+export function listAllResource(query) {
+  return request({
+    url: '/system/resource/allList',
+    method: 'get',
+    params: query
+  })
+}

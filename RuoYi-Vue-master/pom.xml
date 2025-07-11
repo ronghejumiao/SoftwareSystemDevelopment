@@ -27,14 +27,17 @@
         <fastjson.version>2.0.57</fastjson.version>
         <oshi.version>6.8.1</oshi.version>
         <commons.io.version>2.19.0</commons.io.version>
-        <poi.version>4.1.2</poi.version>
+        <poi.version>5.2.3</poi.version>
         <velocity.version>2.3</velocity.version>
         <jwt.version>0.9.1</jwt.version>
+        <tos.sdk.version>2.8.8</tos.sdk.version>
         <!-- override dependency version -->
         <tomcat.version>9.0.105</tomcat.version>
         <logback.version>1.2.13</logback.version>
         <spring-security.version>5.7.12</spring-security.version>
         <spring-framework.version>5.3.39</spring-framework.version>
+        <!-- 新增：Mockito 统一版本 -->
+        <mockito.version>4.11.0</mockito.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -151,7 +154,17 @@
             <!-- excel工具 -->
             <dependency>
                 <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-scratchpad</artifactId>
                 <version>${poi.version}</version>
             </dependency>
 
@@ -181,6 +194,60 @@
                 <groupId>pro.fessional</groupId>
                 <artifactId>kaptcha</artifactId>
                 <version>${kaptcha.version}</version>
+            </dependency>
+
+            <!-- 火山方舟SDK -->
+            <dependency>
+                <groupId>com.volcengine</groupId>
+                <artifactId>volcengine-java-sdk-ark-runtime</artifactId>
+                <version>0.2.20</version>
+            </dependency>
+            
+            <!-- 火山TOS SDK -->
+            <dependency>
+                <groupId>com.volcengine</groupId>
+                <artifactId>ve-tos-java-sdk</artifactId>
+                <version>${tos.sdk.version}</version>
+            </dependency>
+            
+            <!-- Jackson版本管理 -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.12.7.1</version>
+            </dependency>
+            
+            <!-- Retrofit版本管理 -->
+            <dependency>
+                <groupId>com.squareup.retrofit2</groupId>
+                <artifactId>retrofit</artifactId>
+                <version>2.9.0</version>
+            </dependency>
+            
+            <!-- RxJava版本管理 -->
+            <dependency>
+                <groupId>io.reactivex.rxjava2</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>2.0.0</version>
+            </dependency>
+            
+            <!-- OkHttp版本管理 -->
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>3.14.9</version>
+            </dependency>
+
+            <!-- Apache Tika for document text extraction -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>2.8.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parsers-standard-package</artifactId>
+                <version>2.8.0</version>
             </dependency>
 
             <!-- 定时任务-->
@@ -227,8 +294,42 @@
                 <artifactId>jave-all-deps</artifactId>
                 <version>3.3.1</version>
             </dependency>
+            <!-- Kingbase 官方 JDBC 驱动 -->
+            <dependency>
+                <groupId>cn.com.kingbase</groupId>
+                <artifactId>kingbase8</artifactId>
+                <version>9.0.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <!-- 所有子模块通用依赖 -->
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- JUnit5 集成，不再携带 core，避免与 mockito-inline 冲突 -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.mockito</groupId>
+                    <artifactId>mockito-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
 
     <modules>
         <module>ruoyi-admin</module>
@@ -244,6 +345,14 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!--suppress UnresolvedMavenProperty -->
+                    <argLine>${jacoco.agent.argLine}</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
@@ -252,14 +361,124 @@
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
+            <!-- 新增：Surefire 插件用于运行 JUnit5 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <useModulePath>false</useModulePath>
+                </configuration>
+            </plugin>
+            <!-- 新增：JaCoCo 插件生成覆盖率报告 -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.10</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version> <executions>
+                <execution>
+                    <id>prepare-agent</id>
+                    <goals>
+                        <goal>prepare-agent</goal>
+                    </goals>
+                    <configuration>
+                        <propertyName>jacoco.agent.argLine</propertyName>
+                    </configuration>
+                </execution>
+
+                <execution>
+                    <id>report</id>
+                    <phase>verify</phase>
+                    <goals>
+                        <goal>report</goal>
+                    </goals>
+                </execution>
+
+                <execution>
+                    <id>report-aggregate</id>
+                    <phase>verify</phase>
+                    <goals>
+                        <goal>report-aggregate</goal>
+                    </goals>
+                </execution>
+
+<!--                <execution>-->
+<!--                    <id>check</id>-->
+<!--                    <goals>-->
+<!--                        <goal>check</goal>-->
+<!--                    </goals>-->
+<!--                    <configuration>-->
+<!--                        <rules>-->
+<!--                            <rule>-->
+<!--                                <element>BUNDLE</element> <limits>-->
+<!--                                <limit>-->
+<!--                                    <counter>BRANCH</counter>-->
+<!--                                    <value>COVEREDRATIO</value>-->
+<!--                                    <minimum>0.60</minimum>-->
+<!--                                </limit>-->
+<!--                                <limit>-->
+<!--                                    <counter>LINE</counter>-->
+<!--                                    <value>COVEREDRATIO</value>-->
+<!--                                    <minimum>0.50</minimum>-->
+<!--                                </limit>-->
+<!--                            </limits>-->
+<!--                            </rule>-->
+<!--                        </rules>-->
+<!--                    </configuration>-->
+<!--                </execution>-->
+            </executions>
+            </plugin>
+
         </plugins>
     </build>
 
     <repositories>
         <repository>
+            <id>volcengine-public</id>
+            <name>Volcengine Maven Repo</name>
+            <url>https://artifact.bytedance.com/repository/volcengine/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
             <id>public</id>
             <name>aliyun nexus</name>
             <url>https://maven.aliyun.com/repository/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo1.maven.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>sonatype</id>
+            <name>Sonatype</name>
+            <url>https://central.sonatype.com/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>

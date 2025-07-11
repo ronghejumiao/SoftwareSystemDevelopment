@@ -75,4 +75,11 @@ public interface IScoreService
      * @return 成绩列表
      */
     public List<Score> selectScoreByUserId(Long userId);
+
+    /**
+     * 根据学习记录ID列表查询成绩列表
+     * @param recordIds 学习记录ID列表
+     * @return 成绩列表
+     */
+    public List<Score> selectScoreListByLearningRecords(List<Long> recordIds);
 }

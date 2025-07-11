@@ -23,6 +23,7 @@ import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
 import org.springframework.web.multipart.MultipartFile;
 import com.ruoyi.common.utils.VideoUtils;
+import com.ruoyi.system.service.IVideoAnalysisService;
 
 /**
  * 视频学习资源Controller
@@ -37,10 +38,13 @@ public class VideoResourceController extends BaseController
     @Autowired
     private IVideoResourceService videoResourceService;
 
+    @Autowired
+    private IVideoAnalysisService videoAnalysisService;
+
     /**
      * 查询视频学习资源列表
      */
-    @PreAuthorize("@ss.hasPermi('system:videoresource:list') or @ss.hasRole('teacher')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping("/list")
     public TableDataInfo list(VideoResource videoResource)
     {
@@ -65,7 +69,7 @@ public class VideoResourceController extends BaseController
     /**
      * 获取视频学习资源详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:videoresource:query') or @ss.hasRole('teacher')")
+    @PreAuthorize("@ss.hasRole('admin') or @ss.hasRole('teacher') or @ss.hasRole('student')")
     @GetMapping(value = "/{videoId}")
     public AjaxResult getInfo(@PathVariable("videoId") Long videoId)
     {
@@ -214,5 +218,31 @@ public class VideoResourceController extends BaseController
     public AjaxResult remove(@PathVariable Long[] videoIds)
     {
         return toAjax(videoResourceService.deleteVideoResourceByVideoIds(videoIds));
+    }
+
+    /**
+     * 分析视频内容
+     */
+    @PreAuthorize("@ss.hasPermi('system:videoresource:analyze') or @ss.hasRole('teacher')")
+    @PostMapping("/analyze/{videoId}")
+    public AjaxResult analyzeVideo(@PathVariable Long videoId) {
+        try {
+            videoAnalysisService.analyzeVideoContent(videoId);
+            return AjaxResult.success("已开始分析，请稍后刷新查看进度");
+        } catch (Exception e) {
+            return AjaxResult.error("分析启动失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 查询视频分析进度
+     */
+    @GetMapping("/progress/{videoId}")
+    public AjaxResult getAnalysisProgress(@PathVariable Long videoId) {
+        int progress = videoAnalysisService.getAnalysisProgress(videoId);
+        if (progress == -1) {
+            return AjaxResult.error("分析失败");
+        }
+        return AjaxResult.success(progress);
     }
 }
