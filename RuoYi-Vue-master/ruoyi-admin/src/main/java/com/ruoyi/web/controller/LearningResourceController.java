@@ -52,7 +52,6 @@ public class LearningResourceController extends BaseController
 {
     private static final Logger log = LoggerFactory.getLogger(LearningResourceController.class);
 
-
     @Autowired
     private ILearningResourceService learningResourceService;
 
@@ -151,7 +150,6 @@ public class LearningResourceController extends BaseController
         }
     }
 
-
     /**
      * 获取学习资源AI内容分析
      */
@@ -202,5 +200,4 @@ public class LearningResourceController extends BaseController
             return AjaxResult.error("批量分析触发失败: " + e.getMessage());
         }
     }
-
 }

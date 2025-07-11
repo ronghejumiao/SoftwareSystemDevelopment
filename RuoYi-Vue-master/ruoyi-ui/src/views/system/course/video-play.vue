@@ -526,9 +526,19 @@ export default {
       const timeDiff = currentTime - this.lastSeekTime;
       const now = Date.now();
       
-      // 如果距离上次添加片段时间过短，跳过检测
-      if (now - this.lastSegmentAddTime < 1000) {
+      // 如果是初始续播跳转，跳过检测
+      if (this.isInitialSeek && Math.abs(currentTime - this.initialSeekTime) < 1) {
+        console.log('[视频续播] 跳过初始续播跳转检测');
+        this.isInitialSeek = false; // 清除标记
+        this.lastSeekTime = currentTime;
+        this.currentWatchStart = currentTime;
+        return;
+      }
+      
+      // 避免在短时间内重复添加相同的片段（5秒内）
+      if (now - this.lastSegmentAddTime < 5000) {
         console.log('[视频跳转] 距离上次添加片段时间过短，跳过检测');
+        this.lastSeekTime = currentTime;
         this.currentWatchStart = currentTime;
         return;
       }
@@ -557,19 +567,35 @@ export default {
         const skipStart = this.lastSeekTime;
         const skipEnd = currentTime;
         
-        // 简化跳过片段检测逻辑，不再检查观看覆盖
-        // 直接记录跳过片段，让后续的观看片段处理来更新跳过片段
-        const skipSegment = `${skipStart}-${skipEnd}`;
-        const isAlreadySkipped = this.skipSegments.some(segment => {
-          const [start, end] = segment.split('-').map(Number);
-          return Math.abs(start - skipStart) < 3 && Math.abs(end - skipEnd) < 3;
+        // 检查这个跳过片段是否已经被观看覆盖
+        const isWatched = this.watchedSegments.some(segment => {
+          const [watchStart, watchEnd] = segment.split('-').map(Number);
+          // 如果观看片段与跳过片段有重叠，说明这部分内容已经被观看
+          const overlapStart = Math.max(skipStart, watchStart);
+          const overlapEnd = Math.min(skipEnd, watchEnd);
+          // 只有当重叠时间超过跳过片段总时长的80%时才认为是已观看
+          const skipDuration = skipEnd - skipStart;
+          const overlapDuration = overlapEnd - overlapStart;
+          return overlapDuration > skipDuration * 0.8; // 重叠超过80%认为是已观看
         });
         
-        if (!isAlreadySkipped) {
-          this.skipSegments.push(skipSegment);
-          this.lastSegmentAddTime = now;
-          console.log('[跳过片段]', skipSegment);
-          this.debugStatus();
+        // 只有未被观看的部分才记录为跳过片段
+        if (!isWatched) {
+          // 检查这个跳过片段是否已经记录过
+          const skipSegment = `${skipStart}-${skipEnd}`;
+          const isAlreadySkipped = this.skipSegments.some(segment => {
+            const [start, end] = segment.split('-').map(Number);
+            return Math.abs(start - skipStart) < 3 && Math.abs(end - skipEnd) < 3;
+          });
+          
+          if (!isAlreadySkipped) {
+            this.skipSegments.push(skipSegment);
+            this.lastSegmentAddTime = now;
+            console.log('[跳过片段]', skipSegment);
+            this.debugStatus();
+          }
+        } else {
+          console.log('[跳过片段] 片段已被观看，跳过记录:', `${skipStart}-${skipEnd}`);
         }
       }
       
@@ -723,10 +749,10 @@ export default {
             newSkipSegments.push(`${overlapEnd}-${skipEnd}`);
           }
           
-          // 只有当新的跳过片段时长超过1秒时才保留
+          // 只有当新的跳过片段时长超过2秒时才保留
           newSkipSegments.forEach(segment => {
             const [start, end] = segment.split('-').map(Number);
-            if (end - start > 1) {
+            if (end - start > 2) {
               updatedSkipSegments.push(segment);
             }
           });
@@ -741,6 +767,9 @@ export default {
       if (hasChanges) {
         this.skipSegments = updatedSkipSegments;
         console.log('[更新跳过片段] 最终跳过片段:', this.skipSegments);
+        
+        // 更新重复观看片段，移除已被观看覆盖的部分
+        this.updateRepeatSegmentsAfterWatching(watchStart, watchEnd);
       }
     },
 
@@ -820,8 +849,8 @@ export default {
         const [currentStart, currentEnd] = currentSegment.split('-').map(Number);
         const [nextStart, nextEnd] = sortedSegments[i].split('-').map(Number);
         
-        // 如果两个片段间隔小于1秒，则合并
-        if (nextStart - currentEnd <= 1) {
+        // 如果两个片段间隔小于3秒，则合并
+        if (nextStart - currentEnd <= 3) {
           currentSegment = `${currentStart}-${Math.max(currentEnd, nextEnd)}`;
         } else {
           mergedSegments.push(currentSegment);
@@ -894,11 +923,14 @@ export default {
       // 1. 合并相邻的跳过片段
       this.mergeAdjacentSkipSegments();
       
-      // 2. 过滤掉过短的跳过片段（小于1秒）
+      // 2. 过滤掉过短的跳过片段（小于3秒）
       this.skipSegments = this.skipSegments.filter(segment => {
         const [start, end] = segment.split('-').map(Number);
-        return end - start >= 1;
+        return end - start >= 3;
       });
+      
+      // 3. 检查是否有完全被观看覆盖的跳过片段
+      this.removeFullyWatchedSkipSegments();
       
       console.log('[智能跳过片段管理] 处理完成:', this.skipSegments);
     },
@@ -919,11 +951,21 @@ export default {
         for (const watchSegment of this.watchedSegments) {
           const [watchStart, watchEnd] = watchSegment.split('-').map(Number);
           
-          // 只有当观看片段的时间范围完全包含跳过片段时才移除
+          // 如果观看片段完全覆盖了跳过片段，且观看时间晚于跳过时间
+          // 这里我们放宽条件，只有当观看片段的时间范围完全包含跳过片段时才移除
           if (watchStart <= skipStart && watchEnd >= skipEnd) {
-            isFullyCovered = true;
-            console.log('[移除完全覆盖的跳过片段]', skipSegment, '被', watchSegment, '完全覆盖');
-            break;
+            // 检查观看是否发生在跳过之后（允许5秒的误差）
+            const skipTime = skipStart; // 跳过发生的时间
+            const watchTime = watchStart; // 观看开始的时间
+            
+            // 只有当观看发生在跳过之后较长时间才移除（超过30秒）
+            if (watchTime - skipTime > 30) {
+              isFullyCovered = true;
+              console.log('[移除完全覆盖的跳过片段]', skipSegment, '被', watchSegment, '完全覆盖，观看时间晚于跳过时间');
+              break;
+            } else {
+              console.log('[保留跳过片段]', skipSegment, '虽然被观看覆盖，但观看时间接近跳过时间，保留记录');
+            }
           }
         }
         
@@ -1020,6 +1062,9 @@ export default {
         const [start, end] = segment.split('-').map(Number);
         return end - start >= 3;
       });
+      
+      // 3. 检查是否有完全被观看覆盖的重复观看片段
+      this.removeFullyWatchedRepeatSegments();
       
       console.log('[智能重复观看片段管理] 处理完成:', this.repeatSegments);
     },

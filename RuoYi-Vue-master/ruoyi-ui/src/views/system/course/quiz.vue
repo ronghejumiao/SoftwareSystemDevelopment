@@ -88,7 +88,7 @@
     </el-card>
 
       <!-- 作业评分区域 -->
-      <el-card class="homework-section" v-hasRole="['admin','teacher']">
+      <el-card class="homework-section">
         <div slot="header" class="clearfix">
           <span class="section-title">作业评分</span>
           <el-form :inline="true" :model="gradeFilter" class="filter-form" style="float: right;">

@@ -339,6 +339,7 @@ import { getLearningRecordByUserAndCourse } from '@/api/system/learningRecord';
 import * as echarts from 'echarts';
 
 import { notificationState } from '@/utils/notificationControl';
+import { recommendResource } from '@/api/system/learningResource'
 
 import KnowledgeGraph from './KnowledgeGraph.vue';
 import { recommendResource } from '@/api/system/learningResource'
@@ -592,7 +593,6 @@ export default {
       await this.checkAndInitStudentSkill();
       await this.loadAIRecommendations();
     }
-
   },
 
   beforeDestroy() {
